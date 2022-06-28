@@ -6,6 +6,8 @@
 //
 
 import UIKit
+import SweetUI
+
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
@@ -18,7 +20,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
         window.windowScene = scene
-        window.rootViewController = DemoFlowController()
+        window.rootViewController = FooExampleViewController()
         window.makeKeyAndVisible()
     }
 
@@ -51,3 +53,19 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     }
 }
 
+
+
+class FooExampleViewController: ContentViewController {
+
+    let rootView = ZStack(alignment: .center) {
+        VStack(alignment: .center) {
+            UILabel()
+                .font(.preferredFont(forTextStyle: .largeTitle))
+                .text("Hiya!")
+            UILabel()
+                .font(.preferredFont(forTextStyle: .subheadline))
+                .text("Welcome to SweetUI")
+        }
+    }
+    .backgroundColor(.systemBackground)
+}

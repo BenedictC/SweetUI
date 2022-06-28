@@ -35,6 +35,8 @@ class ExampleViewController: ContentViewController {
 }
 ``` 
 
+<img src="Images/example.jpg" width="356" height="772" alt="ExampleViewController screenshot">
+
 The demo app illustrates:
 - Extract the view to a `View` subclass
 - Communicating with the `View` via a `ViewModel` 
