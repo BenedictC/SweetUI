@@ -59,17 +59,8 @@ open class _ViewController: UIViewController, _ConnectionProviderImplementation,
 
 public extension _ViewController {
 
-    // object returned by cancellablesBuilder will be retained for the duration of self or until discardCancellable(for:) is called.
     func storeCancellable(_ cancellable: Any, for key: AnyHashable) {
-        let openingRetainCount = CFGetRetainCount(self)
-        let expectedClosingRetainCount = openingRetainCount
-
         cancellationsByIdentifier[key] = cancellable
-
-        let actualClosingRetainCount = CFGetRetainCount(self)
-        if actualClosingRetainCount != expectedClosingRetainCount {
-            print("Potential retain cycle detected")
-        }
     }
 
     func discardCancellable(for key: AnyHashable) {
