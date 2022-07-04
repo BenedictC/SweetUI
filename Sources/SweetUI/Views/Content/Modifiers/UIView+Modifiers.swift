@@ -63,15 +63,6 @@ public extension UIView {
         return self
     }
 
-    func minimumContentSizeCategory(_ value: UIContentSizeCategory?) -> Self {
-        self.minimumContentSizeCategory = value
-        return self
-    }
-
-    func maximumContentSizeCategory(_ value: UIContentSizeCategory?) -> Self {
-        self.maximumContentSizeCategory = value
-        return self
-    }
     func semanticContentAttribute(_ value: UISemanticContentAttribute) -> Self {
         self.semanticContentAttribute = value
         return self
@@ -141,6 +132,16 @@ public extension UIView {
 
 @available(iOS 15.0, *)
 public extension UIView {
+
+    func minimumContentSizeCategory(_ value: UIContentSizeCategory?) -> Self {
+        self.minimumContentSizeCategory = value
+        return self
+    }
+
+    func maximumContentSizeCategory(_ value: UIContentSizeCategory?) -> Self {
+        self.maximumContentSizeCategory = value
+        return self
+    }
 
     func focusGroupPriority(_ value: UIFocusGroupPriority) -> Self {
         self.focusGroupPriority = value

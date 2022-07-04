@@ -11,6 +11,10 @@ public class PublisherAssignmentProxy<T: AnyObject> {
     init(origin: T) {
         self.origin = origin
     }
+
+    public func set<V, P: Publisher>(_ keyPath: ReferenceWritableKeyPath<T, V>, from publisher: P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+        publisher.assign(to: keyPath, on: self)
+    }
 }
 
 

@@ -6,7 +6,7 @@ import Combine
 
 public extension UIButton {
 
-    func subscribeAndSendIsSelected(to subject: CurrentValueSubject<Bool, Never>) -> AnyCancellable {
+    func subscribeAndSendIsSelected<S: Subject>(to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
         return ButtonIsSelectedToggler.shared.bindIsSelected(of: self, to: subject)
     }
 }
@@ -16,15 +16,15 @@ public extension UIButton {
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<T: ViewConnectionProvider>(connectionIdentifier: AnyHashable = UUID(), to source: T, _ keyPath: KeyPath<T, CurrentValueSubject<Bool, Never>>) -> Self {
-        subscribeToConnection(of: source, connectionIdentifier: connectionIdentifier) { button, source in
-            button.subscribeAndSendIsSelected(to: source[keyPath: keyPath])
+    func bindIsSelected<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, provider in
+            button.subscribeAndSendIsSelected(to: provider[keyPath: keyPath])
         }
     }
 
-    func bindIsSelected<T: ViewConnectionProvider>(connectionIdentifier: AnyHashable = UUID(), to source: T, builder: @escaping (Self, T) -> CurrentValueSubject<Bool, Never>) -> Self {
-        subscribeToConnection(of: source, connectionIdentifier: connectionIdentifier) { button, source in
-            button.subscribeAndSendIsSelected(to: builder(button, source))
+    func bindIsSelected<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, provider in
+            button.subscribeAndSendIsSelected(to: builder(button, provider))
         }
     }
 }
@@ -34,15 +34,15 @@ public extension SomeView where Self: UIButton {
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<T: ViewModelConnectionProvider>(connectionIdentifier: AnyHashable = UUID(), to source: T, _ keyPath: KeyPath<T.ViewModel, CurrentValueSubject<Bool, Never>>) -> Self {
-        subscribeToConnection(of: source, connectionIdentifier: connectionIdentifier) { button, _, viewModel in
+    func bindIsSelected<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P.ViewModel, S>) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, _, viewModel in
             button.subscribeAndSendIsSelected(to: viewModel[keyPath: keyPath])
         }
     }
 
-    func bindIsSelected<T: ViewModelConnectionProvider>(connectionIdentifier: AnyHashable = UUID(), to source: T, builder: @escaping (Self, T, T.ViewModel) -> CurrentValueSubject<Bool, Never>) -> Self {
-        subscribeToConnection(of: source, connectionIdentifier: connectionIdentifier) { button, source, viewModel in
-            button.subscribeAndSendIsSelected(to: builder(button, source, viewModel))
+    func bindIsSelected<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P, P.ViewModel) -> S) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, provider, viewModel in
+            button.subscribeAndSendIsSelected(to: builder(button, provider, viewModel))
         }
     }
 }
@@ -66,16 +66,17 @@ class ButtonIsSelectedToggler: NSObject {
         return subjects
     }
 
-    func bindIsSelected(of button: UIButton, to subject: CurrentValueSubject<Bool, Never>) -> AnyCancellable {
+    func bindIsSelected<S: Subject>(of button: UIButton, to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
+        let anySubject = subject.eraseToAnySubject()
         // Store the subject
-        subjects(for: button).add(subject)
+        subjects(for: button).add(anySubject)
 
         // Add the target
         button.addTarget(self, action: #selector(toggle(_:)), for: .primaryActionTriggered)
         let sendCancellable = AnyCancellable {
             button.removeTarget(self, action: #selector(self.toggle(_:)), for: .primaryActionTriggered)
         }
-        let receiveCancellable = subject.sink { button.isSelected = $0 }
+        let receiveCancellable = anySubject.sink { button.isSelected = $0 }
 
         return AnyCancellable {
             [sendCancellable, receiveCancellable].forEach { $0.cancel() }
@@ -92,7 +93,7 @@ class ButtonIsSelectedToggler: NSObject {
 
         let newValue = button.isSelected
         subjects(for: button)
-            .compactMap { $0 as? CurrentValueSubject<Bool, Never> }
+            .compactMap { $0 as? AnySubject<Bool, Never> }
             .forEach { $0.send(newValue) }
     }
 }
