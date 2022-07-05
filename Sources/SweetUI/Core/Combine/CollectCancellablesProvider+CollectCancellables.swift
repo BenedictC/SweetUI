@@ -26,7 +26,7 @@ public extension Publisher {
 }
 
 
-public extension ViewControlling where Self: _ViewController { // TODO: Should this be an extension on a more widely applicable protocol?
+public extension CollectCancellablesProvider {
 
     func collectCancellables(for key: AnyHashable = UUID().uuidString, @CancellablesBuilder using cancellableBuilder: () -> AnyCancellable) {
         let cancellable = detectPotentialRetainCycle(of: self) { cancellableBuilder() }

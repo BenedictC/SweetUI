@@ -2,24 +2,29 @@ import Foundation
 import UIKit
 
 
-public typealias NavigationFlowController = _NavigationFlowController & NavigationFlowSupporting
+// MARK: - NavigationFlowController
+
+public typealias NavigationFlowController = _NavigationFlowController & NavigationFlowControllerRequirements
 
 
-public protocol NavigationFlowSupporting: _NavigationFlowSupporting, FlowSupporting where ContainerViewController: UINavigationController {
+// MARK: - Associated Types
 
+public protocol NavigationFlowControllerRequirements: _NavigationFlowControllerRequirements, FlowControllerRequirements where ContainerViewController: UINavigationController {
     associatedtype RootViewController: UIViewController
 
     var rootViewController: RootViewController { get }
 }
 
 
-public protocol _NavigationFlowSupporting: _FlowSupporting {
+public protocol _NavigationFlowControllerRequirements: _NavigationFlowController, _FlowControllerRequirements {
     var _rootViewController: UIViewController { get }
     var _containerViewController: UINavigationController { get }
 }
 
 
-public extension NavigationFlowSupporting {
+// MARK: - Implementation
+
+public extension NavigationFlowControllerRequirements {
     var _rootViewController: UIViewController { rootViewController }
     var _containerViewController: UINavigationController { containerViewController }
 }
@@ -31,8 +36,8 @@ open class _NavigationFlowController: _FlowController {
 
     public override init() {
         super.init()
-        guard let owner = self as? _NavigationFlowSupporting else {
-            preconditionFailure("_NavigationFlowController must conform to _NavigationFlowSupporting")
+        guard let owner = self as? _NavigationFlowControllerRequirements else {
+            preconditionFailure("_NavigationFlowController must conform to _NavigationFlowControllerRequirements")
         }
         owner._containerViewController.view.backgroundColor = .systemBackground
         owner._containerViewController.pushViewController(owner._rootViewController, animated: false)
@@ -40,7 +45,7 @@ open class _NavigationFlowController: _FlowController {
 }
 
 
-public extension NavigationFlowSupporting where Self: _NavigationFlowController {
+public extension NavigationFlowControllerRequirements {
 
     var containerViewController: UINavigationController { defaultNavigationController }
 

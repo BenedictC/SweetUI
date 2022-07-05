@@ -31,62 +31,32 @@ extension SomeView where Self: UITextField {
 }
 
 
-// MARK: - ViewConnectionProvider continuous
+// MARK: - ViewIsAvailableProvider continuous
 
 public extension SomeView where Self: UITextField {
 
-    func bindText<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, provider in
+    func bindText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == String?, S.Failure == Never {
+        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textField, provider in
             let subject = provider[keyPath: keyPath]
             return textField.makeBindings(for: subject, keyPath: \.text)
         }
     }
 
-    func bindText<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, provider in
+    func bindText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == String?, S.Failure == Never {
+        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textField, provider in
             textField.makeBindings(for: builder(textField, provider), keyPath: \.text)
         }
     }
 
-    func bindAttributedText<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, provider in
+    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textField, provider in
             textField.makeBindings(for: provider[keyPath: keyPath], keyPath: \.attributedText)
         }
     }
 
-    func bindAttributedText<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, provider in
+    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textField, provider in
             textField.makeBindings(for: builder(textField, provider), keyPath: \.attributedText)
-        }
-    }
-}
-
-
-// MARK: - ViewModelConnectionProvider continuous
-
-public extension SomeView where Self: UITextField {
-
-    func bindText<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P.ViewModel, S>) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, _, viewModel in
-            textField.makeBindings(for: viewModel[keyPath: keyPath], keyPath: \.text)
-        }
-    }
-
-    func bindText<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P, P.ViewModel) -> S) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, provider, viewModel in
-            textField.makeBindings(for: builder(textField, provider, viewModel), keyPath: \.text)
-        }
-    }
-
-    func bindAttributedText<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P.ViewModel, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, _, viewModel in
-            textField.makeBindings(for: viewModel[keyPath: keyPath], keyPath: \.attributedText)
-        }
-    }
-
-    func bindAttributedText<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P, P.ViewModel) -> S) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { textField, provider, viewModel in
-            textField.makeBindings(for: builder(textField, provider, viewModel), keyPath: \.attributedText)
         }
     }
 }

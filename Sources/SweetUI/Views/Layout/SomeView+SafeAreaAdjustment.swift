@@ -47,7 +47,7 @@ public class SafeAreaAdjustmentContainer<Content: UIView>: Container<Content>, E
         super.init(content: content)
 
         let edgesIgnoringSafeArea = regions.contains(.container)
-        ? UIView.edgesIgnoringSafeArea(for: content) // only respect safe edges for containers
+         ? edgesIgnoringSafeArea ?? UIView.edgesIgnoringSafeArea(for: content) // only respect safe edges for containers
         : .all // if it's not a .container then ignore all safe areas
         addAndFill(subview: content, overrideEdgesIgnoringSafeArea: edgesIgnoringSafeArea)
 
@@ -118,6 +118,6 @@ public extension SomeView {
 public extension SomeView {
 
     func avoidKeyboard() -> SafeAreaAdjustmentContainer<Self> {
-        return ignoresSafeArea(.keyboard, edges: [])
+        return SafeAreaAdjustmentContainer(content: self, safeAreaIgnoringRegions: .keyboard, edgesIgnoringSafeArea: nil)
     }
 }

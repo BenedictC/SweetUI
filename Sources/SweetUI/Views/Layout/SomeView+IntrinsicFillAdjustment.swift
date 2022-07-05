@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 
-public class IntrinsicFillAdjustmentContainer<T: UIView>: Container<T>, IntrinsicFillSupporting {
+public class IntrinsicFillAdjustmentContainer<T: UIView>: Container<T>, IntrinsicFillSupporting, EdgesIgnoringSafeAreaSupporting {
 
     // MARK: Properties
 
@@ -11,6 +11,8 @@ public class IntrinsicFillAdjustmentContainer<T: UIView>: Container<T>, Intrinsi
         optionalIntrinsicFillAxes ?? UIView.intrinsicFillAxis(for: content)
     }
 
+    public var edgesIgnoringSafeArea: UIRectEdge { UIView.edgesIgnoringSafeArea(for: content) }
+
 
     // MARK: Instance life cycle
 
@@ -18,7 +20,7 @@ public class IntrinsicFillAdjustmentContainer<T: UIView>: Container<T>, Intrinsi
         self.optionalIntrinsicFillAxes = intrinsicallyFillsAxes
         super.init(content: content)
 
-        addAndFill(subview: content, overrideEdgesIgnoringSafeArea: nil)
+        addAndFill(subview: content, overrideEdgesIgnoringSafeArea: .all)
     }
 
     @available(*, unavailable)

@@ -2,18 +2,28 @@ import Foundation
 import UIKit
 
 
-public typealias View = _View & ViewBodyProvider & ViewModelConnectionProvider
+public typealias View = _View & ViewBodyProvider & ViewModelProvider
 
 
-open class _View: UIView, _ConnectionProviderImplementation, TraitCollectionDidChangeProvider {
+// MARK: - ViewModelConnectionProvider
+
+public protocol ViewModelProvider {
+
+    associatedtype ViewModel = Void
+
+    var viewModel: ViewModel! { get }
+}
+
+
+open class _View: UIView, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Properties
 
     var anyViewModel: Any?
     weak var anyObjectViewModel: AnyObject?
-    let connectionProviderStorage = ConnectionProviderStorage()
-    var traitCollectionDidChangeHandlers = [(UITraitCollection?, UITraitCollection) -> Bool]()
-    
+    let viewIsAvailableProviderStorage = ViewIsAvailableProviderStorage()
+    let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
+
 
     // MARK: Instance life cycle
 
@@ -39,48 +49,42 @@ open class _View: UIView, _ConnectionProviderImplementation, TraitCollectionDidC
 
         // When a VC animates their view is moved to a transitionary window
         // which means this gets fired more often than expected.
-//        guard let self = self as? ViewConnectionProvider else {
+//        guard let self = self as? ViewIsAvailableProvider else {
 //            preconditionFailure()
 //        }
-        let shouldAttachImmediately = self.window == nil && window != nil
-        if shouldAttachImmediately {
-            self.updateConnectionHandlers(shouldConnect: true)
+        let shouldCollectCancellables = self.window == nil && window != nil
+        if shouldCollectCancellables {
+            self.updateViewIsAvailableHandlers(isAvailable: true)
         }
         // Schedule an update for the next tick of the run loop
         // We don't update immediately because the view could be moving to another window
         DispatchQueue.main.async {
-            let shouldConnect = !self.areConnectionsActive && self.window != nil
-            let shouldDisconnect = self.window == nil
-            if shouldConnect || shouldDisconnect {
-                let shouldConnect = self.window != nil
-                self.updateConnectionHandlers(shouldConnect: shouldConnect)
+            let didBecomeAvailable = !self.hasViewAvailabilityCancellables && self.window != nil
+            let didBecomeUnavailable = self.window == nil
+            if didBecomeAvailable || didBecomeUnavailable {
+                let isAvailable = self.window != nil
+                self.updateViewIsAvailableHandlers(isAvailable: isAvailable)
             }
         }
     }
 
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
         let current = self.traitCollection
-        self.traitCollectionDidChangeHandlers = traitCollectionDidChangeHandlers.filter { $0(previous, current) }
-    }
-}
-
-
-// MARK: - TraitCollectionDidChangeProvider
-
-extension _View {
-
-    public func addTraitCollectionDidChangeHandler(_ handler: @escaping (UITraitCollection?, UITraitCollection) -> Bool) {
-        traitCollectionDidChangeHandlers.append(handler)
+        invokeTraitCollectionDidChangeHandlers(previous: previous, current: current)
     }
 }
 
 
 // MARK: - ViewModel
 
-public extension ViewModelConnectionProvider where Self: _View {
+public extension ViewModelProvider where Self: _View {
 
-    var viewModel: ViewModel? {
-        get { (anyObjectViewModel ?? anyViewModel) as! ViewModel? }
+    private(set) var viewModel: ViewModel! {
+        get {
+            "TODO: If ViewModel: AnyObject and anyObjectViewModel == nil then fatalError()"
+            return (anyObjectViewModel ?? anyViewModel) as! ViewModel?
+        }
         set {
             if let newValue = newValue as? AnyObject  {
                 anyViewModel = nil
@@ -89,8 +93,8 @@ public extension ViewModelConnectionProvider where Self: _View {
                 anyViewModel = newValue
                 anyObjectViewModel = nil
             }
-            let shouldConnect = window != nil
-            updateConnectionHandlers(shouldConnect: shouldConnect)
+            let shouldCollectCancellables = window != nil
+            updateViewIsAvailableHandlers(isAvailable: shouldCollectCancellables)
         }
     }
 
@@ -102,14 +106,15 @@ public extension ViewModelConnectionProvider where Self: _View {
 
 
 @available(*, unavailable)
-public extension ViewModelConnectionProvider where Self: _View, ViewModel == Void {
+public extension ViewModelProvider where Self: _View, ViewModel == Void {
 
-    var viewModel: ViewModel? {
+    private(set) var viewModel: ViewModel! {
         get { anyViewModel as! ViewModel? }
         set { anyViewModel = newValue }
     }
 
     init(viewModel: ViewModel) {
         self.init()
+        anyViewModel = ()
     }
 }

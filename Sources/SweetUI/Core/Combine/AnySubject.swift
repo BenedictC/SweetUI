@@ -1,26 +1,5 @@
-//
-//  AnySubject.swift
-//  ChordBook
-//
-//  Created by Benedict Cohen on 03/07/2022.
-//
-
-import Foundation
 import Combine
 
-
-public extension Subject {
-
-    func eraseToAnySubject() -> AnySubject<Output, Failure> {
-        if let existing = self as? AnySubject<Output, Failure> {
-            return existing
-        }
-        return AnySubject(wrapped: self)
-    }
-}
-
-
-// MARK: -
 
 public final class AnySubject<Output, Failure: Error>: Subject {
 
@@ -36,7 +15,8 @@ public final class AnySubject<Output, Failure: Error>: Subject {
         receiveHandler: @escaping (AnySubscriber<Output, Failure>) -> Void,
         sendValueHandler: @escaping (Output) -> Void,
         sendCompletionHandler: @escaping (Subscribers.Completion<Failure>) -> Void,
-        sendSubscriptionHandler: @escaping (Subscription) -> Void) {
+        sendSubscriptionHandler: @escaping (Subscription) -> Void)
+    {
         self.receiveHandler = receiveHandler
         self.sendValueHandler = sendValueHandler
         self.sendCompletionHandler = sendCompletionHandler
@@ -73,11 +53,11 @@ public final class AnySubject<Output, Failure: Error>: Subject {
 }
 
 
-// MARK: - Initializers
+// MARK: - Public Initializers
 
 public extension AnySubject {
 
-    convenience init<T: Subject>(wrapped: T) where T.Output == Output, T.Failure == Failure {
+    convenience init<T: Subject>(_ wrapped: T) where T.Output == Output, T.Failure == Failure {
         self.init(
             receiveHandler: { wrapped.receive(subscriber: $0) },
             sendValueHandler: { wrapped.send($0) },
@@ -85,13 +65,17 @@ public extension AnySubject {
             sendSubscriptionHandler: { wrapped.send(subscription: $0) }
         )
     }
+}
 
-    convenience init<T: AnyObject>(root: T, valueKeyPath: ReferenceWritableKeyPath<T, Output>, publisher: Published<Output>.Publisher) where Failure == Never {
-        self.init(
-            receiveHandler: { publisher.receive(subscriber: $0) },
-            sendValueHandler: { [weak root] in root?[keyPath: valueKeyPath] = $0 },
-            sendCompletionHandler: { _ in /* Published can't complete */ },
-            sendSubscriptionHandler: { _ in /* ??? */ }
-        )
+
+// MARK: - Type erasure factory
+
+public extension Subject {
+
+    func eraseToAnySubject() -> AnySubject<Output, Failure> {
+        if let existing = self as? AnySubject<Output, Failure> {
+            return existing
+        }
+        return AnySubject(self)
     }
 }

@@ -1,19 +1,41 @@
 import Foundation
 import UIKit
-import CoreFoundation
 
 
-public typealias ViewController = _ViewController & ViewControlling
+// MARK: - ViewController
+
+public typealias ViewController = _ViewController & ViewControllerRequirements
 
 
-open class _ViewController: UIViewController, _ConnectionProviderImplementation, TraitCollectionDidChangeProvider {
+// MARK: - Associated Types
+
+public protocol ViewControllerRequirements: _ViewControllerRequirements {
+    associatedtype View: UIView
+
+    var rootView: View { get }
+}
+
+
+public protocol _ViewControllerRequirements: _ViewController {
+    var _rootView: UIView { get }
+}
+
+
+// MARK: - Implementation
+
+public extension ViewControllerRequirements {
+    var _rootView: UIView { rootView }
+}
+
+
+open class _ViewController: UIViewController, _ViewIsAvailableProviderImplementation, _CollectCancellablesProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Properties
 
-    let connectionProviderStorage = ConnectionProviderStorage()
-    var cancellationsByIdentifier = [AnyHashable: Any]()
-    var traitCollectionDidChangeHandlers = [(UITraitCollection?, UITraitCollection) -> Bool]()
-
+    let viewIsAvailableProviderStorage = ViewIsAvailableProviderStorage()
+    let collectCancellablesProviderStorage = CollectCancellablesProviderStorage()
+    let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
+    
 
     // MARK: Instance life cycle
 
@@ -28,8 +50,8 @@ open class _ViewController: UIViewController, _ConnectionProviderImplementation,
 
     @available(*, deprecated, message: "Use viewDidLoad to configure the view.")
     override public func loadView() {
-        guard let owner = self as? _ViewControlling else {
-            preconditionFailure("_ViewController must conform to _ViewControlling")
+        guard let owner = self as? _ViewControllerRequirements else {
+            preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
         let view = owner._rootView
         self.view = view
@@ -40,40 +62,17 @@ open class _ViewController: UIViewController, _ConnectionProviderImplementation,
 
     override open func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        updateConnectionHandlers(shouldConnect: true)
+        updateViewIsAvailableHandlers(isAvailable: true)
     }
 
     open override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
-        updateConnectionHandlers(shouldConnect: false)
+        updateViewIsAvailableHandlers(isAvailable: false)
     }
 
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
+        super.traitCollectionDidChange(previous)
         let current = self.traitCollection
-        self.traitCollectionDidChangeHandlers = traitCollectionDidChangeHandlers.filter { $0(previous, current) }
-    }
-}
-
-
-// MARK: - Cancellable
-
-public extension _ViewController {
-
-    func storeCancellable(_ cancellable: Any, for key: AnyHashable) {
-        cancellationsByIdentifier[key] = cancellable
-    }
-
-    func discardCancellable(for key: AnyHashable) {
-        cancellationsByIdentifier.removeValue(forKey: key)
-    }
-}
-
-
-// MARK: - TraitCollectionDidChangeProvider
-
-extension _ViewController {
-
-    public func addTraitCollectionDidChangeHandler(_ handler: @escaping (UITraitCollection?, UITraitCollection) -> Bool) {
-        traitCollectionDidChangeHandlers.append(handler)
+        invokeTraitCollectionDidChangeHandlers(previous: previous, current: current)
     }
 }

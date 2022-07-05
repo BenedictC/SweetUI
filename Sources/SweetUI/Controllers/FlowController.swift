@@ -2,12 +2,14 @@ import Foundation
 import UIKit
 
 
-// MARK: -
+// MARK: - FlowController
 
-public typealias FlowController = _FlowController & FlowSupporting
+public typealias FlowController = _FlowController & FlowControllerRequirements
 
 
-public protocol FlowSupporting: ContentViewControlling, _FlowSupporting {
+// MARK: - Associated Types
+
+public protocol FlowControllerRequirements: ViewControllerRequirements, _FlowControllerRequirements {
 
     associatedtype ContainerViewController: UIViewController
     associatedtype View = UIView
@@ -16,17 +18,20 @@ public protocol FlowSupporting: ContentViewControlling, _FlowSupporting {
 }
 
 
-public protocol _FlowSupporting: _ContentViewControlling {
+// MARK: - Implementation
 
+public protocol _FlowControllerRequirements: _FlowController, _ViewControllerRequirements {
+    
     var _containerViewController: UIViewController { get }
     var childViewContainer: UIView { get }
 }
 
 
-// MARK: -
+public extension FlowControllerRequirements {
 
-public extension FlowSupporting {
-
+    var childViewContainer: UIView { rootView }
+    var _rootView: UIView { rootView }
+    var _containerViewController: UIViewController { containerViewController }
     var rootView: View {
         guard isViewLoaded else {
             return View()
@@ -39,22 +44,12 @@ public extension FlowSupporting {
 }
 
 
-// MARK: - Implementation details
-
-public extension FlowSupporting {
-
-    var childViewContainer: UIView { rootView }
-    var _rootView: UIView { rootView }
-    var _containerViewController: UIViewController { containerViewController }
-}
-
-
-open class _FlowController: _ContentViewController {
+open class _FlowController: _ViewController {
 
     @available(*, unavailable, message: "Use viewDidLoad to configure the view.")
     override public func loadView() {
-        guard let flow = self as? _FlowSupporting else {
-            preconditionFailure("_FlowController subclasses must conform to _FlowSupporting.")
+        guard let flow = self as? _FlowControllerRequirements else {
+            preconditionFailure("_FlowController subclasses must conform to _FlowControllerRequirements.")
         }
 
         self.view = flow._rootView

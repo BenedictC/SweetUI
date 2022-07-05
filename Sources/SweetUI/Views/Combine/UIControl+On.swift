@@ -41,12 +41,12 @@ private extension SomeView where Self: UIControl {
 }
 
 
-// MARK: - ViewConnectionProvider
+// MARK: - ViewIsAvailableProvider
 
 public extension SomeView where Self: UIControl {
 
-    func on<T: ViewConnectionProvider>(_ event: UIControl.Event, connectionIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T) -> Void) -> Self {
-        subscribeToConnection(of: connectionProvider, connectionIdentifier: connectionIdentifier) { control, onConnectProvider in
+    func on<T: ViewIsAvailableProvider>(_ event: UIControl.Event, handlerIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T) -> Void) -> Self {
+        subscribeToViewIsAvailable(of: connectionProvider, handlerIdentifier: handlerIdentifier) { control, onConnectProvider in
             let actionHandler = ActionHandler<Self>(handler: { _, _ in
                 handler(control, onConnectProvider)
             })
@@ -54,52 +54,10 @@ public extension SomeView where Self: UIControl {
         }
     }
 
-    func on<T: ViewConnectionProvider>(_ event: UIControl.Event, connectionIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T, UIControl.Event) -> Void) -> Self {
-        subscribeToConnection(of: connectionProvider, connectionIdentifier: connectionIdentifier) { control, onConnectProvider in
+    func on<T: ViewIsAvailableProvider>(_ event: UIControl.Event, handlerIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T, UIControl.Event) -> Void) -> Self {
+        subscribeToViewIsAvailable(of: connectionProvider, handlerIdentifier: handlerIdentifier) { control, onConnectProvider in
             let actionHandler = ActionHandler<Self>(handler: { _, _ in
                 handler(control, onConnectProvider, event)
-            })
-            return control.addTarget(with: actionHandler, for: event)
-        }
-    }
-}
-
-
-// MARK: - ViewModelConnectionProvider
-
-public extension SomeView where Self: UIControl {
-
-//    func on<T: ViewModelConnectionProvider>(_ event: UIControl.Event, connectionIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T) -> Void) -> Self {
-//        subscribeToConnection(of: connectionProvider, connectionIdentifier: connectionIdentifier) { control, onConnectProvider, _ in
-//            let actionHandler = ActionHandler<Self>(handler: { _, _ in
-//                handler(control, onConnectProvider)
-//            })
-//            return control.addTarget(with: actionHandler, for: event)
-//        }
-//    }
-//
-//    func on<T: ViewModelConnectionProvider>(_ event: UIControl.Event, connectionIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T, UIControl.Event) -> Void) -> Self {
-//        subscribeToConnection(of: connectionProvider, connectionIdentifier: connectionIdentifier) { control, onConnectProvider, _ in
-//            let actionHandler = ActionHandler<Self>(handler: { _, _ in
-//                handler(control, onConnectProvider, event)
-//            })
-//            return control.addTarget(with: actionHandler, for: event)
-//        }
-//    }
-
-    func on<T: ViewModelConnectionProvider>(_ event: UIControl.Event, connectionIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T, T.ViewModel) -> Void) -> Self {
-        subscribeToConnection(of: connectionProvider, connectionIdentifier: connectionIdentifier) { control, onConnectProvider, viewModel in
-            let actionHandler = ActionHandler<Self>(handler: { _, _ in
-                handler(control, onConnectProvider, viewModel)
-            })
-            return control.addTarget(with: actionHandler, for: event)
-        }
-    }
-
-    func on<T: ViewModelConnectionProvider>(_ event: UIControl.Event, connectionIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T, T.ViewModel, UIControl.Event) -> Void) -> Self {
-        subscribeToConnection(of: connectionProvider, connectionIdentifier: connectionIdentifier) { control, onConnectProvider, viewModel in
-            let actionHandler = ActionHandler<Self>(handler: { _, _ in
-                handler(control, onConnectProvider, viewModel, event)
             })
             return control.addTarget(with: actionHandler, for: event)
         }

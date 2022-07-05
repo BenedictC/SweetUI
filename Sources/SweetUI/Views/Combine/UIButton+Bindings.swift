@@ -12,37 +12,19 @@ public extension UIButton {
 }
 
 
-// MARK: - ViewConnectionProvider continuous
+// MARK: - ViewIsAvailableProvider continuous
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, provider in
+    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { button, provider in
             button.subscribeAndSendIsSelected(to: provider[keyPath: keyPath])
         }
     }
 
-    func bindIsSelected<P: ViewConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, provider in
+    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { button, provider in
             button.subscribeAndSendIsSelected(to: builder(button, provider))
-        }
-    }
-}
-
-
-// MARK: - ViewModelConnectionProvider continuous
-
-public extension SomeView where Self: UIButton {
-
-    func bindIsSelected<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P.ViewModel, S>) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, _, viewModel in
-            button.subscribeAndSendIsSelected(to: viewModel[keyPath: keyPath])
-        }
-    }
-
-    func bindIsSelected<P: ViewModelConnectionProvider, S: Subject>(connectionIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P, P.ViewModel) -> S) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToConnection(of: provider, connectionIdentifier: connectionIdentifier) { button, provider, viewModel in
-            button.subscribeAndSendIsSelected(to: builder(button, provider, viewModel))
         }
     }
 }
