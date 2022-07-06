@@ -2,23 +2,29 @@ import Foundation
 import UIKit
 
 
-public typealias View = _View & ViewBodyProvider & ViewModelProvider
+// MARK: - View
+
+public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider
 
 
-// MARK: - ViewModelConnectionProvider
+// MARK: - Implementation
 
-public protocol ViewModelProvider {
+open class _View<ViewModel>: UIView, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
-    associatedtype ViewModel = Void
+    // MARK: Types
 
-    var viewModel: ViewModel! { get }
-}
+    typealias ViewModel = ViewModel
 
-
-open class _View: UIView, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
-
+    
     // MARK: Properties
 
+    public var viewModel: ViewModel! {
+        guard let anyViewModel = anyObjectViewModel ?? anyViewModel,
+              let viewModel = anyViewModel as? ViewModel else {
+            preconditionFailure("viewModel must be provided at init. _View weakly retains its viewModel and expects it to live for the duration of the _View instances existence.")
+        }
+        return viewModel
+    }
     var anyViewModel: Any?
     weak var anyObjectViewModel: AnyObject?
     let viewIsAvailableProviderStorage = ViewIsAvailableProviderStorage()
@@ -27,8 +33,15 @@ open class _View: UIView, _ViewIsAvailableProviderImplementation, _TraitCollecti
 
     // MARK: Instance life cycle
 
-    required public init() {
+    required public init(viewModel: ViewModel) {
         super.init(frame: .zero)
+
+        let isReferenceType = object_isClass(type(of: viewModel as Any))
+        if isReferenceType {
+            anyObjectViewModel = viewModel as AnyObject
+        } else {
+            anyViewModel = viewModel
+        }
 
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
@@ -78,43 +91,9 @@ open class _View: UIView, _ViewIsAvailableProviderImplementation, _TraitCollecti
 
 // MARK: - ViewModel
 
-public extension ViewModelProvider where Self: _View {
+public extension _View where ViewModel == Void {
 
-    private(set) var viewModel: ViewModel! {
-        get {
-            "TODO: If ViewModel: AnyObject and anyObjectViewModel == nil then fatalError()"
-            return (anyObjectViewModel ?? anyViewModel) as! ViewModel?
-        }
-        set {
-            if let newValue = newValue as? AnyObject  {
-                anyViewModel = nil
-                anyObjectViewModel = newValue
-            } else {
-                anyViewModel = newValue
-                anyObjectViewModel = nil
-            }
-            let shouldCollectCancellables = window != nil
-            updateViewIsAvailableHandlers(isAvailable: shouldCollectCancellables)
-        }
-    }
-
-    init(viewModel: ViewModel) {
-        self.init()
-        self.viewModel = viewModel
-    }
-}
-
-
-@available(*, unavailable)
-public extension ViewModelProvider where Self: _View, ViewModel == Void {
-
-    private(set) var viewModel: ViewModel! {
-        get { anyViewModel as! ViewModel? }
-        set { anyViewModel = newValue }
-    }
-
-    init(viewModel: ViewModel) {
-        self.init()
-        anyViewModel = ()
+    convenience init(voidViewModel: Void = ()) {
+        self.init(viewModel: voidViewModel)
     }
 }
