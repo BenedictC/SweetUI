@@ -51,8 +51,20 @@ public class SafeAreaAdjustmentContainer<Content: UIView>: Container<Content>, E
         : .all // if it's not a .container then ignore all safe areas
         addAndFill(subview: content, overrideEdgesIgnoringSafeArea: edgesIgnoringSafeArea)
 
+        if regions.contains(.keyboard) {
+            initializeKeyboardAvoidance()
+        }
+    }
+
+    @available(*, unavailable)
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    private func initializeKeyboardAvoidance() {
         let notificationCenter = NotificationCenter.default
         let notificationName = UIApplication.keyboardWillChangeFrameNotification
+
         self.keyboardNotificationObservation = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { [weak self] notification in
             let keyboardFrameValue = notification.userInfo?[UIApplication.keyboardFrameEndUserInfoKey] as? NSValue
             let keyboardFrame = keyboardFrameValue?.cgRectValue ?? .zero
@@ -65,11 +77,6 @@ public class SafeAreaAdjustmentContainer<Content: UIView>: Container<Content>, E
             let animationDuration = animationDurationValue?.doubleValue ?? 0.35
             self?.updateSafeAreaInsets(animationCurve: animationCurve, animationDuration: animationDuration)
         }
-    }
-
-    @available(*, unavailable)
-    required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
     }
 
 
