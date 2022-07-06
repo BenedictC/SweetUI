@@ -13,6 +13,13 @@ public extension PropertySubscribable {
             self?[keyPath: keyPath] = value
         }
     }
+
+    func subscribe<V, P: Publisher>(_ keyPath: ReferenceWritableKeyPath<Self, V>, to publisherBuilder: () -> P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+        let publisher = publisherBuilder()
+        return publisher.sink { [weak self] value in
+            self?[keyPath: keyPath] = value
+        }
+    }
 }
 
 
