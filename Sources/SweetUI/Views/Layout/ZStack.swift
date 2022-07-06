@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 
-public final class ZStack: UIView, EdgesIgnoringSafeAreaSupporting {
+public final class ZStack: UIView {
 
     // MARK: Types
 
@@ -19,8 +19,6 @@ public final class ZStack: UIView, EdgesIgnoringSafeAreaSupporting {
 
 
     // MARK: Properties
-
-    public var edgesIgnoringSafeArea: UIRectEdge { .all }
 
     public let alignment: Alignment
     public private(set) var arrangedSubviews = [UIView]()
@@ -155,11 +153,11 @@ private extension ZStack {
 
     func intrinsicallyFills(axis: Axis, view: UIView) -> Bool {
         // If the view is explicitly IntrinsicFillSupporting then we're done
-        if let view = view as? IntrinsicFillSupporting {
-            return view.intrinsicallyFillsAxes.contains(axis)
+        if let view = view as? ZStackFillBehaviourSupporting {
+            return view.zStackFillAxes.contains(axis)
         }
         // Else we infer it from the rest of the hierarchy
-        let isMatch = Self.intrinsicallyFills(axis: axis, view: view)
+        let isMatch = Self.fillsZStack(axis: axis, view: view)
         let isFirstChildMatch = { !view.subviews.isEmpty && self.intrinsicallyFills(axis: axis, view: view.subviews[0]) }
         return isMatch || isFirstChildMatch()
     }

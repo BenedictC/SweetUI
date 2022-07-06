@@ -56,6 +56,9 @@ extension UIView {
         if view is UIScrollView {
             return .all
         }
+        if let subview = view.subviews.first {
+            return edgesIgnoringSafeArea(for: subview)
+        }
         return []
     }
 
