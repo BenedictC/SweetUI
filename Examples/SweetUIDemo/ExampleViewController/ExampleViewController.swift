@@ -18,9 +18,8 @@ class ExampleViewController: ContentViewController {
     lazy var rootView = ExampleView(viewModel: self)
         .backgroundColor(.systemBackground)
     private let form = ExampleRegistrationForm()
-    private let isSubmitInProgress = ViewBinding(false)
-
-    private let validationKeyPathsSubject = ViewBinding(Set<ExampleViewModel.ValidationKeyPath>())
+    @Published private var isSubmitInProgress = false
+    @Published private var validationKeyPaths = Set<ExampleViewModel.ValidationKeyPath>()
 
 
     // MARK: - View life cycle
@@ -33,18 +32,17 @@ class ExampleViewController: ContentViewController {
 
 
 extension ExampleViewController: ExampleViewModel {
-
-    var nameSubject: ViewBinding<String?> { form.nameSubject }
-    var isNameValid: ViewState<Bool> { makeValidationPublisher(for: form.isNameValid, keyPath: \.isNameValid) }
-    var emailSubject: ViewBinding<String?> { form.emailSubject }
-    var isEmailValid: ViewState<Bool> { makeValidationPublisher(for: form.isEmailValid, keyPath: \.isEmailValid) }
-    var passwordSubject: ViewBinding<String?> { form.passwordSubject }
-    var isPasswordValid: ViewState<Bool> { makeValidationPublisher(for: form.isPasswordValid, keyPath: \.isPasswordValid) }
+    var nameBinding: ViewBinding<String?> { ViewBinding(for: form, \.name, publisher: form.$name) }
+    var isNameValidState: ViewState<Bool> { makeValidationPublisher(for: form.isNameValid, keyPath: \.isNameValidState) }
+    var emailBinding: ViewBinding<String?> { ViewBinding(for: form, \.email, publisher: form.$email) }
+    var isEmailValidState: ViewState<Bool> { makeValidationPublisher(for: form.isEmailValid, keyPath: \.isEmailValidState) }
+    var passwordBinding: ViewBinding<String?> { ViewBinding(for: form, \.password, publisher: form.$password) }
+    var isPasswordValidState: ViewState<Bool> { makeValidationPublisher(for: form.isPasswordValid, keyPath: \.isPasswordValidState) }
 
     var isReadyToSubmit: ViewState<Bool> { form.isValid }
 
-    var status: ViewState<ExampleView.Status> {
-        Publishers.CombineLatest(isReadyToSubmit, isSubmitInProgress).map {
+    var statusState: ViewState<ExampleView.Status> {
+        Publishers.CombineLatest(isReadyToSubmit, $isSubmitInProgress).map {
             let (isReady, isInProgress) = $0
             if isInProgress { return ExampleView.Status.waiting }
             if isReady { return ExampleView.Status.ready }
@@ -54,7 +52,7 @@ extension ExampleViewController: ExampleViewModel {
     }
 
     func didEndEditing(for validationKeyPath: ValidationKeyPath) {
-        validationKeyPathsSubject.send { $0.insert(validationKeyPath) }
+        validationKeyPaths.insert(validationKeyPath)
     }
 
     func submit() {
@@ -69,7 +67,7 @@ extension ExampleViewController: ExampleViewModel {
 private extension ExampleViewController {
 
     func makeValidationPublisher(for validationPublisher: ViewState<Bool>, keyPath: ExampleViewModel.ValidationKeyPath) -> ViewState<Bool> {
-        validationPublisher.combineLatest(validationKeyPathsSubject).map {
+        validationPublisher.combineLatest($validationKeyPaths).map {
             let (isValid, keyPathsToValidate) = $0
             let shouldSkipValidation = !keyPathsToValidate.contains(keyPath)
             return shouldSkipValidation ? true : isValid
@@ -78,9 +76,9 @@ private extension ExampleViewController {
     }
 
     func pretendToSubmitForm() {
-        isSubmitInProgress.send(true)
+        isSubmitInProgress = true
         DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2)) {
-            self.isSubmitInProgress.send(false)
+            self.isSubmitInProgress = false
 
             let alertVC = UIAlertController(title: "Success!", message: "Form submitted", preferredStyle: .alert)
             alertVC.addAction(UIAlertAction(title: "OK", style: .default) { _ in self.resetState() })
@@ -89,10 +87,8 @@ private extension ExampleViewController {
     }
 
     func resetState() {
-        nameSubject.send(nil)
-        emailSubject.send(nil)
-        passwordSubject.send(nil)
-        validationKeyPathsSubject.send { $0.removeAll() }
+        form.reset()
+        validationKeyPaths.removeAll()
         rootView.beginEditing()
     }
 }

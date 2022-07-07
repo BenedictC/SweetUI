@@ -6,19 +6,25 @@ final class ExampleRegistrationForm {
 
     // MARK: Publishers
 
-    let nameSubject = CurrentValueSubject<String?, Never>(nil)
-    var isNameValid: AnyPublisher<Bool, Never> { nameSubject.map { Self.isValidName($0) }.eraseToAnyPublisher() }
+    @Published var name: String?
+    var isNameValid: AnyPublisher<Bool, Never> { $name.map(Self.isValidName).eraseToAnyPublisher() }
 
-    let emailSubject = CurrentValueSubject<String?, Never>(nil)
-    var isEmailValid: AnyPublisher<Bool, Never> { emailSubject.map { Self.isValidEmail($0) }.eraseToAnyPublisher() }
+    @Published var email: String?
+    var isEmailValid: AnyPublisher<Bool, Never> { $email.map(Self.isValidEmail).eraseToAnyPublisher() }
 
-    let passwordSubject = CurrentValueSubject<String?, Never>(nil)
-    var isPasswordValid: AnyPublisher<Bool, Never> { passwordSubject.map { Self.isValidPassword($0) }.eraseToAnyPublisher() }
+    @Published var password: String?
+    var isPasswordValid: AnyPublisher<Bool, Never> { $password.map(Self.isValidPassword).eraseToAnyPublisher() }
 
     var isValid: AnyPublisher<Bool, Never> {
         Publishers.CombineLatest3(isNameValid, isEmailValid, isPasswordValid)
             .map { $0.0 && $0.1 && $0.2 }
             .eraseToAnyPublisher()
+    }
+
+    func reset() {
+        name = nil
+        email = nil
+        password = nil
     }
 }
 
@@ -54,8 +60,8 @@ extension ExampleRegistrationForm {
     }
 
     static func isValid(_ form: ExampleRegistrationForm) -> Bool {
-        return isValidName(form.nameSubject.value)
-        && isValidEmail(form.emailSubject.value)
-        && isValidPassword(form.passwordSubject.value)
+        return isValidName(form.name)
+        && isValidEmail(form.email)
+        && isValidPassword(form.password)
     }
 }

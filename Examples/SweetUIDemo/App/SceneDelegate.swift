@@ -20,7 +20,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // This delegate does not imply the connecting scene or session are new (see `application:configurationForConnectingSceneSession` instead).
         guard let scene = (scene as? UIWindowScene) else { return }
         window.windowScene = scene
-        window.rootViewController = FooExampleViewController()
+        window.rootViewController = ExampleViewController()
         window.makeKeyAndVisible()
     }
 
@@ -51,21 +51,4 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         // Use this method to save data, release shared resources, and store enough scene-specific state information
         // to restore the scene back to its current state.
     }
-}
-
-
-
-class FooExampleViewController: ContentViewController {
-
-    let rootView = ZStack(alignment: .center) {
-        VStack(alignment: .center) {
-            UILabel()
-                .font(.preferredFont(forTextStyle: .largeTitle))
-                .text("Hiya!")
-            UILabel()
-                .font(.preferredFont(forTextStyle: .subheadline))
-                .text("Welcome to SweetUI")
-        }
-    }
-    .backgroundColor(.systemBackground)
 }
