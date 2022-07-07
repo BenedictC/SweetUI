@@ -22,6 +22,12 @@ public protocol EdgesIgnoringSafeAreaSupporting: UIView {
 }
 
 
+public extension UIRectEdge {
+    static let vertical: UIRectEdge = [.top, .bottom]
+    static let horizontal: UIRectEdge = [.left, .right]
+}
+
+
 // MARK: - Defaults
 
 public extension EdgesIgnoringSafeAreaSupporting {
