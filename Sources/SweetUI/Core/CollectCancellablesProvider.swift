@@ -2,22 +2,22 @@ public protocol CollectCancellablesProvider: AnyObject {
 
     func storeCancellable(_ cancellable: Any, for key: AnyHashable)
     func discardCancellable(for key: AnyHashable)
-}
 
-
-// MARK: - Cancellable
-
-protocol _CollectCancellablesProviderImplementation: CollectCancellablesProvider {
     var collectCancellablesProviderStorage: CollectCancellablesProviderStorage { get }
 }
 
 
-final class CollectCancellablesProviderStorage {
+// MARK: - Implementation
+
+public final class CollectCancellablesProviderStorage {
+
     var cancellationsByIdentifier = [AnyHashable: Any]()
+
+    public init() { }
 }
 
 
-extension _CollectCancellablesProviderImplementation {
+extension CollectCancellablesProvider {
 
     public func storeCancellable(_ cancellable: Any, for key: AnyHashable) {
         collectCancellablesProviderStorage.cancellationsByIdentifier[key] = cancellable
