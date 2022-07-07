@@ -16,7 +16,8 @@ extension ZStack {
             return view.zStackFillAxes
         }
         if view is UIScrollView {
-            // TODO: This should check for constraints that constrain the frame
+            // This could be cause a problem if the scrollView has its frame constrained.
+            // The fix would be to wrap the scrollView in a ZStackFillBehaviourAdjustmentContainer.
             return .both
         }
         if let subview = view.subviews.first {
