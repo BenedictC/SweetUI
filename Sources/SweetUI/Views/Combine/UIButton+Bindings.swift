@@ -16,14 +16,24 @@ public extension UIButton {
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { button, provider in
+    // TODO: publisher, viewProvider+KeyPath, viewProvider+Builder
+
+    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        to provider: P,
+        _ keyPath: KeyPath<P, S>
+    ) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { button, provider in
             button.subscribeAndSendIsSelected(to: provider[keyPath: keyPath])
         }
     }
-
-    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { button, provider in
+    
+    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        to provider: P,
+        _ builder: @escaping (Self, P) -> S
+    ) -> Self where S.Output == Bool, S.Failure == Never {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { button, provider in
             button.subscribeAndSendIsSelected(to: builder(button, provider))
         }
     }

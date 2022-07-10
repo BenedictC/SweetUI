@@ -65,7 +65,7 @@ class ExampleView: View<ExampleViewModel> {
         .on(.editingDidEnd, with: self) { $1.viewModel.didEndEditing(for: \.isNameValidState) }
 
     private lazy var nameValidationErrorLabel = makeLabel(text: "Name must be at least 1 character long")
-        .assign(\.alpha, from: self, \.viewModel.nameLabelAlpha)
+        .assign(to: \.alpha, from: self, \.viewModel.nameLabelAlpha)
 
     private lazy var emailTextField = makeTextField(placeholder: "Email")
         .keyboardType(.emailAddress)
@@ -75,7 +75,7 @@ class ExampleView: View<ExampleViewModel> {
         .on(.editingDidEnd, with: self) { $1.viewModel.didEndEditing(for: \.isEmailValidState) }
 
     private lazy var emailValidationErrorLabel = makeLabel(text: "Email must be a valid email address")
-        .assign(\.alpha, from: self, \.viewModel.emailLabelAlpha)
+        .assign(to: \.alpha, from: self, \.viewModel.emailLabelAlpha)
 
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
         .isSecureTextEntry(true)
@@ -84,17 +84,17 @@ class ExampleView: View<ExampleViewModel> {
         .delegateWithReturnAction { [weak self] in self?.submit() }
 
     private lazy var passwordValidationErrorLabel = makeLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
-        .assign(\.alpha, from: self, \.viewModel.passwordLabelAlpha)
+        .assign(to: \.alpha, from: self, \.viewModel.passwordLabelAlpha)
 
     private lazy var submitButton = UIButton(type: .system)
         .title("Submit", for: .normal)
-        .assign(\.isEnabled, from: self) { $1.viewModel.isReadyToSubmit }
+        .assign(to: \.isEnabled, from: self) { $1.viewModel.isReadyToSubmit }
         .on(.primaryActionTriggered, with: self) { $1.submit() }
 
     private lazy var activityIndicator = UIActivityIndicatorView(style: .large)
         .backgroundColor(.secondarySystemFill.withAlphaComponent(0.5))
         .animate(true)
-        .assign(\.isActive, from: self) { $1.viewModel.isWaiting }
+        .assign(to: \.isActive, from: self) { $1.viewModel.isWaiting }
 
 
     // Layout

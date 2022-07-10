@@ -39,27 +39,45 @@ extension SomeView where Self: UITextView {
 
 public extension SomeView where Self: UITextView {
 
-    func bindText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textView, provider in
+    // TODO: publisher, viewProvider+KeyPath, viewProvider+Builder
+
+    func bindText<P: ViewIsAvailableProvider, S: Subject>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        to provider: P,
+        _ keyPath: KeyPath<P, S>
+    ) -> Self where S.Output == String?, S.Failure == Never {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textView, provider in
             let subject = provider[keyPath: keyPath]
             return textView.makeBindings(for: subject, keyPath: \.text)
         }
     }
 
-    func bindText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textView, provider in
+    func bindText<P: ViewIsAvailableProvider, S: Subject>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        to provider: P,
+        _ builder: @escaping (Self, P) -> S
+    ) -> Self where S.Output == String?, S.Failure == Never {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textView, provider in
             textView.makeBindings(for: builder(textView, provider), keyPath: \.text)
         }
     }
 
-    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, _ keyPath: KeyPath<P, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textView, provider in
+    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        to provider: P,
+        _ keyPath: KeyPath<P, S>
+    ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textView, provider in
             textView.makeBindings(for: provider[keyPath: keyPath], keyPath: \.attributedText)
         }
     }
 
-    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(handlerIdentifier: AnyHashable = UUID(), to provider: P, builder: @escaping (Self, P) -> S) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToViewIsAvailable(of: provider, handlerIdentifier: handlerIdentifier) { textView, provider in
+    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        to provider: P,
+        _ builder: @escaping (Self, P) -> S
+    ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textView, provider in
             textView.makeBindings(for: builder(textView, provider), keyPath: \.attributedText)
         }
     }

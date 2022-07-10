@@ -45,8 +45,13 @@ private extension SomeView where Self: UIControl {
 
 public extension SomeView where Self: UIControl {
 
-    func on<T: ViewIsAvailableProvider>(_ event: UIControl.Event, handlerIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T) -> Void) -> Self {
-        subscribeToViewIsAvailable(of: connectionProvider, handlerIdentifier: handlerIdentifier) { control, onConnectProvider in
+    func on<T: ViewIsAvailableProvider>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        _ event: UIControl.Event,
+        with provider: T,
+        _ handler: @escaping (Self, T) -> Void
+    ) -> Self {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { control, onConnectProvider in
             let actionHandler = ActionHandler<Self>(handler: { _, _ in
                 handler(control, onConnectProvider)
             })
@@ -54,8 +59,13 @@ public extension SomeView where Self: UIControl {
         }
     }
 
-    func on<T: ViewIsAvailableProvider>(_ event: UIControl.Event, handlerIdentifier: AnyHashable = UUID(), with connectionProvider: T, handler: @escaping (Self, T, UIControl.Event) -> Void) -> Self {
-        subscribeToViewIsAvailable(of: connectionProvider, handlerIdentifier: handlerIdentifier) { control, onConnectProvider in
+    func on<T: ViewIsAvailableProvider>(
+        withHandlerIdentifier identifier: AnyHashable = UUID(),
+        _ event: UIControl.Event,
+        with provider: T,
+        _ handler: @escaping (Self, T, UIControl.Event) -> Void
+    ) -> Self {
+        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { control, onConnectProvider in
             let actionHandler = ActionHandler<Self>(handler: { _, _ in
                 handler(control, onConnectProvider, event)
             })
