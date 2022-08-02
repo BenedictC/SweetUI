@@ -29,18 +29,17 @@ public final class ScrollView<T: UIView>: UIScrollView {
             content.leftAnchor.constraint(equalTo: contentLayoutGuide.leftAnchor),
             content.rightAnchor.constraint(equalTo: contentLayoutGuide.rightAnchor),
         ])
+
+        var contentConstraints = [NSLayoutConstraint]()
         let shouldConstrainWidth = !axes.contains(.horizontal)
         if shouldConstrainWidth {
-            NSLayoutConstraint.activate([
-                content.widthAnchor.constraint(equalTo: frameLayoutGuide.widthAnchor)
-            ])
+            contentConstraints.append(content.widthAnchor.constraint(equalTo: frameLayoutGuide.widthAnchor))
         }
         let shouldConstrainHeight = !axes.contains(.vertical)
         if shouldConstrainHeight {
-            NSLayoutConstraint.activate([
-                content.heightAnchor.constraint(equalTo: frameLayoutGuide.heightAnchor)
-            ])
+            contentConstraints.append(content.heightAnchor.constraint(equalTo: frameLayoutGuide.heightAnchor))
         }
+        NSLayoutConstraint.activate(contentConstraints)
     }
 
     @available(*, unavailable)
