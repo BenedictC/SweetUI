@@ -9,6 +9,9 @@ public struct CancellablesBuilder {
             if let component = component as? Cancellable {
                 return component
             }
+            if let component = component as? Cancellable? {
+                return component
+            }
             if component is Void {
                 return nil
             }
