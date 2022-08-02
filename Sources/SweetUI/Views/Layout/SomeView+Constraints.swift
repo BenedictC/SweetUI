@@ -4,6 +4,12 @@ import UIKit
 
 public extension SomeView {
 
+    func constrain(_ factory: (Self) -> NSLayoutConstraint) -> Self {
+        let constraint = factory(self)
+        constraint.isActive = true
+        return self
+    }
+
     func constrain(_ attribute1: NSLayoutConstraint.Attribute, of item1: Any, to attribute2: NSLayoutConstraint.Attribute, of item2: Any?, relatedBy: NSLayoutConstraint.Relation = .equal, multiplier: CGFloat = 1, constant: CGFloat = 0, activate: Bool = true, priority: UILayoutPriority = .required, completion: (NSLayoutConstraint) -> Void = { _ in }) -> Self {
         let constraint = NSLayoutConstraint(item: item1, attribute: attribute1, relatedBy: relatedBy, toItem: item2, attribute: attribute2, multiplier: multiplier, constant: constant)
         constraint.priority = priority
