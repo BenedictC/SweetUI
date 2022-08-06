@@ -46,7 +46,7 @@ private extension ExampleViewModel {
 
 // MARK: - View
 
-class ExampleView: View<ExampleViewModel> {
+final class ExampleView: View<ExampleViewModel> {
 
     // MARK: Types
 
@@ -60,41 +60,41 @@ class ExampleView: View<ExampleViewModel> {
     // Content
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")
-        .bindText(to: self) { $1.viewModel.nameBinding }
+        .bindText(to: viewModel(\.nameBinding))
         .delegateWithReturnAction(next: emailTextField)
-        .on(.editingDidEnd, with: self) { $1.viewModel.didEndEditing(for: \.isNameValidState) }
+        .on(.editingDidEnd, perform: action { $0.viewModel.didEndEditing(for: \.isNameValidState) })
 
     private lazy var nameValidationErrorLabel = makeLabel(text: "Name must be at least 1 character long")
-        .assign(to: \.alpha, from: self, \.viewModel.nameLabelAlpha)
+        .assign(to: \.alpha, from: viewModel(\.nameLabelAlpha))
 
     private lazy var emailTextField = makeTextField(placeholder: "Email")
         .keyboardType(.emailAddress)
         .autocapitalizationType(.none)
-        .bindText(to: self) { $1.viewModel.emailBinding }
+        .bindText(to: viewModel(\.emailBinding))
         .delegateWithReturnAction(next: passwordTextField)
-        .on(.editingDidEnd, with: self) { $1.viewModel.didEndEditing(for: \.isEmailValidState) }
+        .on(.editingDidEnd, perform: action { $0.viewModel.didEndEditing(for: \.isEmailValidState) })
 
     private lazy var emailValidationErrorLabel = makeLabel(text: "Email must be a valid email address")
-        .assign(to: \.alpha, from: self, \.viewModel.emailLabelAlpha)
+        .assign(to: \.alpha, from: viewModel(\.emailLabelAlpha))
 
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
         .isSecureTextEntry(true)
-        .bindText(to: self) { $1.viewModel.passwordBinding }
-        .on(.editingDidEnd, with: self) { $1.viewModel.didEndEditing(for: \.isPasswordValidState) }
+        .bindText(to: viewModel(\.passwordBinding))
+        .on(.editingDidEnd, perform: action { $0.viewModel.didEndEditing(for: \.isPasswordValidState) })
         .delegateWithReturnAction { [weak self] in self?.submit() }
 
     private lazy var passwordValidationErrorLabel = makeLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
-        .assign(to: \.alpha, from: self, \.viewModel.passwordLabelAlpha)
+        .assign(to: \.alpha, from: viewModel(\.passwordLabelAlpha))
 
     private lazy var submitButton = UIButton(type: .system)
         .title("Submit", for: .normal)
-        .assign(to: \.isEnabled, from: self) { $1.viewModel.isReadyToSubmit }
-        .on(.primaryActionTriggered, with: self) { $1.submit() }
+        .assign(to: \.isEnabled, from: viewModel(\.isReadyToSubmit))
+        .on(.primaryActionTriggered, perform: action { $0.submit() })
 
     private lazy var activityIndicator = UIActivityIndicatorView(style: .large)
         .backgroundColor(.secondarySystemFill.withAlphaComponent(0.5))
         .animate(true)
-        .assign(to: \.isActive, from: self) { $1.viewModel.isWaiting }
+        .assign(to: \.isActive, from: viewModel(\.isWaiting))
 
 
     // Layout

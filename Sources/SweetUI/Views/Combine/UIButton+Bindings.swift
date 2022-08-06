@@ -2,9 +2,29 @@ import UIKit
 import Combine
 
 
+// MARK: - ViewIsAvailableProvider
+
+public extension SomeView where Self: UIButton {
+
+    func bindIsSelected<A: ViewIsAvailableProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == Bool, S.Failure == Never {
+        subjectParameter.context = self
+        subjectParameter.invalidationHandler = { [weak subjectParameter] in
+            guard let root = subjectParameter?.root else { return }
+            guard let identifier = subjectParameter?.identifier else { return }
+            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+        }
+        subjectParameter.root?.addViewIsAvailableHandler(withIdentifier: subjectParameter.identifier) {
+            guard let subject = subjectParameter.makeValue() else { return nil }
+            return subjectParameter.context?.subscribeAndSendIsSelected(to: subject)
+        }
+        return self
+    }
+}
+
+
 // MARK: - Core
 
-public extension UIButton {
+private extension UIButton {
 
     func subscribeAndSendIsSelected<S: Subject>(to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
         return ButtonIsSelectedToggler.shared.bindIsSelected(of: self, to: subject)
@@ -12,38 +32,10 @@ public extension UIButton {
 }
 
 
-// MARK: - ViewIsAvailableProvider continuous
-
-public extension SomeView where Self: UIButton {
-
-    // TODO: publisher, viewProvider+KeyPath, viewProvider+Builder
-
-    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        to provider: P,
-        _ keyPath: KeyPath<P, S>
-    ) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { button, provider in
-            button.subscribeAndSendIsSelected(to: provider[keyPath: keyPath])
-        }
-    }
-    
-    func bindIsSelected<P: ViewIsAvailableProvider, S: Subject>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        to provider: P,
-        _ builder: @escaping (Self, P) -> S
-    ) -> Self where S.Output == Bool, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { button, provider in
-            button.subscribeAndSendIsSelected(to: builder(button, provider))
-        }
-    }
-}
-
-
 // MARK: - ButtonIsSelectedToggler
 
 // This class could be generalised but it would get even more complicated.
-class ButtonIsSelectedToggler: NSObject {
+private class ButtonIsSelectedToggler: NSObject {
 
     static let shared = ButtonIsSelectedToggler()
 
@@ -74,7 +66,6 @@ class ButtonIsSelectedToggler: NSObject {
             [sendCancellable, receiveCancellable].forEach { $0.cancel() }
         }
     }
-
 
     @objc
     private func toggle(_ sender: Any?) {

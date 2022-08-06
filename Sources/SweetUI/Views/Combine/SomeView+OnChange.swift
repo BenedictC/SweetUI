@@ -4,27 +4,28 @@ import Combine
 
 public extension SomeView {
 
-    func onChange<V, S: Publisher, P: ViewIsAvailableProvider>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        of provider: P,
-        _ keyPath: KeyPath<P, S>,
-        perform action: @escaping (Self, P, V) -> Void
-    ) -> Self where S.Output == V, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { view, provider in
-            let publisher = provider[keyPath: keyPath]
-            return publisher.sink { action(view, provider, $0) }
+    func onChange<A: ViewIsAvailableProvider, V, P: Publisher>(of publisherParameter: ValueParameter<A, Self, P>, perform action: @escaping (Self, A, V) -> Void) -> Self where P.Output == V, P.Failure == Never {
+        publisherParameter.context = self
+        publisherParameter.invalidationHandler = { [weak publisherParameter] in
+            guard let root = publisherParameter?.root else { return }
+            guard let identifier = publisherParameter?.identifier else { return }
+            root.removeViewIsAvailableHandler(forIdentifier: identifier)
         }
-    }
-    
-    func onChange<V, S: Publisher, P: ViewIsAvailableProvider>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        of provider: P,
-        _ publisherBuilder: @escaping (P) -> S,
-        perform action: @escaping (Self, P, V) -> Void
-    ) -> Self where S.Output == V, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { view, provider in
-            let publisher = publisherBuilder(provider)
-            return publisher.sink { action(view, provider, $0) }
+
+        publisherParameter.root?.addViewIsAvailableHandler(withIdentifier: publisherParameter.identifier) {
+            guard let publisher = publisherParameter.makeValue() else {
+                return nil
+            }
+            return publisher.sink { value in
+                guard
+                    let context = publisherParameter.context,
+                    let root = publisherParameter.root
+                else {
+                    return
+                }
+                action(context, root, value)
+            }
         }
+        return self
     }
 }

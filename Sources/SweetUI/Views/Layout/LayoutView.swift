@@ -62,7 +62,7 @@ public extension LayoutProviding where Self: _LayoutView {
         self.init()
         self._configuration = configuration
         self._content = content
-        self.initializeBody()
+        self.initializeBodyHosting()
     }
 
     init(configuration: Configuration, _ content: Content) {
@@ -77,7 +77,7 @@ public extension LayoutProviding where Self: _LayoutView, Configuration: Default
         self.init()
         self._configuration = Configuration.default
         self._content = content
-        self.initializeBody()
+        self.initializeBodyHosting()
     }
 
     init(_ content: Content) {
@@ -93,7 +93,7 @@ public extension LayoutProviding where Self: _LayoutView, Self.Configuration == 
         self.init()
         self._configuration = configuration
         self._content = content
-        self.initializeBody()
+        self.initializeBodyHosting()
     }
 
     @available(*, unavailable)
@@ -105,7 +105,7 @@ public extension LayoutProviding where Self: _LayoutView, Self.Configuration == 
         self.init()
         self._configuration = ()
         self._content = content
-        self.initializeBody()
+        self.initializeBodyHosting()
     }
 
     init(_ content: Content) {

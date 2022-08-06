@@ -6,34 +6,35 @@ import UIKit
 
 public protocol ViewBodyProvider: _ViewBodyProvider {
 
-    associatedtype Body: UIView
-
     // Required
+    associatedtype Body: UIView
     var body: Body { get }
 
     // Optional from _ViewBodyProvider (and duplicated for clarity)
-    var bodyContainer: BodyContainer { get }
+    typealias Initializer = ViewInitializer<Self>
+    static var initializer: Initializer { get }
+    var bodyContainer: UIView { get }
 }
+
 
 public protocol _ViewBodyProvider: UIView { // Core functionality avoiding associated types
 
     var _body: UIView { get }
-    var bodyContainer: BodyContainer { get }
+    var bodyContainer: UIView { get }
+
+    static func initializeInstance(of view: _ViewBodyProvider)
+    static func initializeBody(of view: _ViewBodyProvider)
 }
 
 
-// MARK: - Supporting Types
+// MARK: - Supporting type
 
-public final class BodyContainer {
+public struct ViewInitializer<T: UIView> {
 
-    public private(set) weak var view: UIView!
+    let handler: (T) -> Void
 
-    public init(_ view: UIView) {
-        self.view = view
-    }
-
-    public init(_ viewBuilder: () -> UIView) {
-        self.view = viewBuilder()
+    public init<R>(_ handler: @escaping (T) -> R) {
+        self.handler = { _ = handler($0) }
     }
 }
 
@@ -42,29 +43,33 @@ public final class BodyContainer {
 
 public extension ViewBodyProvider {
 
+    static var initializer: Initializer { Initializer { _ in } }
+
     var _body: UIView { body }
-}
 
+    var bodyContainer: UIView { self }
 
-public extension _ViewBodyProvider {
+    static func initializeInstance(of view: _ViewBodyProvider) {
+        guard let view = view as? Self else {
+            preconditionFailure("_initialize(instance:) must only be called with instances of Self")
+        }
+        _ = initializer.handler(view)
+    }
 
-    var bodyContainer: BodyContainer { BodyContainer(self) }
-
-    func initializeBody() {
-        Self.initializeBody(of: self)
+    static func initializeBody(of host: _ViewBodyProvider) {
+        let body = host._body
+        let container = host.bodyContainer
+        container.addAndFill(subview: body, overrideEdgesIgnoringSafeArea: nil)
     }
 }
 
 
-// MARK: - Initialization
+// MARK: - Convenience
 
-private extension _ViewBodyProvider {
+extension _ViewBodyProvider {
 
-    static func initializeBody(of host: _ViewBodyProvider) {
-        let body = host._body
-        guard let container = host.bodyContainer.view else {
-            preconditionFailure()
-        }
-        container.addAndFill(subview: body, overrideEdgesIgnoringSafeArea: nil)
+    func initializeBodyHosting() {
+        Self.initializeInstance(of: self)
+        Self.initializeBody(of: self)
     }
 }

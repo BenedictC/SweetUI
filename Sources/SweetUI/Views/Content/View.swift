@@ -1,19 +1,26 @@
 import Foundation
 import UIKit
+import Combine
 
 
 // MARK: - View
 
-public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider
+public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider & ViewModelProvider
 
 
 // MARK: - Implementation
+
+public protocol ViewModelProvider {
+    associatedtype ViewModel = Void
+    var viewModel: ViewModel! { get }
+}
+
 
 open class _View<ViewModel>: UIView, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Types
 
-    typealias ViewModel = ViewModel
+    public typealias ViewModel = ViewModel
 
     
     // MARK: Properties
@@ -46,7 +53,7 @@ open class _View<ViewModel>: UIView, _ViewIsAvailableProviderImplementation, _Tr
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.initializeBody()
+        bodyProvider.initializeBodyHosting()
     }
 
     @available(*, unavailable)

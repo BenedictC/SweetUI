@@ -9,7 +9,7 @@ open class _CollectionViewCell: UICollectionViewCell {
 
     // MARK: Properties
 
-    public var bodyContainer: BodyContainer { BodyContainer(contentView) }
+    public var bodyContainer: UIView { contentView }
 
 
     // MARK: Instance life cycle
@@ -19,7 +19,7 @@ open class _CollectionViewCell: UICollectionViewCell {
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_CollectionViewCell subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.initializeBody()
+        bodyProvider.initializeBodyHosting()
     }
 
     @available(*, unavailable)

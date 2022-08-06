@@ -11,12 +11,3 @@ public extension Publisher where Output: Equatable {
         }
     }
 }
-
-
-
-public extension Publisher {
-
-    func optionalMap() -> Publishers.Map<Self, Self.Output?> {
-        map(Optional.some)
-    }
-}

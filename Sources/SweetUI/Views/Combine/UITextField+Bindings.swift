@@ -2,21 +2,55 @@ import UIKit
 import Combine
 
 
+// MARK: - ViewIsAvailableProvider continuous
+
+public extension SomeView where Self: UITextField {
+
+    func bindText<A: ViewIsAvailableProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == String?, S.Failure == Never {
+        subjectParameter.context = self
+        subjectParameter.invalidationHandler = { [weak subjectParameter] in
+            guard let root = subjectParameter?.root else { return }
+            guard let identifier = subjectParameter?.identifier else { return }
+            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+        }
+        subjectParameter.root?.addViewIsAvailableHandler(withIdentifier: subjectParameter.identifier) {
+            guard let subject = subjectParameter.makeValue() else { return nil }
+            return subjectParameter.context?.subscribeAndSendText(to: subject)
+        }
+        return self
+    }
+
+    func bindAttributedText<A: ViewIsAvailableProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        subjectParameter.context = self
+        subjectParameter.invalidationHandler = { [weak subjectParameter] in
+            guard let root = subjectParameter?.root else { return }
+            guard let identifier = subjectParameter?.identifier else { return }
+            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+        }
+        subjectParameter.root?.addViewIsAvailableHandler(withIdentifier: subjectParameter.identifier) {
+            guard let subject = subjectParameter.makeValue() else { return nil }
+            return subjectParameter.context?.subscribeAndSendAttributedText(to: subject)
+        }
+        return self
+    }
+}
+
+
 // MARK: - Core binding creation
 
-extension SomeView where Self: UITextField {
+private extension SomeView where Self: UITextField {
 
-    public func subscribeAndSendText<S: Subject>(to subject: S) -> AnyCancellable where S.Output == String?, S.Failure == Never {
+    func subscribeAndSendText<S: Subject>(to subject: S) -> AnyCancellable where S.Output == String?, S.Failure == Never {
        return makeBindings(for: subject, keyPath: \.text)
     }
 
-    public func subscribeAndSendAttributedText<S: Subject>(to subject: S) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
+    func subscribeAndSendAttributedText<S: Subject>(to subject: S) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
         makeBindings(for: subject, keyPath: \.attributedText)
     }
 
     func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>) -> AnyCancellable where S.Output == V, S.Failure == Never {
         // TODO: Add support for begin & end editing synchronization behaviour
-        let send = self.subscribeTo(.editingChanged) { textField in
+        let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
         }
         let receive = subject.sink { value in
@@ -26,55 +60,6 @@ extension SomeView where Self: UITextField {
         return AnyCancellable {
             send.cancel()
             receive.cancel()
-        }
-    }
-}
-
-
-// MARK: - ViewIsAvailableProvider continuous
-
-public extension SomeView where Self: UITextField {
-
-    // TODO: publisher, viewProvider+KeyPath, viewProvider+Builder
-
-    func bindText<P: ViewIsAvailableProvider, S: Subject>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        to provider: P,
-        _ keyPath: KeyPath<P, S>
-    ) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textField, provider in
-            let subject = provider[keyPath: keyPath]
-            return textField.makeBindings(for: subject, keyPath: \.text)
-        }
-    }
-
-    func bindText<P: ViewIsAvailableProvider, S: Subject>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        to provider: P,
-        _ builder: @escaping (Self, P) -> S
-    ) -> Self where S.Output == String?, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textField, provider in
-            textField.makeBindings(for: builder(textField, provider), keyPath: \.text)
-        }
-    }
-
-    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        to provider: P,
-        _ keyPath: KeyPath<P, S>
-    ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textField, provider in
-            textField.makeBindings(for: provider[keyPath: keyPath], keyPath: \.attributedText)
-        }
-    }
-
-    func bindAttributedText<P: ViewIsAvailableProvider, S: Subject>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
-        to provider: P,
-        _ builder: @escaping (Self, P) -> S
-    ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { textField, provider in
-            textField.makeBindings(for: builder(textField, provider), keyPath: \.attributedText)
         }
     }
 }

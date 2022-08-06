@@ -1,6 +1,8 @@
+import Combine
+
 public protocol CollectCancellablesProvider: AnyObject {
 
-    func storeCancellable(_ cancellable: Any, for key: AnyHashable)
+    func storeCancellable<C: Cancellable>(_ cancellable: C, for key: AnyHashable)
     func discardCancellable(for key: AnyHashable)
 
     var collectCancellablesProviderStorage: CollectCancellablesProviderStorage { get }
@@ -11,7 +13,7 @@ public protocol CollectCancellablesProvider: AnyObject {
 
 public final class CollectCancellablesProviderStorage {
 
-    var cancellationsByIdentifier = [AnyHashable: Any]()
+    var cancellationsByIdentifier = [AnyHashable: AnyCancellable]()
 
     public init() { }
 }
@@ -19,8 +21,14 @@ public final class CollectCancellablesProviderStorage {
 
 extension CollectCancellablesProvider {
 
-    public func storeCancellable(_ cancellable: Any, for key: AnyHashable) {
-        collectCancellablesProviderStorage.cancellationsByIdentifier[key] = cancellable
+    public func storeCancellable<C: Cancellable>(_ cancellable: C, for key: AnyHashable) {
+        let anyCancellable: AnyCancellable
+        if let cancellable = cancellable as? AnyCancellable {
+            anyCancellable = cancellable
+        } else {
+            anyCancellable = AnyCancellable(cancellable)
+        }
+        collectCancellablesProviderStorage.cancellationsByIdentifier[key] = anyCancellable
     }
 
     public func discardCancellable(for key: AnyHashable) {

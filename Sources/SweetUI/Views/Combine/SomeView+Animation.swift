@@ -4,18 +4,24 @@ import Combine
 
 public extension SomeView {
 
-    func animateIsActive<S: Publisher, P: ViewIsAvailableProvider>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
+    func animateIsActive<A: ViewIsAvailableProvider, P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with provider: P,
-        _ keyPath: KeyPath<P, S>,
+        with publisherParameter: ValueParameter<A, Self, P>,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) }
     ) -> Self
-    where S.Output == Bool, S.Failure == Never {
+    where P.Output == Bool, P.Failure == Never {
+        publisherParameter.context = self
+        publisherParameter.invalidationHandler = { [weak publisherParameter] in
+            guard let root = publisherParameter?.root else { return }
+            guard let identifier = publisherParameter?.identifier else { return }
+            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+        }
         let constraint = constraintFactory(self)
-        return subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { contentView, provider in
-            let publisher = provider[keyPath: keyPath]
-            publisher.sink { freshValue in
+        publisherParameter.root?.addViewIsAvailableHandler(withIdentifier: publisherParameter.identifier) {
+            guard let publisher = publisherParameter.makeValue() else {
+                return  nil
+            }
+            return publisher.sink { freshValue in
                 let staleValue = constraint.isActive
                 let isChanged = staleValue != freshValue
 
@@ -31,20 +37,27 @@ public extension SomeView {
                 animator.startAnimation()
             }
         }
+        return self
     }
 
-    func animateConstant<S: Publisher, P: ViewIsAvailableProvider>(
-        withHandlerIdentifier identifier: AnyHashable = UUID(),
+    func animateIsActive<A: ViewIsAvailableProvider, P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with provider: P,
-        _ keyPath: KeyPath<P, S>,
+        with publisherParameter: ValueParameter<A, Self, P>,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) }
     ) -> Self
-    where S.Output == CGFloat, S.Failure == Never {
+    where P.Output == CGFloat, P.Failure == Never {
+        publisherParameter.context = self
+        publisherParameter.invalidationHandler = { [weak publisherParameter] in
+            guard let root = publisherParameter?.root else { return }
+            guard let identifier = publisherParameter?.identifier else { return }
+            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+        }
         let constraint = constraintFactory(self)
-        return subscribeToViewIsAvailable(withHandlerIdentifier: identifier, from: provider) { contentView, provider in
-            let publisher = provider[keyPath: keyPath]
-            publisher.sink { freshValue in
+        publisherParameter.root?.addViewIsAvailableHandler(withIdentifier: publisherParameter.identifier) {
+            guard let publisher = publisherParameter.makeValue() else {
+                return  nil
+            }
+            return publisher.sink { freshValue in
                 let staleValue = constraint.constant
                 let isChanged = staleValue != freshValue
 
@@ -60,6 +73,7 @@ public extension SomeView {
                 animator.startAnimation()
             }
         }
+        return self
     }
 }
 

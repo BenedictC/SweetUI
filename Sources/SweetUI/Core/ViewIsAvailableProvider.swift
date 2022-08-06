@@ -1,11 +1,12 @@
 import Foundation
+import Combine
 
 
 // MARK: - ViewIsAvailableProvider
 
 public protocol ViewIsAvailableProvider: AnyObject {
 
-    typealias ViewIsAvailableHandler = () -> Any
+    typealias ViewIsAvailableHandler = () -> (AnyCancellable?)
 
     func addViewIsAvailableHandler(withIdentifier identifier: AnyHashable, _ handler: @escaping ViewIsAvailableHandler)
     func removeViewIsAvailableHandler(forIdentifier identifier: AnyHashable)
