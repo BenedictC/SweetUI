@@ -16,7 +16,7 @@ public protocol ViewModelProvider {
 }
 
 
-open class _View<ViewModel>: UIView, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
+open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Types
 
@@ -34,6 +34,7 @@ open class _View<ViewModel>: UIView, _ViewIsAvailableProviderImplementation, _Tr
     }
     var anyViewModel: Any?
     weak var anyObjectViewModel: AnyObject?
+    public let collectCancellablesProviderStorage = CollectCancellablesProviderStorage()
     let viewIsAvailableProviderStorage = ViewIsAvailableProviderStorage()
     let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
 
