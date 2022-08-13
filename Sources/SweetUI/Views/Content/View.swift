@@ -10,12 +10,6 @@ public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider & ViewMod
 
 // MARK: - Implementation
 
-public protocol ViewModelProvider {
-    associatedtype ViewModel = Void
-    var viewModel: ViewModel! { get }
-}
-
-
 open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Types
@@ -41,7 +35,7 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
 
     // MARK: Instance life cycle
 
-    required public init(viewModel: ViewModel) {
+    public init(viewModel: ViewModel) {
         super.init(frame: .zero)
 
         let isReferenceType = object_isClass(type(of: viewModel as Any))
@@ -55,6 +49,22 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
         bodyProvider.initializeBodyHosting()
+    }
+
+    public convenience init(voidViewModel: Void = ()) where ViewModel == Void {
+        self.init(viewModel: ())
+    }
+
+    public convenience init(initialValue: ViewModel.Output) where ViewModel: ViewValueSubject {
+        let viewModel = ViewModel(initialValue)
+        self.init(viewModel: viewModel)
+        self.anyViewModel = viewModel
+    }
+
+    public convenience init(initialValue: ViewModel.Output = .default) where ViewModel: ViewValueSubject, ViewModel.Output: Defaultable {
+        let viewModel = ViewModel(initialValue)
+        self.init(viewModel: viewModel)
+        self.anyViewModel = viewModel
     }
 
     @available(*, unavailable)
@@ -93,15 +103,5 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
         super.traitCollectionDidChange(previous)
         let current = self.traitCollection
         invokeTraitCollectionDidChangeHandlers(previous: previous, current: current)
-    }
-}
-
-
-// MARK: - ViewModel
-
-public extension _View where ViewModel == Void {
-
-    convenience init(voidViewModel: Void = ()) {
-        self.init(viewModel: voidViewModel)
     }
 }
