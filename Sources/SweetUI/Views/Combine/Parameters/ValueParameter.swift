@@ -38,8 +38,17 @@ public extension NSObjectProtocol where Self: ViewIsAvailableProvider {
         ValueParameter(root: self, valueFactory: { closure($0.root, $0.context) })
     }
 
-    func subject<Context, ValueSubject: Subject>(at subjectKeyPath:  KeyPath<Self, ValueSubject>) -> ValueParameter<Self, Context, ValueSubject> {
+    func subject<Context, ValueSubject: Subject>(at subjectKeyPath: KeyPath<Self, ValueSubject>) -> ValueParameter<Self, Context, ValueSubject> {
         return ValueParameter(root: self, valueFactory: { $0.root[keyPath: subjectKeyPath] })
+    }
+
+    func subject<Context, Value>(property: ReferenceWritableKeyPath<Self, Value>, publisher publisherKeyPath: KeyPath<Self, Published<Value>.Publisher>) -> ValueParameter<Self, Context, AnySubject<Value, Never>> {
+        return ValueParameter(root: self) { arguments in
+            let root = arguments.root
+            let publisher = root[keyPath: publisherKeyPath]
+            let subject = ViewBinding(for: root, property, publisher: publisher)
+            return subject
+        }
     }
 }
 
