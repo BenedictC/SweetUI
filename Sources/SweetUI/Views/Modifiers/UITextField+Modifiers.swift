@@ -153,6 +153,11 @@ extension UITextField {
 
 public extension UITextField {
 
+    func delegate(_ value: UITextFieldDelegate) -> Self {
+        delegate = value
+        return self
+    }
+
     func autocapitalizationType(_ value: UITextAutocapitalizationType) -> Self {
         autocapitalizationType = value
         return self
