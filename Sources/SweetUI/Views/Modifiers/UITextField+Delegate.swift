@@ -39,7 +39,7 @@ public extension UITextField {
 
 public extension UITextField {
 
-    func delegateWithReturnAction<T: ViewIsAvailableProvider>(with provider: T, _ handler: @escaping ((Self, T) -> Void)) -> Self {
+    func delegateWithReturnAction<T: ViewAvailabilityProvider>(with provider: T, _ handler: @escaping ((Self, T) -> Void)) -> Self {
         let delegate = TextFieldKeyboardDelegate.shared
         let action = TextFieldKeyboardDelegate.Action { [weak self, weak provider] in
             guard let self = self,

@@ -2,9 +2,9 @@ import Foundation
 import Combine
 
 
-// MARK: - ViewIsAvailableProvider factories
+// MARK: - ViewAvailabilityProvider factories
 
-public extension NSObjectProtocol where Self: ViewIsAvailableProvider {
+public extension NSObjectProtocol where Self: ViewAvailabilityProvider {
 
     func publisher<Context, ValuePublisher: Publisher>(_ closure: @escaping () -> ValuePublisher) -> ValueParameter<Self, Context, ValuePublisher> {
         ValueParameter(root: self, valueFactory: { _ in closure() })
@@ -24,7 +24,7 @@ public extension NSObjectProtocol where Self: ViewIsAvailableProvider {
 }
 
 
-public extension NSObjectProtocol where Self: ViewIsAvailableProvider {
+public extension NSObjectProtocol where Self: ViewAvailabilityProvider {
 
     func subject<Context, ValueSubject: Subject>(_ closure: @escaping () -> ValueSubject) -> ValueParameter<Self, Context, ValueSubject> {
         ValueParameter(root: self, valueFactory: { _ in closure() })

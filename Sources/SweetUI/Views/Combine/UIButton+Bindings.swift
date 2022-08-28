@@ -2,18 +2,18 @@ import UIKit
 import Combine
 
 
-// MARK: - ViewIsAvailableProvider
+// MARK: - ViewAvailabilityProvider
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<A: ViewIsAvailableProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == Bool, S.Failure == Never {
+    func bindIsSelected<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == Bool, S.Failure == Never {
         subjectParameter.context = self
         subjectParameter.invalidationHandler = { [weak subjectParameter] in
             guard let root = subjectParameter?.root else { return }
             guard let identifier = subjectParameter?.identifier else { return }
-            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+            root.unregisterViewAvailability(forIdentifier: identifier)
         }
-        subjectParameter.root?.addViewIsAvailableHandler(withIdentifier: subjectParameter.identifier) {
+        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
             guard let subject = subjectParameter.makeValue() else { return nil }
             return subjectParameter.context?.subscribeAndSendIsSelected(to: subject)
         }

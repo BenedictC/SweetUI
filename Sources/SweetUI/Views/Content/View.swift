@@ -10,7 +10,7 @@ public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider & ViewMod
 
 // MARK: - Implementation
 
-open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailableProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
+open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewAvailabilityProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Types
 
@@ -29,7 +29,7 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
     var anyViewModel: Any?
     weak var anyObjectViewModel: AnyObject?
     public let collectCancellablesProviderStorage = CollectCancellablesProviderStorage()
-    let viewIsAvailableProviderStorage = ViewIsAvailableProviderStorage()
+    let viewAvailabilityProviderStorage = ViewAvailabilityProviderStorage()
     let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
 
 
@@ -80,7 +80,7 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
 
         // When a VC animates their view is moved to a transitionary window
         // which means this gets fired more often than expected.
-//        guard let self = self as? ViewIsAvailableProvider else {
+//        guard let self = self as? ViewAvailabilityProvider else {
 //            preconditionFailure()
 //        }
         let shouldCollectCancellables = self.window == nil && window != nil

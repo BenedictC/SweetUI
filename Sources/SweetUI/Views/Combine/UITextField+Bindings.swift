@@ -2,32 +2,32 @@ import UIKit
 import Combine
 
 
-// MARK: - ViewIsAvailableProvider continuous
+// MARK: - ViewAvailabilityProvider continuous
 
 public extension SomeView where Self: UITextField {
 
-    func bindText<A: ViewIsAvailableProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == String?, S.Failure == Never {
+    func bindText<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == String?, S.Failure == Never {
         subjectParameter.context = self
         subjectParameter.invalidationHandler = { [weak subjectParameter] in
             guard let root = subjectParameter?.root else { return }
             guard let identifier = subjectParameter?.identifier else { return }
-            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+            root.unregisterViewAvailability(forIdentifier: identifier)
         }
-        subjectParameter.root?.addViewIsAvailableHandler(withIdentifier: subjectParameter.identifier) {
+        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
             guard let subject = subjectParameter.makeValue() else { return nil }
             return subjectParameter.context?.subscribeAndSendText(to: subject)
         }
         return self
     }
 
-    func bindAttributedText<A: ViewIsAvailableProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+    func bindAttributedText<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
         subjectParameter.context = self
         subjectParameter.invalidationHandler = { [weak subjectParameter] in
             guard let root = subjectParameter?.root else { return }
             guard let identifier = subjectParameter?.identifier else { return }
-            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+            root.unregisterViewAvailability(forIdentifier: identifier)
         }
-        subjectParameter.root?.addViewIsAvailableHandler(withIdentifier: subjectParameter.identifier) {
+        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
             guard let subject = subjectParameter.makeValue() else { return nil }
             return subjectParameter.context?.subscribeAndSendAttributedText(to: subject)
         }

@@ -1,24 +1,26 @@
 import UIKit
 import Combine
 
+public typealias ViewStateSink = ValueParameter
+
 
 public extension SomeView {
 
-    func animateIsActive<A: ViewIsAvailableProvider, P: Publisher>(
+    func animateIsActive<A: ViewAvailabilityProvider, P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with publisherParameter: ValueParameter<A, Self, P>,
+        with sink: ViewStateSink<A, Self, P>,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) }
     ) -> Self
     where P.Output == Bool, P.Failure == Never {
-        publisherParameter.context = self
-        publisherParameter.invalidationHandler = { [weak publisherParameter] in
-            guard let root = publisherParameter?.root else { return }
-            guard let identifier = publisherParameter?.identifier else { return }
-            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+        sink.context = self
+        sink.invalidationHandler = { [weak sink] in
+            guard let root = sink?.root else { return }
+            guard let identifier = sink?.identifier else { return }
+            root.unregisterViewAvailability(forIdentifier: identifier)
         }
         let constraint = constraintFactory(self)
-        publisherParameter.root?.addViewIsAvailableHandler(withIdentifier: publisherParameter.identifier) {
-            guard let publisher = publisherParameter.makeValue() else {
+        sink.root?.registerForViewAvailability(withIdentifier: sink.identifier) {
+            guard let publisher = sink.makeValue() else {
                 return  nil
             }
             return publisher.sink { freshValue in
@@ -40,9 +42,9 @@ public extension SomeView {
         return self
     }
 
-    func animateIsActive<A: ViewIsAvailableProvider, P: Publisher>(
+    func animateIsActive<A: ViewAvailabilityProvider, P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with publisherParameter: ValueParameter<A, Self, P>,
+        with publisherParameter: ViewStateSink<A, Self, P>,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) }
     ) -> Self
     where P.Output == CGFloat, P.Failure == Never {
@@ -50,10 +52,10 @@ public extension SomeView {
         publisherParameter.invalidationHandler = { [weak publisherParameter] in
             guard let root = publisherParameter?.root else { return }
             guard let identifier = publisherParameter?.identifier else { return }
-            root.removeViewIsAvailableHandler(forIdentifier: identifier)
+            root.unregisterViewAvailability(forIdentifier: identifier)
         }
         let constraint = constraintFactory(self)
-        publisherParameter.root?.addViewIsAvailableHandler(withIdentifier: publisherParameter.identifier) {
+        publisherParameter.root?.registerForViewAvailability(withIdentifier: publisherParameter.identifier) {
             guard let publisher = publisherParameter.makeValue() else {
                 return  nil
             }

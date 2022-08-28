@@ -28,11 +28,11 @@ public extension ViewControllerRequirements {
 }
 
 
-open class _ViewController: UIViewController, _ViewIsAvailableProviderImplementation, CollectCancellablesProvider, _TraitCollectionDidChangeProviderImplementation {
+open class _ViewController: UIViewController, _ViewAvailabilityProviderImplementation, CollectCancellablesProvider, _TraitCollectionDidChangeProviderImplementation {
 
     // MARK: Properties
 
-    let viewIsAvailableProviderStorage = ViewIsAvailableProviderStorage()
+    let viewAvailabilityProviderStorage = ViewAvailabilityProviderStorage()
     public let collectCancellablesProviderStorage = CollectCancellablesProviderStorage()
     let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
     

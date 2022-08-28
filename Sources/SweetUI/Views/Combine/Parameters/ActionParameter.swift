@@ -2,9 +2,9 @@ import Foundation
 import Combine
 
 
-// MARK: - ViewIsAvailableProvider factory
+// MARK: - ViewAvailabilityProvider factory
 
-public extension NSObjectProtocol where Self: ViewIsAvailableProvider {
+public extension NSObjectProtocol where Self: ViewAvailabilityProvider {
 
     func action<Context, Value>(_ closure: @escaping () -> Void) -> ActionParameter<Self, Context, Value> {
         ActionParameter(root: self, action: { _ in closure() })
