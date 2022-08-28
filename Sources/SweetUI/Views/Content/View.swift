@@ -38,11 +38,13 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
     public init(viewModel: ViewModel) {
         super.init(frame: .zero)
 
+        let isViewValueSubject = viewModel is any ViewValueSubject
         let isReferenceType = object_isClass(type(of: viewModel as Any))
-        if isReferenceType {
-            anyObjectViewModel = viewModel as AnyObject
-        } else {
+        let shouldRetainViewModel = isViewValueSubject || !isReferenceType
+        if shouldRetainViewModel {
             anyViewModel = viewModel
+        } else {
+            anyObjectViewModel = viewModel as AnyObject
         }
 
         guard let bodyProvider = self as? _ViewBodyProvider else {
@@ -58,13 +60,11 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewIsAvailab
     public convenience init(initialValue: ViewModel.Output) where ViewModel: ViewValueSubject {
         let viewModel = ViewModel(initialValue)
         self.init(viewModel: viewModel)
-        self.anyViewModel = viewModel
     }
 
     public convenience init(initialValue: ViewModel.Output = .default) where ViewModel: ViewValueSubject, ViewModel.Output: Defaultable {
         let viewModel = ViewModel(initialValue)
         self.init(viewModel: viewModel)
-        self.anyViewModel = viewModel
     }
 
     @available(*, unavailable)
