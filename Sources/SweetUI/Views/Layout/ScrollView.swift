@@ -12,7 +12,7 @@ public final class ScrollView<T: UIView>: UIScrollView {
 
     // MARK: - Instance life cycle
 
-    init(axes: Axis = .vertical, keyboardDismissMode: UIScrollView.KeyboardDismissMode? = nil, delegate: UIScrollViewDelegate? = nil, content: T) {
+    public init(axes: Axis = .vertical, keyboardDismissMode: UIScrollView.KeyboardDismissMode? = nil, delegate: UIScrollViewDelegate? = nil, content: T) {
         self.axes = axes
         self.content = content
         super.init(frame: .zero)
