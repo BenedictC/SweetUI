@@ -1,10 +1,10 @@
-//import Foundation
-//import UIKit
-//
-//
-//public extension UISegmentedControl {
-//
-//
+import Foundation
+import UIKit
+
+
+public extension UISegmentedControl {
+
+
 //    open var isMomentary: Bool
 //    open var apportionsSegmentWidthsByContent: Bool
 //
@@ -41,17 +41,18 @@
 //    open func setEnabled(_ enabled: Bool, forSegmentAt segment: Int) // default is YES
 //
 //    open func isEnabledForSegment(at segment: Int) -> Bool
-//
-//
-//    // ignored in momentary mode. returns last segment pressed. default is UISegmentedControlNoSegment until a segment is pressed
-//    // the UIControlEventValueChanged action is invoked when the segment changes via a user event. set to UISegmentedControlNoSegment to turn off selection
-//    open var selectedSegmentIndex: Int
-//
-//
-//    // The color to use for highlighting the currently selected segment.
-//    open var selectedSegmentTintColor: UIColor?
-//
-//
+
+
+    func selectedSegmentIndex(_ value: Int) -> Self {
+        self.selectedSegmentIndex = value
+        return self
+    }
+
+    func selectedSegmentTintColor(_ value: UIColor?) -> Self {
+        self.selectedSegmentTintColor = value
+        return self
+    }
+
 //    /* If backgroundImage is an image returned from -[UIImage resizableImageWithCapInsets:] the cap widths will be calculated from that information, otherwise, the cap width will be calculated by subtracting one from the image's width then dividing by 2. The cap widths will also be used as the margins for text placement. To adjust the margin use the margin adjustment methods.
 //
 //     In general, you should specify a value for the normal state to be used by other states which don't have a custom value set.
@@ -83,9 +84,9 @@
 //    open func setContentPositionAdjustment(_ adjustment: UIOffset, forSegmentType leftCenterRightOrAlone: UISegmentedControl.Segment, barMetrics: UIBarMetrics)
 //
 //    open func contentPositionAdjustment(forSegmentType leftCenterRightOrAlone: UISegmentedControl.Segment, barMetrics: UIBarMetrics) -> UIOffset
-//}
-//
-//
+}
+
+
 //@available(iOS 14.0, *)
 //public extension UISegmentedControl {
 //
