@@ -2,21 +2,12 @@ import UIKit
 import Combine
 
 
-// MARK: - ViewAvailabilityProvider
+// MARK: - CancellablesStorageProvider
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == Bool, S.Failure == Never {
-        subjectParameter.context = self
-        subjectParameter.invalidationHandler = { [weak subjectParameter] in
-            guard let root = subjectParameter?.root else { return }
-            guard let identifier = subjectParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
-            guard let subject = subjectParameter.makeValue() else { return nil }
-            return subjectParameter.context?.subscribeAndSendIsSelected(to: subject)
-        }
+    func bindIsSelected<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == Bool, S.Failure == Never {
+        subscriberFactory.makeCancellable { subscribeAndSendIsSelected(to: $0) }
         return self
     }
 }

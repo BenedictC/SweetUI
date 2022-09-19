@@ -8,15 +8,17 @@ public extension UITextField {
 
     func delegateWithReturnAction(next: UIResponder) -> Self {
         let delegate = TextFieldKeyboardDelegate.shared
-        let action = TextFieldKeyboardDelegate.Action(handler: { [weak next] in next?.becomeFirstResponder() })
+        let action = TextFieldKeyboardDelegate.Action(handler: { [weak next] _ in next?.becomeFirstResponder() })
         delegate.setAction(action, for: self)
         self.delegate = delegate
         return self
     }
 
-    func delegateWithReturnAction(_ handler: (() -> Void)? = nil) -> Self {
+    func delegateWithReturnAction(_ handler: @escaping (() -> Void)) -> Self {
         let delegate = TextFieldKeyboardDelegate.shared
-        let action = TextFieldKeyboardDelegate.Action(handler: handler)
+        let action = TextFieldKeyboardDelegate.Action(handler: { _ in
+            handler()
+        })
         delegate.setAction(action, for: self)
         self.delegate = delegate
         return self
@@ -24,7 +26,7 @@ public extension UITextField {
 
     func delegateWithReturnAction(_ handler: @escaping ((Self) -> Void)) -> Self {
         let delegate = TextFieldKeyboardDelegate.shared
-        let action = TextFieldKeyboardDelegate.Action { [weak self] in
+        let action = TextFieldKeyboardDelegate.Action { [weak self] _ in
             guard let self = self else {
                 return
             }
@@ -37,18 +39,19 @@ public extension UITextField {
 }
 
 
-public extension UITextField {
+public extension SomeView where Self: UITextField {
 
-    func delegateWithReturnAction<T: ViewAvailabilityProvider>(with provider: T, _ handler: @escaping ((Self, T) -> Void)) -> Self {
+    func delegateWithReturnAction<C: CancellablesStorageProvider>(with action: StoredAction<C, Self>) -> Self {
         let delegate = TextFieldKeyboardDelegate.shared
-        let action = TextFieldKeyboardDelegate.Action { [weak self, weak provider] in
-            guard let self = self,
-                  let provider = provider else {
-                return
-            }
-            handler(self, provider)
+        let handler = action.handler
+        let root = action.cancellablesStorageProvider
+        let delegateAction = TextFieldKeyboardDelegate.Action { [weak root] textField in
+            guard let root,
+                  let textField = textField as? Self else { return }
+            handler(root, textField)
         }
-        delegate.setAction(action, for: self)
+
+        delegate.setAction(delegateAction, for: self)
         self.delegate = delegate
         return self
     }
@@ -61,17 +64,17 @@ private final class TextFieldKeyboardDelegate: NSObject, UITextFieldDelegate {
 
     class Action {
 
-        let handler: () -> Void
+        let handler: (UITextField) -> Void
 
-        init?(handler: (() -> Void)?) {
+        init?(handler: ((UITextField) -> Void)?) {
             guard let handler = handler else {
                 return nil
             }
             self.handler = handler
         }
 
-        func execute() {
-            handler()
+        func execute(with textField: UITextField) {
+            handler(textField)
         }
     }
 
@@ -91,7 +94,7 @@ private final class TextFieldKeyboardDelegate: NSObject, UITextFieldDelegate {
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
         textField.resignFirstResponder()
         let action = actions.object(forKey: textField)
-        action?.execute()
+        action?.execute(with: textField)
         return false
     }
 }

@@ -1,6 +1,5 @@
 import Foundation
 import UIKit
-import Combine
 
 
 // MARK: - View
@@ -10,7 +9,7 @@ public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider & ViewMod
 
 // MARK: - Implementation
 
-open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewAvailabilityProviderImplementation, _TraitCollectionDidChangeProviderImplementation {
+open class _View<ViewModel>: UIView, CancellablesStorageProvider, _TraitCollectionPublisherProviderImplementation {
 
     // MARK: Types
 
@@ -28,9 +27,8 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewAvailabil
     }
     var anyViewModel: Any?
     weak var anyObjectViewModel: AnyObject?
-    public let collectCancellablesProviderStorage = CollectCancellablesProviderStorage()
-    let viewAvailabilityProviderStorage = ViewAvailabilityProviderStorage()
-    let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
+    public let cancellablesStorage = CancellablesStorage()
+    public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
 
 
     // MARK: Instance life cycle
@@ -46,7 +44,6 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewAvailabil
         } else {
             anyObjectViewModel = viewModel as AnyObject
         }
-
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
@@ -75,33 +72,8 @@ open class _View<ViewModel>: UIView, CollectCancellablesProvider, _ViewAvailabil
 
     // MARK: View events
 
-    open override func willMove(toWindow window: UIWindow?) {
-        super.willMove(toWindow: window)
-
-        // When a VC animates their view is moved to a transitionary window
-        // which means this gets fired more often than expected.
-//        guard let self = self as? ViewAvailabilityProvider else {
-//            preconditionFailure()
-//        }
-        let shouldCollectCancellables = self.window == nil && window != nil
-        if shouldCollectCancellables {
-            self.updateViewIsAvailableHandlers(isAvailable: true)
-        }
-        // Schedule an update for the next tick of the run loop
-        // We don't update immediately because the view could be moving to another window
-        DispatchQueue.main.async {
-            let didBecomeAvailable = !self.hasViewAvailabilityCancellables && self.window != nil
-            let didBecomeUnavailable = self.window == nil
-            if didBecomeAvailable || didBecomeUnavailable {
-                let isAvailable = self.window != nil
-                self.updateViewIsAvailableHandlers(isAvailable: isAvailable)
-            }
-        }
-    }
-
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)
-        let current = self.traitCollection
-        invokeTraitCollectionDidChangeHandlers(previous: previous, current: current)
+        _traitCollectionPublisherController.send(previous: previous, current: traitCollection)
     }
 }

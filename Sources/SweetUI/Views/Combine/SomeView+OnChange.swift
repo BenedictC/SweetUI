@@ -4,27 +4,11 @@ import Combine
 
 public extension SomeView {
 
-    func onChange<A: ViewAvailabilityProvider, V, P: Publisher>(of publisherParameter: ValueParameter<A, Self, P>, perform action: @escaping (Self, A, V) -> Void) -> Self where P.Output == V, P.Failure == Never {
-        publisherParameter.context = self
-        publisherParameter.invalidationHandler = { [weak publisherParameter] in
-            guard let root = publisherParameter?.root else { return }
-            guard let identifier = publisherParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-
-        publisherParameter.root?.registerForViewAvailability(withIdentifier: publisherParameter.identifier) {
-            guard let publisher = publisherParameter.makeValue() else {
-                return nil
-            }
-            return publisher.sink { value in
-                guard
-                    let context = publisherParameter.context,
-                    let root = publisherParameter.root
-                else {
-                    return
-                }
-                action(context, root, value)
-            }
+    func onChange<C: CancellablesStorageProvider, V, P: Publisher>(of factory: SubscriberFactory<C, P>, perform action: StoredAction<C, Self>) -> Self where P.Output == V, P.Failure == Never {
+        // We don't need to store action because it's captured in a block is stored
+        let handler = action.handler
+        factory.makeSubscriber(with: self) { view, root, _ in
+            handler(root, view)
         }
         return self
     }

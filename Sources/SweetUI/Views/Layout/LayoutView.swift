@@ -12,7 +12,7 @@ public protocol LayoutProviding: _LayoutProviding, ViewBodyProvider {
     associatedtype Configuration = Void
     var configuration: Configuration { get }
 
-    associatedtype Content
+    associatedtype Content: UIView = UIView
     var content: Content { get }
 }
 
@@ -43,8 +43,15 @@ open class _LayoutView: UIView {
 
     // MARK: Instance life cycle
 
-    required public init() {
+    public required init(anyConfiguration: Any?, anyContent: Any?) {
+        // TODO: It's not ideal that the public init contains Any? instead of the proper type.
         super.init(frame: .zero)
+        self._configuration = anyConfiguration
+        self._content = anyContent
+        guard let host = self as? _ViewBodyProvider else {
+            preconditionFailure("_LayoutView subclasses must conform to _ViewBodyProvider")
+        }
+        host.initializeBodyHosting() // TODO: This should be called in the designated init
     }
 
     @available(*, unavailable)
@@ -59,10 +66,7 @@ open class _LayoutView: UIView {
 public extension LayoutProviding where Self: _LayoutView {
 
     init(configuration: Configuration, content: Content) {
-        self.init()
-        self._configuration = configuration
-        self._content = content
-        self.initializeBodyHosting()
+        self.init(anyConfiguration: configuration, anyContent: content)
     }
 
     init(configuration: Configuration, _ content: Content) {
@@ -74,10 +78,7 @@ public extension LayoutProviding where Self: _LayoutView {
 public extension LayoutProviding where Self: _LayoutView, Configuration: Defaultable {
 
     init(content: Content) {
-        self.init()
-        self._configuration = Configuration.default
-        self._content = content
-        self.initializeBodyHosting()
+        self.init(configuration: Configuration.default, content: content)
     }
 
     init(_ content: Content) {
@@ -90,10 +91,7 @@ public extension LayoutProviding where Self: _LayoutView, Self.Configuration == 
 
     @available(*, unavailable)
     init(configuration: Configuration, content: Content) {
-        self.init()
-        self._configuration = configuration
-        self._content = content
-        self.initializeBodyHosting()
+        self.init(configuration: configuration, content: content)
     }
 
     @available(*, unavailable)
@@ -102,14 +100,11 @@ public extension LayoutProviding where Self: _LayoutView, Self.Configuration == 
     }
 
     init(content: Content) {
-        self.init()
-        self._configuration = ()
-        self._content = content
-        self.initializeBodyHosting()
+        self.init(configuration: (), content: content)
     }
 
     init(_ content: Content) {
-        self.init(content: content)
+        self.init(configuration: (), content: content)
     }
 }
 

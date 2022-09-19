@@ -1,34 +1,15 @@
 import UIKit
 import Combine
 
-
 public extension SomeView where Self: UITextView {
 
-    func bindText<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == String?, S.Failure == Never {
-        subjectParameter.context = self
-        subjectParameter.invalidationHandler = { [weak subjectParameter] in
-            guard let root = subjectParameter?.root else { return }
-            guard let identifier = subjectParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
-            guard let subject = subjectParameter.makeValue() else { return nil }
-            return subjectParameter.context?.makeBindings(for: subject, keyPath: \.text)
-        }
+    func bindText<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == String?, S.Failure == Never {
+        subscriberFactory.makeCancellable { subscribeAndSendText(to: $0) }
         return self
     }
 
-    func bindAttributedText<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subjectParameter.context = self
-        subjectParameter.invalidationHandler = { [weak subjectParameter] in
-            guard let root = subjectParameter?.root else { return }
-            guard let identifier = subjectParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
-            guard let subject = subjectParameter.makeValue() else { return nil }
-            return subjectParameter.context?.makeBindings(for: subject, keyPath: \.attributedText)
-        }
+    func bindAttributedText<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {        
+        subscriberFactory.makeCancellable { subscribeAndSendAttributedText(to: $0) }
         return self
     }
 }

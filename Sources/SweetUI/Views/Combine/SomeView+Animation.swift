@@ -1,79 +1,43 @@
 import UIKit
 import Combine
 
-public typealias ViewStateSink = ValueParameter
-
 
 public extension SomeView {
 
-    func animateIsActive<A: ViewAvailabilityProvider, P: Publisher>(
+    func animateIsActive<C: CancellablesStorageProvider, P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with sink: ViewStateSink<A, Self, P>,
-        animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) }
-    ) -> Self
-    where P.Output == Bool, P.Failure == Never {
-        sink.context = self
-        sink.invalidationHandler = { [weak sink] in
-            guard let root = sink?.root else { return }
-            guard let identifier = sink?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
+        with subscriberFactory: SubscriberFactory<C, P>,
+        animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) })
+    -> Self where P.Output == Bool, P.Failure == Never {
         let constraint = constraintFactory(self)
-        sink.root?.registerForViewAvailability(withIdentifier: sink.identifier) {
-            guard let publisher = sink.makeValue() else {
-                return  nil
-            }
-            return publisher.sink { freshValue in
-                let staleValue = constraint.isActive
-                let isChanged = staleValue != freshValue
+        subscriberFactory.makeSubscriber { root, isActive in
+            guard constraint.isActive != isActive else { return }
+            constraint.isActive = isActive
 
-                guard isChanged else { return }
-                constraint.isActive = freshValue
-
-                let container = UIView.viewToLayout(for: constraint)
-                guard let container = container, container.window != nil else { return }
-                let animator = animatorFactory()
-                animator.addAnimations {
-                    container.layoutIfNeeded()
-                }
-                animator.startAnimation()
-            }
+            let container = UIView.viewToLayout(for: constraint)
+            guard let container = container, container.window != nil else { return }
+            let animator = animatorFactory()
+            animator.addAnimations { container.layoutIfNeeded() }
+            animator.startAnimation()
         }
         return self
     }
 
-    func animateIsActive<A: ViewAvailabilityProvider, P: Publisher>(
+    func animateConstant<C: CancellablesStorageProvider, P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with publisherParameter: ViewStateSink<A, Self, P>,
-        animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) }
-    ) -> Self
-    where P.Output == CGFloat, P.Failure == Never {
-        publisherParameter.context = self
-        publisherParameter.invalidationHandler = { [weak publisherParameter] in
-            guard let root = publisherParameter?.root else { return }
-            guard let identifier = publisherParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
+        with subscriberFactory: SubscriberFactory<C, P>,
+        animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) })
+    -> Self where P.Output == CGFloat, P.Failure == Never {
         let constraint = constraintFactory(self)
-        publisherParameter.root?.registerForViewAvailability(withIdentifier: publisherParameter.identifier) {
-            guard let publisher = publisherParameter.makeValue() else {
-                return  nil
-            }
-            return publisher.sink { freshValue in
-                let staleValue = constraint.constant
-                let isChanged = staleValue != freshValue
+        subscriberFactory.makeSubscriber { _, constant in
+            guard constraint.constant != constant else { return }
+            constraint.constant = constant
 
-                guard isChanged else { return }
-                constraint.constant = freshValue
-
-                let container = UIView.viewToLayout(for: constraint)
-                guard let container = container, container.window != nil else { return }
-                let animator = animatorFactory()
-                animator.addAnimations {
-                    container.layoutIfNeeded()
-                }
-                animator.startAnimation()
-            }
+            let container = UIView.viewToLayout(for: constraint)
+            guard let container = container, container.window != nil else { return }
+            let animator = animatorFactory()
+            animator.addAnimations { container.layoutIfNeeded() }
+            animator.startAnimation()
         }
         return self
     }
@@ -108,8 +72,10 @@ private extension UIView {
 
         let ancestors = self.ancestors
         let otherAncestors = other.ancestors
+        let viewDepth = min(ancestors.count, otherAncestors.count)
+        guard viewDepth > 0 else { return nil }
         var lastMatch: UIView?
-        for i in 1...min(ancestors.count, otherAncestors.count) {
+        for i in 1..<viewDepth {
             let ancestor = ancestors[ancestors.count - i]
             let otherAncestor = otherAncestors[otherAncestors.count - i]
             guard ancestor == otherAncestor else {

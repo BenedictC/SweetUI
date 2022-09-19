@@ -1,38 +1,39 @@
 import UIKit
+import Combine
 
 
-public protocol TraitCollectionDidChangeProvider: AnyObject {
+public typealias PublishedTraitCollection = (previous: UITraitCollection?, current: UITraitCollection)
 
-    typealias TraitCollectionDidChangeHandler = (_ previous: UITraitCollection?, _ current: UITraitCollection) -> Void
 
-    func addTraitCollectionDidChangeHandler(withIdentifier identifier: AnyHashable, _ handler: @escaping TraitCollectionDidChangeHandler)
-    func removeTraitCollectionDidChangeHandler(forIdentifier identifier: AnyHashable)
+public protocol TraitCollectionPublisherProvider: AnyObject {
+
+    var traitCollectionPublisher: AnyPublisher<PublishedTraitCollection, Never> { get }
 }
 
 
-protocol _TraitCollectionDidChangeProviderImplementation: TraitCollectionDidChangeProvider {
+// MARK: - Implementation
 
-    var traitCollectionDidChangeProviderStorage: TraitCollectionDidChangeProviderStorage { get }
+public protocol _TraitCollectionPublisherProviderImplementation: TraitCollectionPublisherProvider {
+    var _traitCollectionPublisherController: TraitCollectionPublisherController { get }
 }
 
 
-final class TraitCollectionDidChangeProviderStorage {
-    var handlers = [AnyHashable: TraitCollectionDidChangeProvider.TraitCollectionDidChangeHandler]()
+public extension _TraitCollectionPublisherProviderImplementation {
+
+    var traitCollectionPublisher: AnyPublisher<PublishedTraitCollection, Never> { _traitCollectionPublisherController.traitCollectionPublisher }
 }
 
 
-extension _TraitCollectionDidChangeProviderImplementation {
+public class TraitCollectionPublisherController {
 
-    public func addTraitCollectionDidChangeHandler(withIdentifier identifier: AnyHashable = UUID(), _ handler: @escaping TraitCollectionDidChangeHandler) {
-        traitCollectionDidChangeProviderStorage.handlers[identifier] = handler
+    private let subject: CurrentValueSubject<PublishedTraitCollection, Never>
+    var traitCollectionPublisher: AnyPublisher<PublishedTraitCollection, Never> { subject.eraseToAnyPublisher() }
+
+    init(initialTraitCollection: UITraitCollection) {
+        self.subject = CurrentValueSubject((nil, initialTraitCollection))
     }
 
-    public func removeTraitCollectionDidChangeHandler(forIdentifier identifier: AnyHashable) {
-        traitCollectionDidChangeProviderStorage.handlers.removeValue(forKey: identifier)
-    }
-
-    func invokeTraitCollectionDidChangeHandlers(previous: UITraitCollection?, current: UITraitCollection) {
-        let handlers = traitCollectionDidChangeProviderStorage.handlers
-        handlers.values.forEach { $0(previous, current) }
+    func send(previous: UITraitCollection?, current: UITraitCollection) {
+        subject.send((previous, current))
     }
 }

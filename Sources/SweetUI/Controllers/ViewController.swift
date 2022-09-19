@@ -28,14 +28,13 @@ public extension ViewControllerRequirements {
 }
 
 
-open class _ViewController: UIViewController, _ViewAvailabilityProviderImplementation, CollectCancellablesProvider, _TraitCollectionDidChangeProviderImplementation {
+open class _ViewController: UIViewController, CancellablesStorageProvider, _TraitCollectionPublisherProviderImplementation {
 
     // MARK: Properties
 
-    let viewAvailabilityProviderStorage = ViewAvailabilityProviderStorage()
-    public let collectCancellablesProviderStorage = CollectCancellablesProviderStorage()
-    let traitCollectionDidChangeProviderStorage = TraitCollectionDidChangeProviderStorage()
-    
+    public let cancellablesStorage = CancellablesStorage()
+    public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
+
 
     // MARK: Instance life cycle
 
@@ -60,19 +59,8 @@ open class _ViewController: UIViewController, _ViewAvailabilityProviderImplement
 
     // MARK: View life cycle
 
-    override open func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        updateViewIsAvailableHandlers(isAvailable: true)
-    }
-
-    open override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        updateViewIsAvailableHandlers(isAvailable: false)
-    }
-
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)
-        let current = self.traitCollection
-        invokeTraitCollectionDidChangeHandlers(previous: previous, current: current)
+        _traitCollectionPublisherController.send(previous: previous, current: traitCollection)
     }
 }

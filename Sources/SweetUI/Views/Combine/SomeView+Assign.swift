@@ -4,33 +4,19 @@ import UIKit
 
 public extension SomeView {
 
-    func assign<A: ViewAvailabilityProvider, P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>, from publisherParameter: ValueParameter<A, Self, P>) -> Self where P.Failure == Never {
-        publisherParameter.context = self
-        publisherParameter.invalidationHandler = { [weak publisherParameter] in
-            guard let root = publisherParameter?.root else { return }
-            guard let identifier = publisherParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        publisherParameter.root?.registerForViewAvailability(withIdentifier: publisherParameter.identifier) {
-            guard let publisher = publisherParameter.makeValue() else { return nil }
-            return publisherParameter.context?.subscribe(destinationKeyPath, to: publisher)
+    func assign<C: CancellablesStorageProvider, P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>, from subscriberFactory: SubscriberFactory<C, P>) -> Self where P.Failure == Never {
+        subscriberFactory.makeSubscriber(with: self) { view, _, value in
+            view[keyPath: destinationKeyPath] = value
         }
         return self
     }
-    
+
 
     // MARK: Promote non-optional publisher to optional
-
-    func assign<A: ViewAvailabilityProvider, P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>, from publisherParameter: ValueParameter<A, Self, P>) -> Self where P.Failure == Never {
-        publisherParameter.context = self
-        publisherParameter.invalidationHandler = { [weak publisherParameter] in
-            guard let root = publisherParameter?.root else { return }
-            guard let identifier = publisherParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        publisherParameter.root?.registerForViewAvailability(withIdentifier: publisherParameter.identifier) {
-            guard let publisher = publisherParameter.makeValue() else { return nil }
-            return publisherParameter.context?.subscribe(destinationKeyPath, to: publisher.map(Optional.some))
+    
+    func assign<C: CancellablesStorageProvider, P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>, from subscriberFactory: SubscriberFactory<C, P>) -> Self where P.Failure == Never {
+        subscriberFactory.makeSubscriber(with: self) { view, _, value in
+            view[keyPath: destinationKeyPath] = value            
         }
         return self
     }

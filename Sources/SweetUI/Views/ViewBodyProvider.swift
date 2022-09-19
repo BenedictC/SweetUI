@@ -69,7 +69,9 @@ public extension ViewBodyProvider {
 extension _ViewBodyProvider {
 
     func initializeBodyHosting() {
-        Self.initializeInstance(of: self)
-        Self.initializeBody(of: self)
+        if _body.superview == nil {
+            Self.initializeInstance(of: self)
+            Self.initializeBody(of: self)
+        }
     }
 }

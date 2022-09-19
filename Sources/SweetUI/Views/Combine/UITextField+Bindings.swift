@@ -2,35 +2,17 @@ import UIKit
 import Combine
 
 
-// MARK: - ViewAvailabilityProvider continuous
+// MARK: - CancellablesStorageProvider continuous
 
 public extension SomeView where Self: UITextField {
 
-    func bindText<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == String?, S.Failure == Never {
-        subjectParameter.context = self
-        subjectParameter.invalidationHandler = { [weak subjectParameter] in
-            guard let root = subjectParameter?.root else { return }
-            guard let identifier = subjectParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
-            guard let subject = subjectParameter.makeValue() else { return nil }
-            return subjectParameter.context?.subscribeAndSendText(to: subject)
-        }
+    func bindText<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == String?, S.Failure == Never {
+        subscriberFactory.makeCancellable { subscribeAndSendText(to: $0) }
         return self
     }
 
-    func bindAttributedText<A: ViewAvailabilityProvider, S: Subject>(to subjectParameter: ValueParameter<A, Self, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subjectParameter.context = self
-        subjectParameter.invalidationHandler = { [weak subjectParameter] in
-            guard let root = subjectParameter?.root else { return }
-            guard let identifier = subjectParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
-        }
-        subjectParameter.root?.registerForViewAvailability(withIdentifier: subjectParameter.identifier) {
-            guard let subject = subjectParameter.makeValue() else { return nil }
-            return subjectParameter.context?.subscribeAndSendAttributedText(to: subject)
-        }
+    func bindAttributedText<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        subscriberFactory.makeCancellable { subscribeAndSendAttributedText(to: $0) }
         return self
     }
 }
@@ -53,7 +35,8 @@ private extension SomeView where Self: UITextField {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
         }
-        let receive = subject.sink { value in
+        let receive = subject.sink { [weak self] value in
+            guard let self = self else { return }
             if self.isFirstResponder { return }
             self[keyPath: keyPath] = value
         }

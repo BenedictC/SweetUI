@@ -6,20 +6,17 @@ import UIKit
 
 public extension SomeView where Self: UIControl {
 
-    func on<A: ViewAvailabilityProvider>(_ event: UIControl.Event, perform actionParameter: ActionParameter<A, Self, UIControl.Event>) -> Self {
-        actionParameter.context = self
-        actionParameter.invalidationHandler = { [weak actionParameter] in
-            guard let root = actionParameter?.root else { return }
-            guard let identifier = actionParameter?.identifier else { return }
-            root.unregisterViewAvailability(forIdentifier: identifier)
+    func on<C: CancellablesStorageProvider>(_ event: UIControl.Event, perform action: StoredAction<C, Self>) -> Self {
+        let handler = action.handler
+        let cancellablesStorageProvider = action.cancellablesStorageProvider
+        let cancellable = self.addAction(for: event) { [weak self, weak cancellablesStorageProvider] _, _ in
+            guard let cancellablesStorageProvider,
+                  let self else { return }
+            handler(cancellablesStorageProvider, self)
         }
-        actionParameter.root?.registerForViewAvailability(withIdentifier: actionParameter.identifier) {
-            guard let context = actionParameter.context else { return nil }
-
-            return context.addAction(for: event, with: { [weak actionParameter] _, event in
-                actionParameter?.execute(with: event)
-            })
-        }
+        let id = action.cancellableIdentifier
+        cancellablesStorageProvider.storeCancellable(cancellable, for: id)
         return self
+
     }
 }
