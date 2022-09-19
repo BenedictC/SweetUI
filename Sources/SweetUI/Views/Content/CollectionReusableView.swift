@@ -1,16 +1,10 @@
-import Foundation
 import UIKit
 
 
-public typealias CollectionViewCell = _CollectionViewCell & ViewBodyProvider
+public typealias CollectionReusableView = _CollectionReusableView & ViewBodyProvider
 
 
-open class _CollectionViewCell: UICollectionViewCell, ReuseIdentifiable {
-
-    // MARK: Properties
-
-    public var bodyContainer: UIView { contentView }
-
+open class _CollectionReusableView: UICollectionReusableView, ReuseIdentifiable {
 
     // MARK: Instance life cycle
 
