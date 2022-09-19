@@ -7,7 +7,8 @@ func detectPotentialRetainCycle<T>(of object: CFTypeRef, performing work: () -> 
     let actualCount = CFGetRetainCount(object)
 
     if actualCount != expectedCount {
-        DebugWarning.raise("Potential retain cycle detected in \(Thread.callStackSymbols[0])")
+        let increment = actualCount - expectedCount
+        DebugWarning.raise("Potential retain cycle detected. Retain count incremented by \(increment). This may be a false positive caused by the object being temporarily retained by asynchronous functions (e.g. a Task, DispatchQueue or Operation).")
     }
 
     return result
