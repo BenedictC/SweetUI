@@ -30,7 +30,7 @@ public extension NavigationFlowControllerRequirements {
 }
 
 
-open class _NavigationFlowController: _FlowController {
+open class _NavigationFlowController: _FlowController, UINavigationControllerDelegate {
 
     lazy var defaultNavigationController = UINavigationController()
 
@@ -39,6 +39,7 @@ open class _NavigationFlowController: _FlowController {
         guard let owner = self as? _NavigationFlowControllerRequirements else {
             preconditionFailure("_NavigationFlowController must conform to _NavigationFlowControllerRequirements")
         }
+        owner._containerViewController.delegate = self
         owner._containerViewController.view.backgroundColor = .systemBackground
         owner._containerViewController.pushViewController(owner._rootViewController, animated: false)
     }
