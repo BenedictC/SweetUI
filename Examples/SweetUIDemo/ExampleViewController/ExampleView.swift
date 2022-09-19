@@ -126,6 +126,10 @@ final class ExampleView: View<ExampleViewModel> {
                 .contentHugs(in: .vertical, at: .defaultLow)
         }
     }
+
+    deinit {
+        print("Bye from \(Self.self)")
+    }
 }
 
 

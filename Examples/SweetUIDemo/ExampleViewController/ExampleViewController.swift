@@ -24,6 +24,11 @@ class ExampleViewController: ContentViewController {
 
     // MARK: - View life cycle
 
+    deinit {
+        print("Bye from \(Self.self)")
+    }
+
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         rootView.beginEditing()
