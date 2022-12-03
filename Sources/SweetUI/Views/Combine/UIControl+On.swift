@@ -17,6 +17,5 @@ public extension SomeView where Self: UIControl {
         let id = action.cancellableIdentifier
         cancellablesStorageProvider.storeCancellable(cancellable, for: id)
         return self
-
     }
 }
