@@ -90,11 +90,6 @@ public extension UILabel {
         return self
     }
 
-    func lineBreakStrategy(_ value: NSParagraphStyle.LineBreakStrategy) -> Self {
-        self.lineBreakStrategy = value
-        return self
-    }
-
     func preferredMaxLayoutWidth(_ value: CGFloat) -> Self {
         self.preferredMaxLayoutWidth = value
         return self
@@ -102,6 +97,16 @@ public extension UILabel {
 
     func showsExpansionTextWhenTruncated(_ value: Bool) -> Self {
         self.showsExpansionTextWhenTruncated = value
+        return self
+    }
+}
+
+
+@available(iOS 14.0, *)
+public extension UILabel {
+
+    func lineBreakStrategy(_ value: NSParagraphStyle.LineBreakStrategy) -> Self {
+        self.lineBreakStrategy = value
         return self
     }
 }
