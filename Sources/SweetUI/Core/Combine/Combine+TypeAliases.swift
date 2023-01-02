@@ -30,6 +30,8 @@ public struct Binding<T> {
 
     public var wrappedValue: T {
         get { subject.value }
+        // nonmutating is to avoid swift crashing due to re-entrant when the get is called by a subscriber of the underlying subject
+        nonmutating
         set { subject.send(newValue) }
     }
 
