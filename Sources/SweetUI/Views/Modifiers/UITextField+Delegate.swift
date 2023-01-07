@@ -41,16 +41,14 @@ public extension UITextField {
 
 public extension SomeView where Self: UITextField {
 
-    func delegateWithReturnAction<C: CancellablesStorageProvider>(with action: StoredAction<C, Self>) -> Self {
+    func delegateWithReturnAction( 
+        with action: @escaping (Self) -> Void)
+    -> Self {
         let delegate = TextFieldKeyboardDelegate.shared
-        let handler = action.handler
-        let root = action.cancellablesStorageProvider
-        let delegateAction = TextFieldKeyboardDelegate.Action { [weak root] textField in
-            guard let root,
-                  let textField = textField as? Self else { return }
-            handler(root, textField)
+        let delegateAction = TextFieldKeyboardDelegate.Action { textField in
+            guard let textField = textField as? Self else { return }
+            action(textField)
         }
-
         delegate.setAction(delegateAction, for: self)
         self.delegate = delegate
         return self

@@ -28,11 +28,10 @@ public extension ViewControllerRequirements {
 }
 
 
-open class _ViewController: UIViewController, CancellablesStorageProvider, _TraitCollectionPublisherProviderImplementation {
+open class _ViewController: UIViewController, _TraitCollectionPublisherProviderImplementation {
 
     // MARK: Properties
 
-    public let cancellablesStorage = CancellablesStorage()
     public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
 
 

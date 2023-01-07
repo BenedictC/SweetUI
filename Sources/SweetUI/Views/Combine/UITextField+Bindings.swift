@@ -6,13 +6,21 @@ import Combine
 
 public extension SomeView where Self: UITextField {
 
-    func bindText<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == String?, S.Failure == Never {
-        subscriberFactory.makeCancellable { subscribeAndSendText(to: $0) }
+    func bindText<S: Subject>(
+        to subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
+    -> Self where S.Output == String?, S.Failure == Never {
+        let cancellable = subscribeAndSendText(to: subject)
+        cancellableStorageHandler(cancellable, self)
         return self
     }
-
-    func bindAttributedText<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        subscriberFactory.makeCancellable { subscribeAndSendAttributedText(to: $0) }
+    
+    func bindAttributedText<S: Subject>(
+        to subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
+    -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+        let cancellable = subscribeAndSendAttributedText(to: subject)
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 }

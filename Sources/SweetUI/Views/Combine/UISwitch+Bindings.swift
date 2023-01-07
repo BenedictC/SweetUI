@@ -6,8 +6,12 @@ import Combine
 
 public extension SomeView where Self: UISwitch {
 
-    func bindIsOn<C: CancellablesStorageProvider, S: Subject>(to subscriberFactory: SubscriberFactory<C, S>) -> Self where S.Output == Bool, S.Failure == Never {
-        subscriberFactory.makeCancellable { subscribeAndSendIsOn(to: $0) }
+    func bindIsOn<S: Subject>(
+        to subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
+    -> Self where S.Output == Bool, S.Failure == Never {
+        let cancellable = subscribeAndSendIsOn(to: subject)
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 }

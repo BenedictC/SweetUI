@@ -34,7 +34,7 @@ public extension ViewModelProvider where Self: AnyObject, ViewModel: ViewValueSu
 
     var value: Value {
         get { return viewModel.value }
-        set { viewModel.send(newValue) }
+        nonmutating set { viewModel.send(newValue) }
     }
 
     var valuePublisher: ViewState<Value> { viewModel.eraseToAnyPublisher() }

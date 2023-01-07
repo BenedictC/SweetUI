@@ -4,41 +4,45 @@ import Combine
 
 public extension SomeView {
 
-    func animateIsActive<C: CancellablesStorageProvider, P: Publisher>(
+    func animateIsActive<P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with subscriberFactory: SubscriberFactory<C, P>,
+        with publisher: P,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) })
     -> Self where P.Output == Bool, P.Failure == Never {
         let constraint = constraintFactory(self)
-        subscriberFactory.makeSubscriber { root, isActive in
+        let cancellable = publisher.sink { isActive in
             guard constraint.isActive != isActive else { return }
             constraint.isActive = isActive
 
             let container = UIView.viewToLayout(for: constraint)
-            guard let container = container, container.window != nil else { return }
+            guard let container, container.window != nil else { return }
             let animator = animatorFactory()
             animator.addAnimations { container.layoutIfNeeded() }
             animator.startAnimation()
         }
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 
-    func animateConstant<C: CancellablesStorageProvider, P: Publisher>(
+    func animateConstant<P: Publisher>(
         of constraintFactory: (Self) -> NSLayoutConstraint,
-        with subscriberFactory: SubscriberFactory<C, P>,
+        with publisher: P,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) })
     -> Self where P.Output == CGFloat, P.Failure == Never {
         let constraint = constraintFactory(self)
-        subscriberFactory.makeSubscriber { _, constant in
+        let cancellable = publisher.sink { constant in
             guard constraint.constant != constant else { return }
             constraint.constant = constant
 
             let container = UIView.viewToLayout(for: constraint)
-            guard let container = container, container.window != nil else { return }
+            guard let container, container.window != nil else { return }
             let animator = animatorFactory()
             animator.addAnimations { container.layoutIfNeeded() }
             animator.startAnimation()
         }
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 }

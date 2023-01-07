@@ -6,16 +6,15 @@ import UIKit
 
 public extension SomeView where Self: UIControl {
 
-    func on<C: CancellablesStorageProvider>(_ event: UIControl.Event, perform action: StoredAction<C, Self>) -> Self {
-        let handler = action.handler
-        let cancellablesStorageProvider = action.cancellablesStorageProvider
-        let cancellable = self.addAction(for: event) { [weak self, weak cancellablesStorageProvider] _, _ in
-            guard let cancellablesStorageProvider,
-                  let self else { return }
-            handler(cancellablesStorageProvider, self)
+    func on(
+        _ event: UIControl.Event,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
+        perform handler: @escaping (Self) -> Void)
+    -> Self {
+        let cancellable = addAction(for: event) { control, _ in
+            handler(control)
         }
-        let id = action.cancellableIdentifier
-        cancellablesStorageProvider.storeCancellable(cancellable, for: id)
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 }

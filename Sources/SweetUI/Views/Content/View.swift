@@ -9,7 +9,7 @@ public typealias View<ViewModel> = _View<ViewModel> & ViewBodyProvider & ViewMod
 
 // MARK: - Implementation
 
-open class _View<ViewModel>: UIView, CancellablesStorageProvider, _TraitCollectionPublisherProviderImplementation {
+open class _View<ViewModel>: UIView, _TraitCollectionPublisherProviderImplementation {
 
     // MARK: Types
 
@@ -27,7 +27,6 @@ open class _View<ViewModel>: UIView, CancellablesStorageProvider, _TraitCollecti
     }
     var anyViewModel: Any?
     weak var anyObjectViewModel: AnyObject?
-    public let cancellablesStorage = CancellablesStorage()
     public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
 
 

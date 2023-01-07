@@ -1,23 +1,24 @@
 import Combine
-import UIKit
 
 
 public extension SomeView {
 
-    func assign<C: CancellablesStorageProvider, P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>, from subscriberFactory: SubscriberFactory<C, P>) -> Self where P.Failure == Never {
-        subscriberFactory.makeSubscriber(with: self) { view, _, value in
-            view[keyPath: destinationKeyPath] = value
+    func assign<P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>, from publisher: P, cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store) -> Self where P.Failure == Never {
+        let cancellable = publisher.sink { [weak self] value in
+            self?[keyPath: destinationKeyPath] = value
         }
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 
 
     // MARK: Promote non-optional publisher to optional
     
-    func assign<C: CancellablesStorageProvider, P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>, from subscriberFactory: SubscriberFactory<C, P>) -> Self where P.Failure == Never {
-        subscriberFactory.makeSubscriber(with: self) { view, _, value in
-            view[keyPath: destinationKeyPath] = value            
+    func assign<P: Publisher>(to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>, from publisher: P, cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store) -> Self where P.Failure == Never {
+        let cancellable = publisher.sink { [weak self] value in
+            self?[keyPath: destinationKeyPath] = value
         }
+        cancellableStorageHandler(cancellable, self)
         return self
     }
 }
