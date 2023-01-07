@@ -51,31 +51,3 @@ public final class AnySubject<Output, Failure: Error>: Subject {
         sendSubscriptionHandler(subscription)
     }
 }
-
-
-// MARK: - Public Initializers
-
-public extension AnySubject {
-
-    convenience init<T: Subject>(_ wrapped: T) where T.Output == Output, T.Failure == Failure {
-        self.init(
-            receiveHandler: { wrapped.receive(subscriber: $0) },
-            sendValueHandler: { wrapped.send($0) },
-            sendCompletionHandler: { wrapped.send(completion: $0) },
-            sendSubscriptionHandler: { wrapped.send(subscription: $0) }
-        )
-    }
-}
-
-
-// MARK: - Type erasure factory
-
-public extension Subject {
-
-    func eraseToAnySubject() -> AnySubject<Output, Failure> {
-        if let existing = self as? AnySubject<Output, Failure> {
-            return existing
-        }
-        return AnySubject(self)
-    }
-}

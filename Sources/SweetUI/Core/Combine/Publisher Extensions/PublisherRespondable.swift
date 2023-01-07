@@ -7,6 +7,11 @@ public protocol PublisherRespondable: AnyObject {
 }
 
 
+// MARK: - Default conformance
+
+extension NSObject: PublisherRespondable { }
+
+
 // MARK: - Subscribing
 
 public extension PublisherRespondable {
@@ -39,8 +44,3 @@ public extension PublisherRespondable {
         }
     }
 }
-
-
-// MARK: - Default conformance
-
-extension NSObject: PublisherRespondable { }
