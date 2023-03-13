@@ -19,7 +19,7 @@ import UIKit
 import SweetUI
 
 
-class ExampleViewController: ContentViewController {
+class FormViewController: ContentViewController {
 
     let rootView = ZStack(alignment: .center) {
         VStack(alignment: .center) {
@@ -35,7 +35,7 @@ class ExampleViewController: ContentViewController {
 }
 ``` 
 
-<img src="Images/example.jpg" width="356" height="772" alt="ExampleViewController screenshot">
+<img src="Images/example.jpg" width="356" height="772" alt="FormViewController screenshot">
 
 The demo app illustrates:
 - Extract the view to a `View` subclass

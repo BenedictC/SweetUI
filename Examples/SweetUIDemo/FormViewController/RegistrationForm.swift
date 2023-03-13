@@ -2,7 +2,7 @@ import Foundation
 import Combine
 
 
-final class ExampleRegistrationForm {
+final class RegistrationForm {
 
     // MARK: Publishers
 
@@ -31,7 +31,7 @@ final class ExampleRegistrationForm {
 
 // MARK: - Validation
 
-extension ExampleRegistrationForm {
+extension RegistrationForm {
 
     private static let linkDetector = try! NSDataDetector(types: NSTextCheckingResult.CheckingType.link.rawValue)
 
@@ -59,7 +59,7 @@ extension ExampleRegistrationForm {
         && password.contains(where: { $0.isNumber })
     }
 
-    static func isValid(_ form: ExampleRegistrationForm) -> Bool {
+    static func isValid(_ form: RegistrationForm) -> Bool {
         return isValidName(form.name)
         && isValidEmail(form.email)
         && isValidPassword(form.password)

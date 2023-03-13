@@ -3,7 +3,7 @@ import SweetUI
 import Combine
 
 
-class ExampleViewController: ContentViewController {
+class FormViewController: ContentViewController {
 
     // MARK: - Instance life cycle
 
@@ -15,11 +15,11 @@ class ExampleViewController: ContentViewController {
     
     // MARK: - Properties
 
-    lazy var rootView = ExampleView(viewModel: self)
+    lazy var rootView = FormView(viewModel: self)
         .backgroundColor(.systemBackground)
-    private let form = ExampleRegistrationForm()
+    private let form = RegistrationForm()
     @Published private var isSubmitInProgress = false
-    @Published private var validationKeyPaths = Set<ExampleViewModel.ValidationKeyPath>()
+    @Published private var validationKeyPaths = Set<FormViewModel.ValidationKeyPath>()
 
 
     // MARK: - View life cycle
@@ -36,7 +36,7 @@ class ExampleViewController: ContentViewController {
 }
 
 
-extension ExampleViewController: ExampleViewModel {
+extension FormViewController: FormViewModel {
     var nameBinding: ViewBinding<String?> { ViewBinding(for: form, \.name, publisher: form.$name) }
     var isNameValidState: ViewState<Bool> { makeValidationPublisher(for: form.isNameValid, keyPath: \.isNameValidState) }
     var emailBinding: ViewBinding<String?> { ViewBinding(for: form, \.email, publisher: form.$email) }
@@ -46,12 +46,12 @@ extension ExampleViewController: ExampleViewModel {
 
     var isReadyToSubmit: ViewState<Bool> { form.isValid }
 
-    var statusState: ViewState<ExampleView.Status> {
+    var statusState: ViewState<FormView.Status> {
         Publishers.CombineLatest(isReadyToSubmit, $isSubmitInProgress).map {
             let (isReady, isInProgress) = $0
-            if isInProgress { return ExampleView.Status.waiting }
-            if isReady { return ExampleView.Status.ready }
-            return ExampleView.Status.invalid
+            if isInProgress { return FormView.Status.waiting }
+            if isReady { return FormView.Status.ready }
+            return FormView.Status.invalid
         }
         .eraseToAnyPublisher()
     }
@@ -61,7 +61,7 @@ extension ExampleViewController: ExampleViewModel {
     }
 
     func submit() {
-        guard ExampleRegistrationForm.isValid(form) else {
+        guard RegistrationForm.isValid(form) else {
             return
         }
         pretendToSubmitForm()
@@ -69,9 +69,9 @@ extension ExampleViewController: ExampleViewModel {
 }
 
 
-private extension ExampleViewController {
+private extension FormViewController {
 
-    func makeValidationPublisher(for validationPublisher: ViewState<Bool>, keyPath: ExampleViewModel.ValidationKeyPath) -> ViewState<Bool> {
+    func makeValidationPublisher(for validationPublisher: ViewState<Bool>, keyPath: FormViewModel.ValidationKeyPath) -> ViewState<Bool> {
         validationPublisher.combineLatest($validationKeyPaths).map {
             let (isValid, keyPathsToValidate) = $0
             let shouldSkipValidation = !keyPathsToValidate.contains(keyPath)

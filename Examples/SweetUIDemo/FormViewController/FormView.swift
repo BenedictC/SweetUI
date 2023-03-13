@@ -5,9 +5,9 @@ import Combine
 
 // MARK: - ViewModel
 
-protocol ExampleViewModel: AnyObject {
+protocol FormViewModel: AnyObject {
 
-    typealias ValidationKeyPath = KeyPath<ExampleViewModel, ViewState<Bool>>
+    typealias ValidationKeyPath = KeyPath<FormViewModel, ViewState<Bool>>
 
     var nameBinding: ViewBinding<String?> { get }
     var isNameValidState: ViewState<Bool> { get }
@@ -18,13 +18,13 @@ protocol ExampleViewModel: AnyObject {
     var passwordBinding: ViewBinding<String?> { get }
     var isPasswordValidState: ViewState<Bool> { get }
 
-    var statusState: ViewState<ExampleView.Status> { get }
+    var statusState: ViewState<FormView.Status> { get }
 
     func didEndEditing(for validationKeyPath: ValidationKeyPath)
     func submit()
 }
 
-private extension ExampleViewModel {
+private extension FormViewModel {
 
     var isReadyToSubmit: ViewState<Bool> {
         statusState
@@ -46,7 +46,7 @@ private extension ExampleViewModel {
 
 // MARK: - View
 
-final class ExampleView: View<ExampleViewModel> {
+final class FormView: View<FormViewModel> {
 
     // MARK: Types
 
@@ -135,7 +135,7 @@ final class ExampleView: View<ExampleViewModel> {
 
 // MARK: - Actions
 
-extension ExampleView {
+extension FormView {
 
     func beginEditing() {
         nameTextField.becomeFirstResponder()
@@ -151,7 +151,7 @@ extension ExampleView {
 
 // MARK: - Factories
 
-private extension ExampleView {
+private extension FormView {
 
     func makeTextField(placeholder: String) -> UITextField {
         UITextField()
