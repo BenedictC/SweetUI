@@ -6,8 +6,8 @@ enum PresentationCoordinators {
 
     private static let presentationCoordinatorByPresentedViewController = NSMapTable<UIViewController, AnyObject>.weakToStrongObjects()
 
-    static func createPresentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal> {
-        let coordinator = PresentationCoordinator(modal: modal)
+    static func createPresentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal.Success> {
+        let coordinator = PresentationCoordinator(presented: modal)
         presentationCoordinatorByPresentedViewController.setObject(coordinator, forKey: modal)
         return coordinator
     }
@@ -16,19 +16,27 @@ enum PresentationCoordinators {
         presentationCoordinatorByPresentedViewController.removeObject(forKey: modal)
     }
 
-    static func presentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal>? {
-        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modal) else {
+    static func presentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal.Success>? {
+        var modalRoot: UIViewController = modal
+        while let parent = modalRoot.parent {
+            modalRoot = parent
+        }
+        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modalRoot) else {
             return nil
         }
-        guard let coordinator = object as? PresentationCoordinator<Modal> else {
-            assertionFailure()
+        guard let coordinator = object as? PresentationCoordinator<Modal.Success> else {
+            // Probably means we're dealing with a childVC in that has a different Success to its container
             return nil
         }
         return coordinator
     }
 
     static func anyPresentationCoordinator(for modal: UIViewController) -> AnyPresentationCoordinator? {
-        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modal) else {
+        var modalRoot = modal
+        while let parent = modalRoot.parent {
+            modalRoot = parent
+        }
+        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modalRoot) else {
             return nil
         }
         guard let coordinator = object as? AnyPresentationCoordinator else {
@@ -44,42 +52,50 @@ enum PresentationCoordinators {
 
 @MainActor
 protocol AnyPresentationCoordinator {
+    func endPresentationWithMissingValue(animated: Bool)
     func presentationDidEnd()
 }
 
 
 @MainActor
-final class PresentationCoordinator<Modal: Presentable>: AnyPresentationCoordinator {
+final class PresentationCoordinator<Success>: AnyPresentationCoordinator {
 
-    typealias ModalResult = Result<Modal.Success, Error>
+    private(set) weak var presented: UIViewController?
+    private var presentationContinuation: CheckedContinuation<Success, Error>?
+    private var result: Result<Success, Error>?
+    private var resultFetcher: () -> Result<Success, Error>
 
-    private(set) weak var modal: Modal?
-    private var continuation: CheckedContinuation<Modal.Success, Error>?
-    private var result: ModalResult?
-
-    init(modal: Modal) {
-        self.modal = modal
+    init<Presented: Presentable>(presented: Presented) where Presented.Success == Success {
+        self.presented = presented
+        self.resultFetcher = {
+            presented.resultForCancelledPresentation()
+        }
     }
 
-    func endPresentation(with result: ModalResult, animated: Bool) {
+    func endPresentation(with result: Result<Success, Error>, animated: Bool) {
         self.result = result
-        modal?.presentingViewController?.dismiss(animated: animated)
+        presented?.presentingViewController?.dismiss(animated: animated)
+    }
+
+    func endPresentationWithMissingValue(animated: Bool) {
+        self.result = .failure(PresentableError.missingValue)
+        presented?.presentingViewController?.dismiss(animated: animated)
     }
 
     func presentationDidEnd() {
-        guard
-            let modal,
-            let continuation
-        else {
-            fatalError("Misconfigured PresentationCoordinator. self.modal and continuation must contain values when presentation ends.")
+        guard let presentationContinuation else {
+            return // Continuation must have already been completed
         }
-        // Get the result
-        let result = result ?? modal.resultForCancelledPresentation()
+        self.presentationContinuation = nil
+        let result = result ?? resultFetcher()
+
         Task {
             // Pass it back to the waiting present(...) call.
             await MainActor.run {
-                "TODO: Release coordinator"
-                continuation.resume(with: result)
+                presentationContinuation.resume(with: result)
+                if let presented {
+                    PresentationCoordinators.destroyPresentationCoordinator(for: presented)
+                }
             }
         }
     }
@@ -90,13 +106,13 @@ final class PresentationCoordinator<Modal: Presentable>: AnyPresentationCoordina
 
 extension PresentationCoordinator {
 
-    func beginPresentation(from presenting: UIViewController, animated: Bool) async throws -> Modal.Success {
-        guard let modal else {
+    func beginPresentation(from presenting: UIViewController, animated: Bool) async throws -> Success {
+        guard let presented else {
             fatalError()
         }
         return try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
-            presenting.present(modal, animated: animated)
+            self.presentationContinuation = continuation
+            presenting.present(presented, animated: animated)
         }
     }
 }
@@ -107,16 +123,16 @@ extension PresentationCoordinator {
 @available(iOS 15.0, *)
 extension PresentationCoordinator {
 
-    func beginSheetPresentation(from presenting: UIViewController, animated: Bool, configuration: @MainActor (UISheetPresentationController) -> Void) async throws -> Modal.Success {
-        guard let modal else {
+    func beginSheetPresentation(from presenting: UIViewController, animated: Bool, configuration: @MainActor (UISheetPresentationController) -> Void) async throws -> Success {
+        guard let presented else {
             fatalError("Misconfigured PresentationCoordinator. self.modal must contain a value when presentation begins.")
         }
         return try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
-            if let sheet = modal.sheetPresentationController {
+            self.presentationContinuation = continuation
+            if let sheet = presented.sheetPresentationController {
                 configuration(sheet)
             }
-            presenting.present(modal, animated: animated)
+            presenting.present(presented, animated: animated)
         }
     }
 }
@@ -126,17 +142,17 @@ extension PresentationCoordinator {
 
 extension PresentationCoordinator {
 
-    func beginPopoverPresentation(from presenting: UIViewController, animated: Bool, configuration: @MainActor (UIPopoverPresentationController) -> Void) async throws -> Modal.Success {
-        guard let modal else {
+    func beginPopoverPresentation(from presenting: UIViewController, animated: Bool, configuration: @MainActor (UIPopoverPresentationController) -> Void) async throws -> Success {
+        guard let presented else {
             fatalError("Misconfigured PresentationCoordinator. self.modal must contain a value when presentation begins.")
         }
         return try await withCheckedThrowingContinuation { continuation in
-            self.continuation = continuation
-            modal.modalPresentationStyle = .popover
-            if let popover = modal.popoverPresentationController {
+            self.presentationContinuation = continuation
+            presented.modalPresentationStyle = .popover
+            if let popover = presented.popoverPresentationController {
                 configuration(popover)
             }
-            presenting.present(modal, animated: animated)
+            presenting.present(presented, animated: animated)
         }
     }
 }

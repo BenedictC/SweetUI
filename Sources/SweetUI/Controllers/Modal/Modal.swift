@@ -11,6 +11,7 @@ import UIKit
 
 public enum PresentableError: Error {
     case cancelled
+    case missingValue
 }
 
 
@@ -32,8 +33,18 @@ public protocol Presentable: UIViewController {
 public extension Presentable where Self: UIViewController {
 
     func endPresentation(with result: Result<Success, Error>, animated: Bool) {
-        let coordinator = PresentationCoordinators.presentationCoordinator(for: self)
-        coordinator?.endPresentation(with: result, animated: animated)
+        // Can we end the presentation with this result? This is the happy path
+        if let coordinator = PresentationCoordinators.presentationCoordinator(for: self) {
+            coordinator.endPresentation(with: result, animated: animated)
+            return
+        }
+        // If a coordinator with the matching result type can't be found then look for anyCoordinator.
+        // This can occur when self is a child of a containerVC (e.g. UINavigationController) and the container is being presented.
+        if let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self) {
+            coordinator.endPresentationWithMissingValue(animated: animated)
+            return
+        }
+        // Eek! Something strange has happened
     }
 
     func presentationDidEnd() {       
@@ -93,11 +104,6 @@ public extension UIViewController {
         return try await coordinator.beginPresentation(from: presenting, animated: animated)
     }
 
-    func present<Modal: UIViewController>(_ modal: Modal, animated: Bool) async throws {
-        let wrapper = ModalPresentationWrapperViewController(wrapped: modal)
-        _ = try await present(wrapper, animated: animated)
-    }
-
     private func viewControllerForModalPresentation(rootedAt root: UIViewController) -> UIViewController {
         // UIKit seems to perform this same logic so this may not be necessary
         var presenting = root
@@ -124,16 +130,8 @@ public extension UIViewController {
         let coordinator = PresentationCoordinators.createPresentationCoordinator(for: modal)
         return try await coordinator.beginSheetPresentation(from: presenting, animated: animated, configuration: configuration)
     }
-
-    func presentSheet<Modal: UIViewController>(
-        _ modal: Modal,
-        animated: Bool,
-        configuration: @MainActor (UISheetPresentationController) -> Void = UIViewController.defaultSheetPresentationConfiguration)
-    async throws {
-        let wrapper: any Presentable = ModalPresentationWrapperViewController(wrapped: modal)
-        _ = try await presentSheet(wrapper, animated: animated, configuration: configuration)
-    }
 }
+
 
 @available(iOS 15, *)
 public extension UIViewController {
@@ -161,15 +159,6 @@ public extension UIViewController {
         let presenting = self
         let coordinator = PresentationCoordinators.createPresentationCoordinator(for: modal)
         return try await coordinator.beginPopoverPresentation(from: presenting, animated: animated, configuration: configuration)
-    }
-
-    func presentPopover<Modal: UIViewController>(
-        _ modal: Modal,
-        animated: Bool,
-        configuration: @MainActor (UIPopoverPresentationController) -> Void)
-    async throws {
-        let wrapper = ModalPresentationWrapperViewController(wrapped: modal)
-        _ = try await presentPopover(wrapper, animated: animated, configuration: configuration)
     }
 }
 
