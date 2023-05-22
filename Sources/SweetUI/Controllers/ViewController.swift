@@ -62,4 +62,10 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         super.traitCollectionDidChange(previous)
         _traitCollectionPublisherController.send(previous: previous, current: traitCollection)
     }
+
+    open override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+
+        self.presentationDidEnd()
+    }
 }
