@@ -66,6 +66,7 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
     open override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
 
-        self.presentationDidEnd()
+        self.didDisappear()
     }
 }
+

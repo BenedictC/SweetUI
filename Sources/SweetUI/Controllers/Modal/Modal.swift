@@ -11,7 +11,7 @@ import UIKit
 
 public enum PresentableError: Error {
     case cancelled
-    case missingValue
+    case presentationEndedFromNestedViewController
 }
 
 
@@ -20,10 +20,11 @@ public protocol Presentable: UIViewController {
     associatedtype Success = Void
 
     func resultForCancelledPresentation() -> Result<Success, Error>
+    func fulfilContinuationForCancelledPresentation(_ continuation: CheckedContinuation<Success, Error>)
 
     /// Also see Presentable callbacks:
     // func endPresentation(with result: Result<Success, Error>, animated: Bool)
-    // func presentationDidEnd()
+    // func didDisappear()
 }
 
 
@@ -38,18 +39,20 @@ public extension Presentable where Self: UIViewController {
             coordinator.endPresentation(with: result, animated: animated)
             return
         }
-        // If a coordinator with the matching result type can't be found then look for anyCoordinator.
-        // This can occur when self is a child of a containerVC (e.g. UINavigationController) and the container is being presented.
-        if let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self) {
-            coordinator.endPresentationWithMissingValue(animated: animated)
+        print("Attempted to end presentation from a child of the presented view controller. Result will be discarded and replaced with `PresentableError.presentationEndedFromNestedViewController`.")
+        let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
+        coordinator?.endPresentation(with: PresentableError.cancelled, animated: animated)
+    }
+ 
+    func didDisappear() {
+        let isModalRoot = self.parent == nil
+        let isPresentationFinished = self.presentingViewController == nil
+        let shouldInformPresentationCoordinator = isModalRoot && isPresentationFinished
+        guard shouldInformPresentationCoordinator else {
             return
         }
-        // Eek! Something strange has happened
-    }
-
-    func presentationDidEnd() {       
         let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
-        coordinator?.presentationDidEnd()
+        coordinator?.presentationDidEnd(for: self)
     }
 }
 
@@ -73,9 +76,12 @@ public extension Presentable where Success == Void {
 @MainActor
 internal extension UIViewController {
 
-    func presentationDidEnd() {
+    func didDisappear() {
+        if self.presentingViewController != nil {
+            return
+        }
         let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
-        coordinator?.presentationDidEnd()
+        coordinator?.presentationDidEnd(for: self)
     }
 }
 
@@ -87,6 +93,11 @@ public extension Presentable {
 
     func resultForCancelledPresentation() -> Result<Success, Error> {
         return .failure(PresentableError.cancelled)
+    }
+
+    func fulfilContinuationForCancelledPresentation(_ continuation: CheckedContinuation<Success, Error>) {
+        let result = self.resultForCancelledPresentation()
+        continuation.resume(with: result)
     }
 }
 

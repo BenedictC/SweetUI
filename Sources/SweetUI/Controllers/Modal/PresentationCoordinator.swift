@@ -17,11 +17,7 @@ enum PresentationCoordinators {
     }
 
     static func presentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal.Success>? {
-        var modalRoot: UIViewController = modal
-        while let parent = modalRoot.parent {
-            modalRoot = parent
-        }
-        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modalRoot) else {
+        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modal) else {
             return nil
         }
         guard let coordinator = object as? PresentationCoordinator<Modal.Success> else {
@@ -52,8 +48,8 @@ enum PresentationCoordinators {
 
 @MainActor
 protocol AnyPresentationCoordinator {
-    func endPresentationWithMissingValue(animated: Bool)
-    func presentationDidEnd()
+    func presentationDidEnd(for viewController: UIViewController)
+    func endPresentation(with error: Error, animated: Bool)
 }
 
 
@@ -61,14 +57,15 @@ protocol AnyPresentationCoordinator {
 final class PresentationCoordinator<Success>: AnyPresentationCoordinator {
 
     private(set) weak var presented: UIViewController?
+    @MainActor
     private var presentationContinuation: CheckedContinuation<Success, Error>?
     private var result: Result<Success, Error>?
-    private var resultFetcher: () -> Result<Success, Error>
+    private var continuationResumer: (CheckedContinuation<Success, Error>) -> Void
 
     init<Presented: Presentable>(presented: Presented) where Presented.Success == Success {
         self.presented = presented
-        self.resultFetcher = {
-            presented.resultForCancelledPresentation()
+        self.continuationResumer = { continuation in
+            presented.fulfilContinuationForCancelledPresentation(continuation)
         }
     }
 
@@ -77,26 +74,29 @@ final class PresentationCoordinator<Success>: AnyPresentationCoordinator {
         presented?.presentingViewController?.dismiss(animated: animated)
     }
 
-    func endPresentationWithMissingValue(animated: Bool) {
-        self.result = .failure(PresentableError.missingValue)
+    // Called when endPresentation(with:animated:) is called by a Presentable that's nested in a container. This means the the container is dismissed.
+    func endPresentation(with error: Error, animated: Bool) {
+        self.result = .failure(error)
         presented?.presentingViewController?.dismiss(animated: animated)
     }
 
-    func presentationDidEnd() {
-        guard let presentationContinuation else {
+    func presentationDidEnd(for viewController: UIViewController) {
+        let isModalRoot = viewController.parent == nil
+        let isBeingPresented = viewController.isBeingPresented // Because another full screen modal could have been presented on-top
+        guard isModalRoot, !isBeingPresented,
+              let presentationContinuation else {
             return // Continuation must have already been completed
         }
         self.presentationContinuation = nil
-        let result = result ?? resultFetcher()
-
-        Task {
-            // Pass it back to the waiting present(...) call.
-            await MainActor.run {
-                presentationContinuation.resume(with: result)
-                if let presented {
-                    PresentationCoordinators.destroyPresentationCoordinator(for: presented)
-                }
-            }
+        // If we don't have a result then the presented VC must fulfil it
+        guard let result else {
+            continuationResumer(presentationContinuation)
+            return
+        }
+        //
+        presentationContinuation.resume(with: result)
+        if let presented {
+            PresentationCoordinators.destroyPresentationCoordinator(for: presented)
         }
     }
 }
