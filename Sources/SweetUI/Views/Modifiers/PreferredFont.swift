@@ -24,7 +24,7 @@ public struct PreferredFont {
 
 public extension UILabel {
 
-    public func font(_ value: PreferredFont) -> Self {
+    func font(_ value: PreferredFont) -> Self {
         self.font = value.font
         return self
     }
@@ -35,7 +35,7 @@ public extension UILabel {
 
 public extension UITextField {
 
-    public func font(_ value: PreferredFont) -> Self {
+    func font(_ value: PreferredFont) -> Self {
         self.font = value.font
         return self
     }
@@ -46,7 +46,7 @@ public extension UITextField {
 
 public extension UITextView {
 
-    public func font(_ value: PreferredFont) -> Self {
+     func font(_ value: PreferredFont) -> Self {
         self.font = value.font
         return self
     }
