@@ -16,11 +16,15 @@ enum PresentationCoordinators {
         presentationCoordinatorByPresentedViewController.removeObject(forKey: modal)
     }
 
-    static func presentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal.Success>? {
-        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modal) else {
+    static func presentationCoordinator<Success>(for modal: UIViewController, successType: Success.Type) -> PresentationCoordinator<Success>? {
+        var modalRoot = modal
+        while let parent = modalRoot.parent {
+            modalRoot = parent
+        }
+        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modalRoot) else {
             return nil
         }
-        guard let coordinator = object as? PresentationCoordinator<Modal.Success> else {
+        guard let coordinator = object as? PresentationCoordinator<Success> else {
             // Probably means we're dealing with a childVC in that has a different Success to its container
             return nil
         }

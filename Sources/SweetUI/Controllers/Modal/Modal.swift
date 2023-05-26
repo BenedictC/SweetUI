@@ -1,12 +1,6 @@
 import UIKit
 
 
-/*
- TODO:
- - Add support for wrapping in UINavigationController
-
- */
-
 // MARK: - Presentable
 
 public enum PresentableError: Error {
@@ -35,11 +29,11 @@ public extension Presentable where Self: UIViewController {
 
     func endPresentation(with result: Result<Success, Error>, animated: Bool) {
         // Can we end the presentation with this result? This is the happy path
-        if let coordinator = PresentationCoordinators.presentationCoordinator(for: self) {
+        if let coordinator = PresentationCoordinators.presentationCoordinator(for: self, successType: Success.self) {
             coordinator.endPresentation(with: result, animated: animated)
             return
         }
-        print("Attempted to end presentation from a child of the presented view controller. Result will be discarded and replaced with `PresentableError.presentationEndedFromNestedViewController`.")
+        print("Attempted to end presentation from a child of the presented view controller with mismatched Success types. Result will be discarded and replaced with `PresentableError.presentationEndedFromNestedViewController`.")
         let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
         coordinator?.endPresentation(with: PresentableError.cancelled, animated: animated)
     }
@@ -56,6 +50,7 @@ public extension Presentable where Self: UIViewController {
     }
 }
 
+
 @MainActor
 public extension Presentable {
 
@@ -64,6 +59,7 @@ public extension Presentable {
     }
 }
 
+
 @MainActor
 public extension Presentable where Success == Void {
 
@@ -71,6 +67,7 @@ public extension Presentable where Success == Void {
         endPresentation(with: .success(()), animated: animated)
     }
 }
+
 
 /// Allows ViewController to participate in Presentable without conforming to it thus mean subclasses only need to implement the core functionality.
 @MainActor
@@ -172,4 +169,3 @@ public extension UIViewController {
         return try await coordinator.beginPopoverPresentation(from: presenting, animated: animated, configuration: configuration)
     }
 }
-
