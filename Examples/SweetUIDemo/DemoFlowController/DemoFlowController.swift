@@ -3,14 +3,13 @@ import UIKit
 import SweetUI
 
 
-class DemoFlowController: NavigationFlowController {
+class DemoFlowController: FlowController {
 
-    lazy var rootViewController: UIViewController = ExampleViewController()
+    lazy var rootViewController = ExampleViewController()    
 }
 
 
-
-private final class ExampleViewController: ContentViewController, Presentable {
+final class ExampleViewController: ViewController, Presentable {
 
     // MARK: - State
 

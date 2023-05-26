@@ -19,7 +19,7 @@ import UIKit
 import SweetUI
 
 
-class FormViewController: ContentViewController {
+class FormViewController: ViewController {
 
     let rootView = ZStack(alignment: .center) {
         VStack(alignment: .center) {

@@ -18,6 +18,7 @@ public protocol ViewControllerRequirements: _ViewControllerRequirements {
 
 public protocol _ViewControllerRequirements: _ViewController {
     var _rootView: UIView { get }
+    var barItems: BarItems { get }
 }
 
 
@@ -25,6 +26,20 @@ public protocol _ViewControllerRequirements: _ViewController {
 
 public extension ViewControllerRequirements {
     var _rootView: UIView { rootView }
+}
+
+private var barItemsByViewController = NSMapTable<UIViewController, BarItems>.weakToStrongObjects()
+
+public extension ViewControllerRequirements where Self: UIViewController {
+
+    var barItems: BarItems {
+        if let existing = barItemsByViewController.object(forKey: self) {
+            return existing
+        }
+        let new = BarItems(viewController: self)
+        barItemsByViewController.setObject(new, forKey: self)
+        return new
+    }
 }
 
 
@@ -39,6 +54,11 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
 
     public init() {
         super.init(nibName: nil, bundle: nil)
+        // Initialize a lazy barsController
+        guard let owner = self as? _ViewControllerRequirements else {
+            preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
+        }
+        _ = owner.barItems
     }    
 
     @available(*, unavailable)
@@ -51,8 +71,14 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         guard let owner = self as? _ViewControllerRequirements else {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
-        let view = owner._rootView
-        self.view = view
+        let rootView = owner._rootView
+        let hasExplicitSafeAreas = rootView is EdgesIgnoringSafeAreaSupporting
+        let safeAreasToIgnore = hasExplicitSafeAreas ? UIView.edgesIgnoringSafeArea(for: rootView) : []
+        let container = rootView.ignoresSafeArea(edges: safeAreasToIgnore)
+        if !hasExplicitSafeAreas {
+            container.backgroundColor = .systemBackground
+        }
+        self.view = container
     }
 
 

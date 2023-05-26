@@ -3,7 +3,7 @@ import SweetUI
 import Combine
 
 
-class FormViewController: ContentViewController {
+class FormViewController: ViewController {
 
     // MARK: - Instance life cycle
 
