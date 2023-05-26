@@ -3,6 +3,8 @@ import Combine
 
 // MARK: - State
 
+// The only difference between State and Combine.Published is the type of projectedValue. Published uses a nested publisher, State uses AnyPublisher.
+
 @propertyWrapper
 public struct State<T> {
 
