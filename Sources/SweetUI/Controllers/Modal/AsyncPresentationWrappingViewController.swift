@@ -4,7 +4,7 @@ import UIKit
 public extension UIViewController {
 
     func present<Modal: UIViewController>(_ modal: Modal, animated: Bool) async throws {
-        let wrapper = ModalPresentationWrapperViewController(wrapped: modal)
+        let wrapper = AsyncPresentationWrapperViewController(wrapped: modal)
         wrapper.modalPresentationStyle = modal.modalPresentationStyle
         wrapper.modalTransitionStyle = modal.modalTransitionStyle
         _ = try await present(wrapper, animated: animated)
@@ -16,7 +16,7 @@ public extension UIViewController {
         animated: Bool,
         configuration: @MainActor (UISheetPresentationController) -> Void = UIViewController.defaultSheetPresentationConfiguration)
     async throws {
-        let wrapper: any Presentable = ModalPresentationWrapperViewController(wrapped: modal)
+        let wrapper: any Presentable = AsyncPresentationWrapperViewController(wrapped: modal)
         _ = try await presentSheet(wrapper, animated: animated, configuration: configuration)
     }
 
@@ -25,13 +25,13 @@ public extension UIViewController {
         animated: Bool,
         configuration: @MainActor (UIPopoverPresentationController) -> Void)
     async throws {
-        let wrapper = ModalPresentationWrapperViewController(wrapped: modal)
+        let wrapper = AsyncPresentationWrapperViewController(wrapped: modal)
         _ = try await presentPopover(wrapper, animated: animated, configuration: configuration)
     }
 }
 
 
-private final class ModalPresentationWrapperViewController<T: UIViewController>: ViewController, Presentable {
+private final class AsyncPresentationWrapperViewController<T: UIViewController>: ViewController, Presentable {
 
     let wrapped: T
 
@@ -46,4 +46,3 @@ private final class ModalPresentationWrapperViewController<T: UIViewController>:
     private(set) lazy var rootView = wrapped.view!
         .ignoresSafeArea(edges: .all)
 }
-
