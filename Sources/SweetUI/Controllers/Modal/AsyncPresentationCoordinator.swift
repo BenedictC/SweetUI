@@ -2,44 +2,44 @@ import UIKit
 
 
 @MainActor
-enum PresentationCoordinators {
+enum AsyncPresentationCoordinators {
 
-    private static let presentationCoordinatorByPresentedViewController = NSMapTable<UIViewController, AnyObject>.weakToStrongObjects()
+    private static let coordinatorsByPresentedViewController = NSMapTable<UIViewController, AnyObject>.weakToStrongObjects()
 
-    static func createPresentationCoordinator<Modal: Presentable>(for modal: Modal) -> PresentationCoordinator<Modal.Success> {
-        let coordinator = PresentationCoordinator(presented: modal)
-        presentationCoordinatorByPresentedViewController.setObject(coordinator, forKey: modal)
+    static func createCoordinator<Modal: Presentable>(for modal: Modal) -> AsyncPresentationCoordinator<Modal.Success> {
+        let coordinator = AsyncPresentationCoordinator(presented: modal)
+        coordinatorsByPresentedViewController.setObject(coordinator, forKey: modal)
         return coordinator
     }
 
-    static func destroyPresentationCoordinator(for modal: UIViewController) {
-        presentationCoordinatorByPresentedViewController.removeObject(forKey: modal)
+    static func destroyCoordinator(for modal: UIViewController) {
+        coordinatorsByPresentedViewController.removeObject(forKey: modal)
     }
 
-    static func presentationCoordinator<Success>(for modal: UIViewController, successType: Success.Type) -> PresentationCoordinator<Success>? {
+    static func coordinator<Success>(for modal: UIViewController, successType: Success.Type) -> AsyncPresentationCoordinator<Success>? {
         var modalRoot = modal
         while let parent = modalRoot.parent {
             modalRoot = parent
         }
-        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modalRoot) else {
+        guard let object = coordinatorsByPresentedViewController.object(forKey: modalRoot) else {
             return nil
         }
-        guard let coordinator = object as? PresentationCoordinator<Success> else {
+        guard let coordinator = object as? AsyncPresentationCoordinator<Success> else {
             // Probably means we're dealing with a childVC in that has a different Success to its container
             return nil
         }
         return coordinator
     }
 
-    static func anyPresentationCoordinator(for modal: UIViewController) -> AnyPresentationCoordinator? {
+    static func erasedCoordinator(for modal: UIViewController) -> ErasedAsyncPresentationCoordinator? {
         var modalRoot = modal
         while let parent = modalRoot.parent {
             modalRoot = parent
         }
-        guard let object = presentationCoordinatorByPresentedViewController.object(forKey: modalRoot) else {
+        guard let object = coordinatorsByPresentedViewController.object(forKey: modalRoot) else {
             return nil
         }
-        guard let coordinator = object as? AnyPresentationCoordinator else {
+        guard let coordinator = object as? ErasedAsyncPresentationCoordinator else {
             assertionFailure()
             return nil
         }
@@ -51,14 +51,14 @@ enum PresentationCoordinators {
 // MARK: -
 
 @MainActor
-protocol AnyPresentationCoordinator {
+protocol ErasedAsyncPresentationCoordinator {
     func presentationDidEnd(for viewController: UIViewController)
     func endPresentation(with error: Error, animated: Bool)
 }
 
 
 @MainActor
-final class PresentationCoordinator<Success>: AnyPresentationCoordinator {
+final class AsyncPresentationCoordinator<Success>: ErasedAsyncPresentationCoordinator {
 
     private(set) weak var presented: UIViewController?
     @MainActor
@@ -100,7 +100,7 @@ final class PresentationCoordinator<Success>: AnyPresentationCoordinator {
         //
         presentationContinuation.resume(with: result)
         if let presented {
-            PresentationCoordinators.destroyPresentationCoordinator(for: presented)
+            AsyncPresentationCoordinators.destroyCoordinator(for: presented)
         }
     }
 }
@@ -108,7 +108,7 @@ final class PresentationCoordinator<Success>: AnyPresentationCoordinator {
 
 // MARK: - Modal
 
-extension PresentationCoordinator {
+extension AsyncPresentationCoordinator {
 
     func beginPresentation(from presenting: UIViewController, animated: Bool) async throws -> Success {
         guard let presented else {
@@ -125,7 +125,7 @@ extension PresentationCoordinator {
 // MARK: - Sheet
 
 @available(iOS 15.0, *)
-extension PresentationCoordinator {
+extension AsyncPresentationCoordinator {
 
     func beginSheetPresentation(from presenting: UIViewController, animated: Bool, configuration: @MainActor (UISheetPresentationController) -> Void) async throws -> Success {
         guard let presented else {
@@ -144,7 +144,7 @@ extension PresentationCoordinator {
 
 // MARK: - Popover
 
-extension PresentationCoordinator {
+extension AsyncPresentationCoordinator {
 
     func beginPopoverPresentation(from presenting: UIViewController, animated: Bool, configuration: @MainActor (UIPopoverPresentationController) -> Void) async throws -> Success {
         guard let presented else {

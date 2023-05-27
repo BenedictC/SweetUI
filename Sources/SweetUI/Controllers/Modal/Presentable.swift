@@ -27,15 +27,19 @@ public protocol Presentable: UIViewController {
 @MainActor
 public extension Presentable where Self: UIViewController {
 
+    // This method could be directly on UIViewController but that would encourage unanticipated use of the API.
     func endPresentation(with result: Result<Success, Error>, animated: Bool) {
         // Can we end the presentation with this result? This is the happy path
-        if let coordinator = PresentationCoordinators.presentationCoordinator(for: self, successType: Success.self) {
+        if let coordinator = AsyncPresentationCoordinators.coordinator(for: self, successType: Success.self) {
             coordinator.endPresentation(with: result, animated: animated)
             return
         }
         print("Attempted to end presentation from a child of the presented view controller with mismatched Success types. Result will be discarded and replaced with `PresentableError.presentationEndedFromNestedViewController`.")
-        let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
-        coordinator?.endPresentation(with: PresentableError.cancelled, animated: animated)
+        if let coordinator = AsyncPresentationCoordinators.erasedCoordinator(for: self) {
+            coordinator.endPresentation(with: PresentableError.cancelled, animated: animated)
+            return
+        }
+        print("Attempted to end presentation from a view controller that is not currently involved in an asynchronous presentation. No presentations will be ended.")
     }
  
     func didDisappear() {
@@ -45,7 +49,7 @@ public extension Presentable where Self: UIViewController {
         guard shouldInformPresentationCoordinator else {
             return
         }
-        let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
+        let coordinator = AsyncPresentationCoordinators.erasedCoordinator(for: self)
         coordinator?.presentationDidEnd(for: self)
     }
 }
@@ -77,7 +81,7 @@ internal extension UIViewController {
         if self.presentingViewController != nil {
             return
         }
-        let coordinator = PresentationCoordinators.anyPresentationCoordinator(for: self)
+        let coordinator = AsyncPresentationCoordinators.erasedCoordinator(for: self)
         coordinator?.presentationDidEnd(for: self)
     }
 }
@@ -108,7 +112,7 @@ public extension UIViewController {
 
     func present<Modal: Presentable>(_ modal: Modal, animated: Bool) async throws -> Modal.Success {
         let presenting = viewControllerForModalPresentation(rootedAt: self)
-        let coordinator = PresentationCoordinators.createPresentationCoordinator(for: modal)
+        let coordinator = AsyncPresentationCoordinators.createCoordinator(for: modal)
         return try await coordinator.beginPresentation(from: presenting, animated: animated)
     }
 
@@ -135,7 +139,7 @@ public extension UIViewController {
         configuration: @MainActor (UISheetPresentationController) -> Void = UIViewController.defaultSheetPresentationConfiguration)
     async throws -> Modal.Success {
         let presenting = self
-        let coordinator = PresentationCoordinators.createPresentationCoordinator(for: modal)
+        let coordinator = AsyncPresentationCoordinators.createCoordinator(for: modal)
         return try await coordinator.beginSheetPresentation(from: presenting, animated: animated, configuration: configuration)
     }
 }
@@ -165,7 +169,7 @@ public extension UIViewController {
         configuration: @MainActor (UIPopoverPresentationController) -> Void)
     async throws -> Modal.Success {
         let presenting = self
-        let coordinator = PresentationCoordinators.createPresentationCoordinator(for: modal)
+        let coordinator = AsyncPresentationCoordinators.createCoordinator(for: modal)
         return try await coordinator.beginPopoverPresentation(from: presenting, animated: animated, configuration: configuration)
     }
 }
