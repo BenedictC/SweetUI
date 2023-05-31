@@ -72,13 +72,15 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
         let rootView = owner._rootView
-        let hasExplicitSafeAreas = rootView is EdgesIgnoringSafeAreaSupporting
-        let safeAreasToIgnore = hasExplicitSafeAreas ? UIView.edgesIgnoringSafeArea(for: rootView) : []
-        let container = rootView.ignoresSafeArea(edges: safeAreasToIgnore)
-        if !hasExplicitSafeAreas {
+        let edgesToIgnore = UIView.edgesIgnoringSafeArea(for: rootView)
+        let requiresContainer = edgesToIgnore != .all
+        if requiresContainer {
+            let container = rootView.ignoresSafeArea(edges: edgesToIgnore)
             container.backgroundColor = .systemBackground
+            self.view = container
+        } else {
+            self.view = rootView
         }
-        self.view = container
     }
 
 
