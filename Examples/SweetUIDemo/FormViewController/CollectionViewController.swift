@@ -22,6 +22,7 @@ import Combine
 
  */
 
+
 class CollectionViewController: ViewController {
 
     struct Item: Hashable {
@@ -31,124 +32,124 @@ class CollectionViewController: ViewController {
 
     @CollectionViewDataSource var items: NSDiffableDataSourceSnapshot<String, Item>
 
-//    lazy var rootView = UICollectionView(dataSource: $items) {
-//        ListLayout(appearance: .grouped) {
-//            // ListSectionWithoutHeader<String, Item> {
+    lazy var rootView = UICollectionView(dataSource: $items) {
+        ListLayout(appearance: .grouped) {
+            // ListSectionWithoutHeader<String, Item> {
 //             ListSectionWithStandardHeader<String, Item> {
-////            ListSectionWithCollapsableHeader<String, Item> {
+            ListSectionWithCollapsableHeader<String, Item> {
 //                Header<String> { cell, value in
 //                    var config = cell.defaultContentConfiguration()
 //                    config.text = value
 //                    cell.contentConfiguration = config
 //                }
-////                Cell<Item> { cell, item in
-////                    var configuration = cell.defaultContentConfiguration()
-////                    configuration.text = "\(item.value)"
-////                    cell.contentConfiguration = configuration
-////                    let headerDisclosureOption = UICellAccessory.OutlineDisclosureOptions(style: .automatic)
-////                    cell.accessories = [.outlineDisclosure(options: headerDisclosureOption)]
-////                }
-//                Cell<Item> { cell, item in
-//                    var configuration = cell.defaultContentConfiguration()
-//                    configuration.text = "\(item.value)"
-//                    cell.contentConfiguration = configuration
-//                }
-//            }
-//        }
-//    }
-
-
-    lazy var rootView = UICollectionView(dataSource: $items) {
-        CompositeLayout {
-            LayoutHeader { _ in
-                UILabel()
-                    .font(.largeTitle)
-                    .text("Hiya!")
-            }
-            LayoutFooter { _ in
-                UILabel()
-                    .font(.largeTitle)
-                    .text("Bye-ya!")
-            }
-            LayoutBackground {
-                UIView()
-                    .backgroundColor(.systemMint)
-            }
-            // Section Foo has a different background
-            Section {
-                Header<String> { cell, value in
-                    var config = cell.defaultContentConfiguration()
-                    config.text = "Header: " + value
-                    cell.contentConfiguration = config
+                Cell<Item> { cell, item in
+                    var configuration = cell.defaultContentConfiguration()
+                    configuration.text = "\(item.value)"
+                    cell.contentConfiguration = configuration
+                    let headerDisclosureOption = UICellAccessory.OutlineDisclosureOptions(style: .automatic)
+                    cell.accessories = [.outlineDisclosure(options: headerDisclosureOption)]
                 }
-                Footer<String> { cell, value in
-                    var config = cell.defaultContentConfiguration()
-                    config.text = "Footer: " + value
-                    cell.contentConfiguration = config
-                }
-                Background {
-                    UIView()
-                        .backgroundColor(.brown)
-                }
-
-                HGroup<Item> {
-                    Cell<Item> { cell, value in
-                        var config = UIListContentConfiguration.subtitleCell()
-                        config.text = "A: \(value)"
-                        cell.contentConfiguration = config
-                    }
-                    .supplementaries {
-                        Supplement<Item>(
-                            size: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.3), heightDimension: .fractionalHeight(0.3)),
-                            containerAnchor: .init(edges: [.top, .trailing]),
-                            itemAnchor: .init(edges: [.top, .trailing], fractionalOffset: CGPoint(x: 0.5, y: -0.5)),
-                            body: { publisher in
-                                UILabel()
-                                    .textAlignment(.center)
-                                    .assign(to: \.text, from: publisher.map { "\($0.value)" })
-                                    .backgroundColor(.systemPink)
-                            })
-                    }
-
-                    CustomGroup<Item>(
-                        cell: Cell<Item> { cell, value in
-                        var config = UIListContentConfiguration.subtitleCell()
-                        config.text = "B: \(value)"
-                        cell.contentConfiguration = config
-                    },
-                        itemProvider: { environment in
-                            let width = environment.container.contentSize.width * 0.6
-                            let height = environment.container.contentSize.height * 0.6
-                            let rect1 = CGRect(x: 0, y: 0, width: width, height: height)
-                            let rect2 = CGRect(
-                                x: environment.container.contentSize.width - width,
-                                y: environment.container.contentSize.height - height,
-                                width: width,
-                                height: height)
-                            return [
-                                NSCollectionLayoutGroupCustomItem(frame: rect1),
-                                NSCollectionLayoutGroupCustomItem(frame: rect2)
-                            ]
-                        }
-                    )
-
-                    Cell<Item> { cell, value in
-                        var config = cell.defaultContentConfiguration()
-                        config.text = "C: \(value)"
-                        cell.contentConfiguration = config
-                    }
+                Cell<Item> { cell, item in
+                    var configuration = cell.defaultContentConfiguration()
+                    configuration.text = "\(item.value)"
+                    cell.contentConfiguration = configuration
                 }
             }
         }
     }
 
 
+//    lazy var rootView = UICollectionView(dataSource: $items) {
+//        CompositeLayout {
+//            LayoutHeader { _ in
+//                UILabel()
+//                    .font(.largeTitle)
+//                    .text("Hiya!")
+//            }
+//            LayoutFooter { _ in
+//                UILabel()
+//                    .font(.largeTitle)
+//                    .text("Bye-ya!")
+//            }
+//            LayoutBackground {
+//                UIView()
+//                    .backgroundColor(.systemMint)
+//            }
+//            // Section Foo has a different background
+//            Section {
+//                Header<String> { cell, value in
+//                    var config = cell.defaultContentConfiguration()
+//                    config.text = "Header: " + value
+//                    cell.contentConfiguration = config
+//                }
+//                Footer<String> { cell, value in
+//                    var config = cell.defaultContentConfiguration()
+//                    config.text = "Footer: " + value
+//                    cell.contentConfiguration = config
+//                }
+//                Background {
+//                    UIView()
+//                        .backgroundColor(.brown)
+//                }
+//
+//                HGroup<Item> {
+//                    Cell<Item> { cell, value in
+//                        var config = UIListContentConfiguration.subtitleCell()
+//                        config.text = "A: \(value)"
+//                        cell.contentConfiguration = config
+//                    }
+//                    .supplementaries {
+//                        Supplement<Item>(
+//                            size: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.3), heightDimension: .fractionalHeight(0.3)),
+//                            containerAnchor: .init(edges: [.top, .trailing]),
+//                            itemAnchor: .init(edges: [.top, .trailing], fractionalOffset: CGPoint(x: 0.5, y: -0.5)),
+//                            body: { publisher in
+//                                UILabel()
+//                                    .textAlignment(.center)
+//                                    .assign(to: \.text, from: publisher.map { "\($0.value)" })
+//                                    .backgroundColor(.systemPink)
+//                            })
+//                    }
+//
+//                    CustomGroup<Item>(
+//                        cell: Cell<Item> { cell, value in
+//                        var config = UIListContentConfiguration.subtitleCell()
+//                        config.text = "B: \(value)"
+//                        cell.contentConfiguration = config
+//                    },
+//                        itemProvider: { environment in
+//                            let width = environment.container.contentSize.width * 0.6
+//                            let height = environment.container.contentSize.height * 0.6
+//                            let rect1 = CGRect(x: 0, y: 0, width: width, height: height)
+//                            let rect2 = CGRect(
+//                                x: environment.container.contentSize.width - width,
+//                                y: environment.container.contentSize.height - height,
+//                                width: width,
+//                                height: height)
+//                            return [
+//                                NSCollectionLayoutGroupCustomItem(frame: rect1),
+//                                NSCollectionLayoutGroupCustomItem(frame: rect2)
+//                            ]
+//                        }
+//                    )
+//
+//                    Cell<Item> { cell, value in
+//                        var config = cell.defaultContentConfiguration()
+//                        config.text = "C: \(value)"
+//                        cell.contentConfiguration = config
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
         // beginGrowingSnapshot()
-//        createExpandableSnapshot()
-         createMultiSectionSnapshot()
+        createExpandableSnapshot()
+//         createMultiSectionSnapshot()
     }
 
     func createMultiSectionSnapshot() {

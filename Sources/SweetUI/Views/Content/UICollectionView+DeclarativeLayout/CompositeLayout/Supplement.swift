@@ -129,7 +129,7 @@ public extension Supplement {
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil
     ) {
-        let elementKind = "SupplementaryView \(UUID())"
+        let elementKind = UniqueIdentifier("SupplementaryView").value
         let reuseIdentifier = elementKind
 
         self.elementKind = elementKind
@@ -163,7 +163,7 @@ public extension Supplement {
         configuration: @escaping (UICollectionViewListCell, ItemValue) -> Void)
     {
         let viewClass = UICollectionViewListCell.self
-        let elementKind = "SupplementaryView \(UUID())"
+        let elementKind = UniqueIdentifier("SupplementaryView").value
         let reuseIdentifier = elementKind
 
         self.elementKind = elementKind
@@ -198,7 +198,7 @@ public extension Supplement {
         body bodyFactory: @escaping (AnyPublisher<ItemValue, Never>) -> UIView)
     {
         let viewClass = ValuePublishingCell<ItemValue>.self
-        let elementKind = "SupplementaryView \(UUID())"
+        let elementKind = UniqueIdentifier("SupplementaryView").value
         let reuseIdentifier = elementKind
 
         self.elementKind = elementKind

@@ -11,7 +11,6 @@ extension UICollectionView {
         cellProvider: @escaping UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider,
         supplementaryViewProvider: @escaping UICollectionViewDiffableDataSourceReferenceSupplementaryViewProvider
     ) {
-        // Init with placeholder layout
         self.init(frame: .zero, collectionViewLayout: layout)
 
         // Attached data & delegate
@@ -39,9 +38,9 @@ public extension UICollectionView {
         // Attached data & delegate
         let dataSource = dataSourceStorage.initialize(collectionView: self, cellProvider: { collectionView, indexPath, itemValue in
             let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
-            let snapshot = dataSource.snapshot()
-            "TODO: Is it possible to get sectionIdentifier without creating a snapshot?"
-            let sectionIdentifier = snapshot.sectionIdentifiers[indexPath.section]
+            guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
+                preconditionFailure("Invalid section index")
+            }
             let cell = strategy.cell(for: collectionView, itemValue: itemValue, in: sectionIdentifier, at: indexPath)
             return cell
         })
@@ -117,10 +116,10 @@ public class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemI
     public typealias IndexTitleAndIndexPath = (indexTitle: String, indexPath: IndexPath)
     public typealias IndexTitleAndIndexPathProvider = (NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>) -> [IndexTitleAndIndexPath]
 
+    private weak var collectionView: UICollectionView?
+
     public var indexTitleProvider: IndexTitleAndIndexPathProvider? {
-        didSet {
-            "TODO: Reload collectionView"
-        }
+        didSet { collectionView?.reloadData() }
     }
     private var indexTitlesAndIndexPaths: [IndexTitleAndIndexPath]?
 
@@ -142,5 +141,19 @@ public class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemI
             return IndexPath(item: 0, section: index)
         }
         return indexTitlesAndIndexPaths[index].indexPath
+    }
+}
+
+
+// MARK: - Backport for iOS 14
+
+internal extension UICollectionViewDiffableDataSource {
+
+    func sectionIdentifier(forSectionAtIndex sectionIndex: Int) -> SectionIdentifierType? {
+        let snapshot = self.snapshot()
+        guard sectionIndex < snapshot.sectionIdentifiers.count else {
+            return nil
+        }
+        return snapshot.sectionIdentifiers[sectionIndex]
     }
 }

@@ -18,7 +18,7 @@ public protocol ViewControllerRequirements: _ViewControllerRequirements {
 
 public protocol _ViewControllerRequirements: _ViewController {
     var _rootView: UIView { get }
-    var barItems: BarItems { get }
+//    var barItems: BarItems { get }
 }
 
 
@@ -28,19 +28,19 @@ public extension ViewControllerRequirements {
     var _rootView: UIView { rootView }
 }
 
-private var barItemsByViewController = NSMapTable<UIViewController, BarItems>.weakToStrongObjects()
-
-public extension ViewControllerRequirements where Self: UIViewController {
-
-    var barItems: BarItems {
-        if let existing = barItemsByViewController.object(forKey: self) {
-            return existing
-        }
-        let new = BarItems(viewController: self)
-        barItemsByViewController.setObject(new, forKey: self)
-        return new
-    }
-}
+//private var barItemsByViewController = NSMapTable<UIViewController, BarItems>.weakToStrongObjects()
+//
+//public extension ViewControllerRequirements where Self: UIViewController {
+//
+//    var barItems: BarItems {
+//        if let existing = barItemsByViewController.object(forKey: self) {
+//            return existing
+//        }
+//        let new = BarItems(viewController: self)
+//        barItemsByViewController.setObject(new, forKey: self)
+//        return new
+//    }
+//}
 
 
 open class _ViewController: UIViewController, _TraitCollectionPublisherProviderImplementation {
@@ -58,7 +58,8 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         guard let owner = self as? _ViewControllerRequirements else {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
-        _ = owner.barItems
+        _ = owner
+        //_ = owner.barItems
     }    
 
     @available(*, unavailable)

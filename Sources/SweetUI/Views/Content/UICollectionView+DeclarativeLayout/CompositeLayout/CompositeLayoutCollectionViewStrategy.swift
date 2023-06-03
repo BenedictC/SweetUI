@@ -45,12 +45,9 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
                 guard let dataSource else {
                     preconditionFailure("DataSource is no longer available.")
                 }
-                let snapshot = dataSource.snapshot()
-                "TODO: Is it possible to get sectionIdentifier without creating a snapshot?"
-                let sectionIdentifier = snapshot.sectionIdentifiers[sectionIndex]
-//                guard else {
-//                    preconditionFailure("Invalid section index")
-//                }
+                guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: sectionIndex) else {
+                    preconditionFailure("Invalid section index")
+                }
                 let section = self.section(for: sectionIdentifier)
                 return section.makeCompositionalLayoutSection(environment: environment)
             },
@@ -85,12 +82,9 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
             elementKind == footer.elementKind {
             return footer.makeSupplementaryView(for: collectionView, indexPath: indexPath, sectionIdentifier: ())
         }
-        let snapshot = dataSource.snapshot()
-        "TODO: Is it possible to get sectionIdentifier without creating a snapshot?"
-        let sectionIdentifier = snapshot.sectionIdentifiers[indexPath.section]
-//                guard else {
-//                    preconditionFailure("Invalid section index")
-//                }
+        guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
+            preconditionFailure("Invalid section index")
+        }
         let section = self.section(for: sectionIdentifier)
         // Is it a section supplement?
         if let template = section.components.sectionSupplementariesByElementKind[elementKind] {

@@ -5,7 +5,7 @@ import SweetUI
 
 class DemoFlowController: FlowController {
 
-    lazy var rootViewController = CollectionViewController()    
+    lazy var rootViewController = CollectionViewController()
 }
 
 

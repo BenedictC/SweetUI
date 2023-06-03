@@ -120,7 +120,7 @@ public extension BoundarySupplementaryComponentFactory {
     where View.Value == SectionIdentifier
     {
         let elementKind = Self.elementKind
-        let reuseIdentifier = "\(elementKind) \(UUID())"
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
         let viewRegistrar = { (collectionView: UICollectionView) in
             collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
@@ -155,7 +155,7 @@ public extension BoundarySupplementaryComponentFactory {
     {
         let viewClass = UICollectionViewListCell.self
         let elementKind = Self.elementKind
-        let reuseIdentifier = "\(elementKind) \(UUID())"
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
         let viewRegistrar = { (collectionView: UICollectionView) in
             collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
@@ -189,7 +189,7 @@ public extension BoundarySupplementaryComponentFactory {
     {
         let viewClass = ValuePublishingCell<SectionIdentifier>.self
         let elementKind = Self.elementKind
-        let reuseIdentifier = "\(elementKind) \(UUID())"
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
         let viewRegistrar = { (collectionView: UICollectionView) in
             collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
@@ -327,7 +327,7 @@ public struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementar
     public typealias SectionIdentifier = Void
 
     public static var defaultAlignment: NSRectAlignment { .topLeading }
-    public static var elementKind: String { "Layout Header" }
+    public static var elementKind: String { UniqueIdentifier("Layout Header").value }
     public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
@@ -383,7 +383,7 @@ public struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementar
     public typealias SectionIdentifier = Void
 
     public static var defaultAlignment: NSRectAlignment { .bottomLeading }
-    public static var elementKind: String { "Layout Footer" }
+    public static var elementKind: String { UniqueIdentifier("Layout Footer").value }
     public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
@@ -469,7 +469,7 @@ public struct Background: DecorationComponent {
 public extension Background {
 
     init<T: UICollectionReusableView>(_ viewClass: T.Type, zIndex: Int? = nil) {
-        let elementKind = "Section Background \(UUID())"
+        let elementKind = UniqueIdentifier("Section Background").value
         let viewClass = T.self
         let viewRegistrar = { (layout: UICollectionViewLayout) in
             layout.register(viewClass, forDecorationViewOfKind: elementKind)
@@ -478,7 +478,7 @@ public extension Background {
     }
 
     init(zIndex: Int? = nil, bodyFactory: @escaping () -> UIView) {
-        let elementKind = "Section Background \(UUID())"
+        let elementKind = UniqueIdentifier("Section Background").value
         let viewClass: AnyClass = ConfigurableBackground.makeSubclass(bodyFactory: bodyFactory)
         let viewRegistrar = { (layout: UICollectionViewLayout) in
             layout.register(viewClass, forDecorationViewOfKind: elementKind)
@@ -493,7 +493,7 @@ private class ConfigurableBackground: UICollectionReusableView {
     static var classAndBodyFactoryPairs = [(class: AnyClass, builder: () -> UIView)]()
 
     static func makeSubclass(bodyFactory: @escaping () -> UIView) -> AnyClass {
-        let name = "\(ConfigurableBackground.self)\(UUID().uuidString)".filter { $0.isLetter || $0.isNumber }
+        let name = UniqueIdentifier("\(ConfigurableBackground.self)").value
         let subclass: AnyClass = objc_allocateClassPair(ConfigurableBackground.self, name, 0)!
         classAndBodyFactoryPairs.append((subclass, bodyFactory))
         return subclass
@@ -584,7 +584,7 @@ public extension Cell {
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil)
     where ItemValue == CellClass.Value {
-        let reuseIdentifier = "\(CellClass.self) \(UUID().uuidString)"
+        let reuseIdentifier = UniqueIdentifier("\(cellClass.self)").value
         let cellFactory = { (collectionView: UICollectionView, indexPath: IndexPath, value: ItemValue) in
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellClass
             cell.configure(using: value)
@@ -614,7 +614,7 @@ extension Cell {
         body bodyFactory: @escaping BodyFactory)
     {
         let cellClass = ValuePublishingCell<ItemValue>.self
-        let reuseIdentifier = "\(cellClass.self) \(UUID().uuidString)"
+        let reuseIdentifier = UniqueIdentifier("\(cellClass.self)").value
         let cellRegistrar = { (collectionView: UICollectionView) in
             collectionView.register(cellClass, forCellWithReuseIdentifier: reuseIdentifier)
         }

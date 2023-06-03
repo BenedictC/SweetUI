@@ -46,7 +46,7 @@ private extension FormViewModel {
 
 // MARK: - View
 
-final class FormView: View<FormViewModel> {
+final class FormView: View {
 
     // MARK: Types
 
@@ -57,6 +57,9 @@ final class FormView: View<FormViewModel> {
 
     // MARK: Properties
 
+    private(set) weak var viewModel: FormViewModel!
+
+    
     // Content
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")
@@ -127,6 +130,11 @@ final class FormView: View<FormViewModel> {
         }
     }
 
+    init(viewModel: FormViewModel) {
+        self.viewModel = viewModel
+        super.init()
+    }
+
     deinit {
         print("Bye from \(Self.self)")
     }
@@ -144,7 +152,7 @@ extension FormView {
     private func submit() {
         [nameTextField, emailTextField, passwordTextField]
             .forEach { $0.resignFirstResponder() }
-        viewModel?.submit()
+        viewModel.submit()
     }
 }
 

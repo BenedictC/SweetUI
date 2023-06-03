@@ -96,12 +96,9 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
             elementKind == footer.elementKind {
             return footer.makeSupplementaryView(for: collectionView, indexPath: indexPath, sectionIdentifier: ())
         }
-        let snapshot = dataSource.snapshot()
-        "TODO: Is it possible to get sectionIdentifier without creating a snapshot?"
-        let sectionIdentifier = snapshot.sectionIdentifiers[indexPath.section]
-//                guard else {
-//                    preconditionFailure("Invalid section index")
-//                }
+        guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
+            preconditionFailure("Invalid section index")
+        }
         let section = section(for: sectionIdentifier)
         let view = section.makeSupplementaryView(for: collectionView, elementKind: elementKind, at: indexPath, sectionIdentifier: sectionIdentifier)
         return view ?? emptySupplementaryView(in: collectionView, indexPath: indexPath, sectionIdentifier: sectionIdentifier)
@@ -229,7 +226,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
     // MARK: Types
 
     @resultBuilder
-    struct ComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
+    public struct ComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
         public static func buildBlock(_ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
             return ListSectionComponents(cell: cell, header: nil, footer: nil)
@@ -249,7 +246,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
 
     // MARK: Instance life cycle
 
-    init(
+    public init(
         identifier: SectionIdentifier,
         @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
@@ -257,7 +254,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
         self.init(predicate: predicate, components: components)
     }
 
-    init(
+    public init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
         @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
@@ -339,7 +336,7 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
 
     // MARK: Instance life cycle
 
-    init(
+    public init(
         identifier: SectionIdentifier,
         @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
@@ -347,7 +344,7 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
         self.init(predicate: predicate, components: components)
     }
 
-    init(
+    public init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
         @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
@@ -368,7 +365,7 @@ public extension Cell {
         contentInsets: NSDirectionalEdgeInsets? = nil,
         configuration: @escaping (UICollectionViewListCell, ItemValue) -> Void)
     {
-        let reuseIdentifier = "\(UICollectionViewListCell.self) \(UUID())"
+        let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
         self.init(
             size: size,
             edgeSpacing: nil,
