@@ -1,12 +1,12 @@
 import Foundation
 import UIKit
-import SweetUI
 
 
 extension UICollectionView {
 
     convenience init<SectionIdentifier: Hashable, ItemValue: Hashable>(
         dataSource dataSourceStorage:  CollectionViewDataSource<SectionIdentifier, ItemValue>.Storage,
+        delegate: UICollectionViewDelegate? = nil,
         layout: UICollectionViewLayout,
         cellProvider: @escaping UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider,
         supplementaryViewProvider: @escaping UICollectionViewDiffableDataSourceReferenceSupplementaryViewProvider
@@ -14,17 +14,19 @@ extension UICollectionView {
         // Init with placeholder layout
         self.init(frame: .zero, collectionViewLayout: layout)
 
-        // Attached data
+        // Attached data & delegate
         let dataSource = dataSourceStorage.initialize(collectionView: self, cellProvider: cellProvider)
         dataSource.supplementaryViewProvider = supplementaryViewProvider
+        self.delegate = delegate
     }
 }
 
 
-extension UICollectionView {
+public extension UICollectionView {
 
     convenience init<SectionIdentifier: Hashable, ItemValue: Hashable, Strategy: CollectionViewStrategy>(
         dataSource dataSourceStorage:  CollectionViewDataSource<SectionIdentifier, ItemValue>.Storage,
+        delegate: UICollectionViewDelegate? = nil,
         layout strategyBuilder: () -> Strategy
     ) where Strategy.SectionIdentifier == SectionIdentifier,
             Strategy.ItemValue == ItemValue
@@ -33,14 +35,13 @@ extension UICollectionView {
         self.init(frame: .zero, collectionViewLayout: UICollectionViewLayout())
         //Create strategy and dataSource
         let strategy = strategyBuilder()
-        strategy.registerReusableViews(in: self)
 
-        // Attached data
+        // Attached data & delegate
         let dataSource = dataSourceStorage.initialize(collectionView: self, cellProvider: { collectionView, indexPath, itemValue in
             let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
-            guard let sectionIdentifier = dataSource.sectionIdentifier(for: indexPath.section) else {
-                preconditionFailure("Unable to retrieve sectionIdentifier for section at index \(indexPath.section)")
-            }
+            let snapshot = dataSource.snapshot()
+            "TODO: Is it possible to get sectionIdentifier without creating a snapshot?"
+            let sectionIdentifier = snapshot.sectionIdentifiers[indexPath.section]
             let cell = strategy.cell(for: collectionView, itemValue: itemValue, in: sectionIdentifier, at: indexPath)
             return cell
         })
@@ -48,13 +49,14 @@ extension UICollectionView {
             guard let dataSource else {
                 fatalError()
             }
-            let snapshot = dataSource.snapshot()
-            let view = strategy.supplementaryView(for: collectionView, elementKind: elementKind, at: indexPath, snapshot: snapshot)
+            let view = strategy.supplementaryView(for: collectionView, elementKind: elementKind, at: indexPath, dataSource: dataSource)
             return view
         }
+        self.delegate = delegate
 
         // Set the final layout
         let layout = strategy.makeLayout(dataSource: dataSource)
+        strategy.registerReusableViews(in: self, layout: layout)
         self.collectionViewLayout = layout
     }
 }
@@ -62,17 +64,19 @@ extension UICollectionView {
 
 // MARK: - CollectionViewDataSource propertyWrapper
 
+// TODO: Add support for indexTitles: https://stackoverflow.com/questions/69936255/how-do-i-support-the-fast-scrolling-scrubber-using-uicollectionviewdiffabledatas
+
 @propertyWrapper
-struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: Hashable> {
+public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
     // MARK: Type
 
-    final class Storage {
+    public final class Storage {
 
-        private(set) var dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>!
+        public private(set) var dataSource: CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>!
 
-        fileprivate func initialize(collectionView: UICollectionView, cellProvider: @escaping UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider) -> UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue> {
-            self.dataSource = UICollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
+        fileprivate func initialize(collectionView: UICollectionView, cellProvider: @escaping CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider) -> UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue> {
+            self.dataSource = CollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
             return dataSource
         }
     }
@@ -104,3 +108,39 @@ struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: Hashable
     public init() { }
 }
 
+
+
+// MARK: - CollectionViewDiffableDataSource
+
+public class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier> {
+
+    public typealias IndexTitleAndIndexPath = (indexTitle: String, indexPath: IndexPath)
+    public typealias IndexTitleAndIndexPathProvider = (NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>) -> [IndexTitleAndIndexPath]
+
+    public var indexTitleProvider: IndexTitleAndIndexPathProvider? {
+        didSet {
+            "TODO: Reload collectionView"
+        }
+    }
+    private var indexTitlesAndIndexPaths: [IndexTitleAndIndexPath]?
+
+    @MainActor
+    public override func indexTitles(for collectionView: UICollectionView) -> [String]? {
+        guard let indexTitleProvider else {
+            indexTitlesAndIndexPaths = nil
+            return nil
+        }
+        let snapshot = self.snapshot()
+        let indexTitlesAndIndexPaths = indexTitleProvider(snapshot)
+        self.indexTitlesAndIndexPaths = indexTitlesAndIndexPaths
+        return indexTitlesAndIndexPaths.map { $0.indexTitle }
+    }
+
+    public override func collectionView(_ collectionView: UICollectionView, indexPathForIndexTitle title: String, at index: Int) -> IndexPath {
+        guard let indexTitlesAndIndexPaths else {
+            // TODO: This shouldn't happen, but is this safe?
+            return IndexPath(item: 0, section: index)
+        }
+        return indexTitlesAndIndexPaths[index].indexPath
+    }
+}

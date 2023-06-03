@@ -31,89 +31,129 @@ class CollectionViewController: ViewController {
 
     @CollectionViewDataSource var items: NSDiffableDataSourceSnapshot<String, Item>
 
-    lazy var rootView = UICollectionView(dataSource: $items) {
-        ListLayout(appearance: .sidebar) {
-//        LayoutHeader { _ in
-//            UILabel()
-//                .text("Layout Header")
-//        }
-            //            LayoutFooter { _ in
-            //                UILabel()
-            //                    .text("Layout Footer")
-            //            }
-
-            // ListSectionWithStandardHeader<String, Int> {
-            // ListSectionWithCollapsableHeader<String, Int> {
-
-            ListSectionWithStandardHeader(identifier: "Foo") {
-                Header<String> { cell, value in
-                    var config = cell.defaultContentConfiguration()
-                    config.text = value
-                    cell.contentConfiguration = config
-                }
-                Cell<Item> { cell, item in
-                    var configuration = cell.defaultContentConfiguration()
-                    configuration.text = "\(item.value)"
-                    cell.contentConfiguration = configuration
-                }
-            }
-
-            ListSectionWithStandardHeader {
-                Header<String> { cell, value in
-                    var config = cell.defaultContentConfiguration()
-                    config.text = value
-                    cell.contentConfiguration = config
-                }
-                Cell<Item> { cell, item in
-                    var configuration = cell.defaultContentConfiguration()
-                    configuration.text = "\(item.value)"
-                    cell.contentConfiguration = configuration
-                }
-                Footer<String>(DemoCell.self)
-            }
-        }
-    }
-
-//    lazy var rootView = UICollectionView(snapshot: $items) {
-//        ComposableLayout {
-//            Section<String, Int>(
-//                identifier: "Foo")
-//            {
-//                Header<String> { cell, sectionIdentifier in
+//    lazy var rootView = UICollectionView(dataSource: $items) {
+//        ListLayout(appearance: .grouped) {
+//            // ListSectionWithoutHeader<String, Item> {
+//             ListSectionWithStandardHeader<String, Item> {
+////            ListSectionWithCollapsableHeader<String, Item> {
+//                Header<String> { cell, value in
+//                    var config = cell.defaultContentConfiguration()
+//                    config.text = value
+//                    cell.contentConfiguration = config
+//                }
+////                Cell<Item> { cell, item in
+////                    var configuration = cell.defaultContentConfiguration()
+////                    configuration.text = "\(item.value)"
+////                    cell.contentConfiguration = configuration
+////                    let headerDisclosureOption = UICellAccessory.OutlineDisclosureOptions(style: .automatic)
+////                    cell.accessories = [.outlineDisclosure(options: headerDisclosureOption)]
+////                }
+//                Cell<Item> { cell, item in
 //                    var configuration = cell.defaultContentConfiguration()
-//                    configuration.text = "\(sectionIdentifier)!!!"
+//                    configuration.text = "\(item.value)"
 //                    cell.contentConfiguration = configuration
 //                }
-//                Group<Int>(
-//                    axis: .vertical,
-//                    width: .fractionalWidth(0.5))
-//                {
-//                    Cell { (publisher: AnyPublisher<Int, Never>) in
-//                        UILabel()
-//                            //.frame(height: 88)
-//                            .onChange(of: publisher) { label, value in
-//                                label.text = "\(value)"
-//                                label.textColor = value.isMultiple(of: 2) ? .red : .blue
-//                            }
-//                            .padding(.vertical(8))
-//                    }
-//                }
-//                Footer<String>()
 //            }
 //        }
 //    }
 
+
+    lazy var rootView = UICollectionView(dataSource: $items) {
+        CompositeLayout {
+            LayoutHeader { _ in
+                UILabel()
+                    .font(.largeTitle)
+                    .text("Hiya!")
+            }
+            LayoutFooter { _ in
+                UILabel()
+                    .font(.largeTitle)
+                    .text("Bye-ya!")
+            }
+            LayoutBackground {
+                UIView()
+                    .backgroundColor(.systemMint)
+            }
+            // Section Foo has a different background
+            Section {
+                Header<String> { cell, value in
+                    var config = cell.defaultContentConfiguration()
+                    config.text = "Header: " + value
+                    cell.contentConfiguration = config
+                }
+                Footer<String> { cell, value in
+                    var config = cell.defaultContentConfiguration()
+                    config.text = "Footer: " + value
+                    cell.contentConfiguration = config
+                }
+                Background {
+                    UIView()
+                        .backgroundColor(.brown)
+                }
+
+                HGroup<Item> {
+                    Cell<Item> { cell, value in
+                        var config = UIListContentConfiguration.subtitleCell()
+                        config.text = "A: \(value)"
+                        cell.contentConfiguration = config
+                    }
+                    .supplementaries {
+                        Supplement<Item>(
+                            size: NSCollectionLayoutSize(widthDimension: .fractionalWidth(0.3), heightDimension: .fractionalHeight(0.3)),
+                            containerAnchor: .init(edges: [.top, .trailing]),
+                            itemAnchor: .init(edges: [.top, .trailing], fractionalOffset: CGPoint(x: 0.5, y: -0.5)),
+                            body: { publisher in
+                                UILabel()
+                                    .textAlignment(.center)
+                                    .assign(to: \.text, from: publisher.map { "\($0.value)" })
+                                    .backgroundColor(.systemPink)
+                            })
+                    }
+
+                    CustomGroup<Item>(
+                        cell: Cell<Item> { cell, value in
+                        var config = UIListContentConfiguration.subtitleCell()
+                        config.text = "B: \(value)"
+                        cell.contentConfiguration = config
+                    },
+                        itemProvider: { environment in
+                            let width = environment.container.contentSize.width * 0.6
+                            let height = environment.container.contentSize.height * 0.6
+                            let rect1 = CGRect(x: 0, y: 0, width: width, height: height)
+                            let rect2 = CGRect(
+                                x: environment.container.contentSize.width - width,
+                                y: environment.container.contentSize.height - height,
+                                width: width,
+                                height: height)
+                            return [
+                                NSCollectionLayoutGroupCustomItem(frame: rect1),
+                                NSCollectionLayoutGroupCustomItem(frame: rect2)
+                            ]
+                        }
+                    )
+
+                    Cell<Item> { cell, value in
+                        var config = cell.defaultContentConfiguration()
+                        config.text = "C: \(value)"
+                        cell.contentConfiguration = config
+                    }
+                }
+            }
+        }
+    }
+
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 
-        beginGrowingSnapshot()
-        //createExpandableSnapshot()
-        //createMultiSectionSnapshot()
+        // beginGrowingSnapshot()
+//        createExpandableSnapshot()
+         createMultiSectionSnapshot()
     }
 
     func createMultiSectionSnapshot() {
         var fresh = items
-        let sections = ["Foo"] //, "Bar", "Arf"]
+        let sections = ["Foo", "Bar", "Arf"]
         fresh.appendSections(sections)
         for section in sections {
             let items = (0..<10)
@@ -124,31 +164,30 @@ class CollectionViewController: ViewController {
     }
 
     func createExpandableSnapshot() {
-//        var fresh = items
-//        fresh.appendSections(["Foo"])
-//        items = fresh
-//
-//        for sectionIndex in 1..<10 {
-//            let sectionIdentifier = "\(sectionIndex)"
-//            // 1
-//            // Create a section snapshot
-//            var sectionSnapshot = NSDiffableDataSourceSectionSnapshot<Int>()
-//            // 2
-//            // Create a header ListItem & append as parent
-//            sectionSnapshot.append([sectionIndex])
-//
-//            // 3
-//            // Create an array of symbol ListItem & append as child of headerListItem
-//            let symbolListItemArray = Array(0..<10).map { $0 + (sectionIndex * 10) }
-//            sectionSnapshot.append(symbolListItemArray, to: sectionIndex)
-//
-//            // 4
-//            // Expand this section by default
-//            sectionSnapshot.collapse([sectionIndex])
-//
-//            // 5
-//            $items.dataSource?.apply(sectionSnapshot, to: sectionIdentifier, animatingDifferences: false)
-//        }
+        for sectionIndex in 1..<10 {
+            let sectionIdentifier = "\(sectionIndex)"
+            // 1
+            // Create a section snapshot
+            var sectionSnapshot = NSDiffableDataSourceSectionSnapshot<Item>()
+            // 2
+            // Create a header ListItem & append as parent
+            let rootItem = Item(section: sectionIdentifier, value: sectionIndex)
+            sectionSnapshot.append([rootItem])
+
+            // 3
+            // Create an array of symbol ListItem & append as child of headerListItem
+            let items = Array(0..<10)
+                .map {  $0 + (sectionIndex * 10) }
+                .map { Item(section: sectionIdentifier, value: $0) }
+            sectionSnapshot.append(items, to: rootItem)
+
+            // 4
+            // Expand this section by default
+            sectionSnapshot.collapse([rootItem])
+
+            // 5
+            $items.dataSource?.apply(sectionSnapshot, to: sectionIdentifier, animatingDifferences: false)
+        }
     }
 
 

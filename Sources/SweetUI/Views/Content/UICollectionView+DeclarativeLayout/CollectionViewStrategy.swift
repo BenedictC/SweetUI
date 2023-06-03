@@ -1,20 +1,19 @@
 import Foundation
 import UIKit
-import SweetUI
 import Combine
 
 
 // MARK: - CollectionViewStrategy
 
-protocol CollectionViewStrategy {
+public protocol CollectionViewStrategy {
 
     associatedtype SectionIdentifier: Hashable
     associatedtype ItemValue: Hashable
 
-    func registerReusableViews(in collectionView: UICollectionView)
+    func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout)
     func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionViewLayout
     func cell(for collectionView: UICollectionView, itemValue: ItemValue, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell
-    func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, snapshot: NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>) -> UICollectionReusableView
+    func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionReusableView
 }
 
 
@@ -22,9 +21,16 @@ protocol CollectionViewStrategy {
 
 public protocol ReusableViewConfigurable: UICollectionReusableView {
 
-    associatedtype Value
+    associatedtype Value = Void
 
     func configure(using value: Value)
+}
+
+public extension ReusableViewConfigurable where Value == Void {
+
+    func configure(using value: Value) {
+        // Do nothing
+    }
 }
 
 
@@ -42,9 +48,9 @@ public protocol BoundarySupplementaryComponent {
 }
 
 
-struct AnyBoundarySupplementaryComponent<SectionIdentifier>: BoundarySupplementaryComponent {
+public struct AnyBoundarySupplementaryComponent<SectionIdentifier>: BoundarySupplementaryComponent {
 
-    let elementKind: String
+    public let elementKind: String
     let registerSupplementaryViewHandler: (_ collectionView: UICollectionView) -> Void
     let makeLayoutBoundarySupplementaryItemHandler: () -> NSCollectionLayoutBoundarySupplementaryItem
     let makeSupplementaryViewHandler: (_ collectionView: UICollectionView, _ indexPath: IndexPath, _ sectionIdentifier: SectionIdentifier) -> UICollectionReusableView
@@ -68,15 +74,15 @@ struct AnyBoundarySupplementaryComponent<SectionIdentifier>: BoundarySupplementa
         makeSupplementaryViewHandler = erased.makeSupplementaryView(for:indexPath:sectionIdentifier:)
     }
 
-    func registerSupplementaryView(in collectionView: UICollectionView) {
+    public func registerSupplementaryView(in collectionView: UICollectionView) {
         registerSupplementaryViewHandler(collectionView)
     }
 
-    func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
+    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
         makeLayoutBoundarySupplementaryItemHandler()
     }
 
-    func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
+    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
         makeSupplementaryViewHandler(collectionView, indexPath, sectionIdentifier)
     }
 }
@@ -101,7 +107,7 @@ public protocol BoundarySupplementaryComponentFactory: BoundarySupplementaryComp
 }
 
 
-extension BoundarySupplementaryComponentFactory {
+public extension BoundarySupplementaryComponentFactory {
 
     init<View: ReusableViewConfigurable>(
         _ viewClass: View.Type,
@@ -135,7 +141,8 @@ extension BoundarySupplementaryComponentFactory {
     }
 }
 
-extension BoundarySupplementaryComponentFactory {
+@available(iOS 14, *)
+public extension BoundarySupplementaryComponentFactory {
 
     init(
         width: NSCollectionLayoutDimension = .fractionalWidth(1),
@@ -169,7 +176,7 @@ extension BoundarySupplementaryComponentFactory {
     }
 }
 
-extension BoundarySupplementaryComponentFactory {
+public extension BoundarySupplementaryComponentFactory {
 
     init(
         width: NSCollectionLayoutDimension = .fractionalWidth(1),
@@ -207,11 +214,11 @@ extension BoundarySupplementaryComponentFactory {
 
 // MARK: - Header
 
-struct Header<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
+public struct Header<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
 
-    static var elementKind: String { UICollectionView.elementKindSectionHeader }
-    static var defaultAlignment: NSRectAlignment { .topLeading }
-    var elementKind: String { Self.elementKind }
+    public static var elementKind: String { UICollectionView.elementKindSectionHeader }
+    public static var defaultAlignment: NSRectAlignment { .topLeading }
+    public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
     let alignment: NSRectAlignment
@@ -221,7 +228,7 @@ struct Header<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
     let viewRegistrar: (UICollectionView) -> Void
     let viewFactory: (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView
 
-    init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
+    public init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
         self.width = width
         self.height = height
         self.alignment = alignment
@@ -233,11 +240,11 @@ struct Header<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
     }
 
 
-    func registerSupplementaryView(in collectionView: UICollectionView) {
+    public func registerSupplementaryView(in collectionView: UICollectionView) {
         viewRegistrar(collectionView)
     }
 
-    func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
+    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
         let size = NSCollectionLayoutSize(widthDimension: width, heightDimension: height)
         let layoutItem = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: size,
@@ -253,7 +260,7 @@ struct Header<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
         return layoutItem
     }
 
-    func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
+    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
         viewFactory(collectionView, indexPath, sectionIdentifier)
     }
 }
@@ -261,11 +268,11 @@ struct Header<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
 
 // MARK: - Footer
 
-struct Footer<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
+public struct Footer<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
 
-    static var defaultAlignment: NSRectAlignment { .bottomLeading }
-    static var elementKind: String { UICollectionView.elementKindSectionFooter }
-    var elementKind: String { Self.elementKind }
+    public static var defaultAlignment: NSRectAlignment { .bottomLeading }
+    public static var elementKind: String { UICollectionView.elementKindSectionFooter }
+    public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
     let alignment: NSRectAlignment
@@ -275,7 +282,7 @@ struct Footer<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
     let viewRegistrar: (UICollectionView) -> Void
     let viewFactory: (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView
 
-    init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
+    public init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
         self.width = width
         self.height = height
         self.alignment = alignment
@@ -287,11 +294,11 @@ struct Footer<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
     }
     
 
-    func registerSupplementaryView(in collectionView: UICollectionView) {
+    public func registerSupplementaryView(in collectionView: UICollectionView) {
         viewRegistrar(collectionView)
     }
 
-    func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
+    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
         let size = NSCollectionLayoutSize(widthDimension: width, heightDimension: height)
         let layoutItem = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: size,
@@ -307,7 +314,7 @@ struct Footer<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
         return layoutItem
     }
 
-    func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
+    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
         viewFactory(collectionView, indexPath, sectionIdentifier)
     }
 }
@@ -315,13 +322,13 @@ struct Footer<SectionIdentifier>: BoundarySupplementaryComponent, BoundarySupple
 
 // MARK: - LayoutHeader
 
-struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
+public struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
 
-    typealias SectionIdentifier = Void
+    public typealias SectionIdentifier = Void
 
-    static var defaultAlignment: NSRectAlignment { .topLeading }
-    static var elementKind: String { "Layout Header" }
-    var elementKind: String { Self.elementKind }
+    public static var defaultAlignment: NSRectAlignment { .topLeading }
+    public static var elementKind: String { "Layout Header" }
+    public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
     let alignment: NSRectAlignment
@@ -331,7 +338,7 @@ struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryCompon
     let viewRegistrar: (UICollectionView) -> Void
     let viewFactory: (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView
 
-    init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
+    public init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
         self.width = width
         self.height = height
         self.alignment = alignment
@@ -343,11 +350,11 @@ struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryCompon
     }
 
 
-    func registerSupplementaryView(in collectionView: UICollectionView) {
+    public func registerSupplementaryView(in collectionView: UICollectionView) {
         viewRegistrar(collectionView)
     }
 
-    func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
+    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
         let size = NSCollectionLayoutSize(widthDimension: width, heightDimension: height)
         let layoutItem = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: size,
@@ -363,7 +370,7 @@ struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryCompon
         return layoutItem
     }
 
-    func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
+    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
         viewFactory(collectionView, indexPath, sectionIdentifier)
     }
 }
@@ -371,13 +378,13 @@ struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryCompon
 
 // MARK: - LayoutFooter
 
-struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
+public struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
 
-    typealias SectionIdentifier = Void
+    public typealias SectionIdentifier = Void
 
-    static var defaultAlignment: NSRectAlignment { .bottomLeading }
-    static var elementKind: String { "Layout Footer" }
-    var elementKind: String { Self.elementKind }
+    public static var defaultAlignment: NSRectAlignment { .bottomLeading }
+    public static var elementKind: String { "Layout Footer" }
+    public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
     let alignment: NSRectAlignment
@@ -387,7 +394,7 @@ struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementaryCompon
     let viewRegistrar: (UICollectionView) -> Void
     let viewFactory: (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView
 
-    init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
+    public init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
         self.width = width
         self.height = height
         self.alignment = alignment
@@ -398,11 +405,11 @@ struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementaryCompon
         self.viewFactory = viewFactory
     }
 
-    func registerSupplementaryView(in collectionView: UICollectionView) {
+    public func registerSupplementaryView(in collectionView: UICollectionView) {
         viewRegistrar(collectionView)
     }
 
-    func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
+    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
         let size = NSCollectionLayoutSize(widthDimension: width, heightDimension: height)
         let layoutItem = NSCollectionLayoutBoundarySupplementaryItem(
             layoutSize: size,
@@ -418,7 +425,7 @@ struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementaryCompon
         return layoutItem
     }
 
-    func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
+    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
         viewFactory(collectionView, indexPath, sectionIdentifier)
     }
 }
@@ -428,103 +435,135 @@ struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementaryCompon
 
 public protocol DecorationComponent {
 
-    associatedtype SectionIdentifier
-
     var elementKind: String { get }
 
-    func registerSupplementaryView(in layout: UICollectionViewCompositionalLayout)
+    func registerDecorationView(in layout: UICollectionViewLayout)
     func makeLayoutDecorationItem() -> NSCollectionLayoutDecorationItem
-    func makeDecorationView(for collectionView: UICollectionView, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView
 }
 
 
 // MARK: - Background
 
-struct Background<SectionIdentifier>: DecorationComponent {
+public struct Background: DecorationComponent {
 
-    let elementKind: String
+    public let elementKind: String
     let zIndex: Int?
-    private let viewRegistrar: (UICollectionViewCompositionalLayout) -> Void
-    private let viewFactory: (UICollectionView, SectionIdentifier) -> UICollectionReusableView
+    private let viewRegistrar: (UICollectionViewLayout) -> Void
 
-    init(elementKind: String, zIndex: Int? = nil) {
+    public init(elementKind: String, zIndex: Int?, viewRegistrar: @escaping (UICollectionViewLayout) -> Void) {
         self.elementKind = elementKind
         self.zIndex = zIndex
-        let viewClass = UICollectionReusableView.self
-        self.viewRegistrar = { layout in
-            layout.register(viewClass, forDecorationViewOfKind: elementKind)
-        }
-        self.viewFactory = { _, _ in
-            let view = viewClass.init()
-            view.backgroundColor = .purple
-            return view
-        }
+        self.viewRegistrar = viewRegistrar
     }
 
-    func registerSupplementaryView(in layout: UICollectionViewCompositionalLayout) {
+    public func registerDecorationView(in layout: UICollectionViewLayout) {
         viewRegistrar(layout)
     }
 
-    func makeLayoutDecorationItem() -> NSCollectionLayoutDecorationItem {
+    public func makeLayoutDecorationItem() -> NSCollectionLayoutDecorationItem {
         NSCollectionLayoutDecorationItem.background(elementKind: elementKind)
     }
+}
 
-    func makeDecorationView(for collectionView: UICollectionView, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
-        viewFactory(collectionView, sectionIdentifier)
+
+public extension Background {
+
+    init<T: UICollectionReusableView>(_ viewClass: T.Type, zIndex: Int? = nil) {
+        let elementKind = "Section Background \(UUID())"
+        let viewClass = T.self
+        let viewRegistrar = { (layout: UICollectionViewLayout) in
+            layout.register(viewClass, forDecorationViewOfKind: elementKind)
+        }
+        self.init(elementKind: elementKind, zIndex: zIndex, viewRegistrar: viewRegistrar)
+    }
+
+    init(zIndex: Int? = nil, bodyFactory: @escaping () -> UIView) {
+        let elementKind = "Section Background \(UUID())"
+        let viewClass: AnyClass = ConfigurableBackground.makeSubclass(bodyFactory: bodyFactory)
+        let viewRegistrar = { (layout: UICollectionViewLayout) in
+            layout.register(viewClass, forDecorationViewOfKind: elementKind)
+        }
+        self.init(elementKind: elementKind, zIndex: zIndex, viewRegistrar: viewRegistrar)
+    }
+}
+
+
+private class ConfigurableBackground: UICollectionReusableView {
+
+    static var classAndBodyFactoryPairs = [(class: AnyClass, builder: () -> UIView)]()
+
+    static func makeSubclass(bodyFactory: @escaping () -> UIView) -> AnyClass {
+        let name = "\(ConfigurableBackground.self)\(UUID().uuidString)".filter { $0.isLetter || $0.isNumber }
+        let subclass: AnyClass = objc_allocateClassPair(ConfigurableBackground.self, name, 0)!
+        classAndBodyFactoryPairs.append((subclass, bodyFactory))
+        return subclass
+    }
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        makeAndConfigureBody()
+    }
+
+    private func makeAndConfigureBody() {
+        guard let thisClass = object_getClass(self),
+        let pair = ConfigurableBackground.classAndBodyFactoryPairs.first(where: { $0.class == thisClass }) else {
+            return
+        }
+        let body = pair.builder()
+
+        body.translatesAutoresizingMaskIntoConstraints = false
+        self.addSubview(body)
+        NSLayoutConstraint.activate([
+            body.leftAnchor.constraint(equalTo: self.leftAnchor),
+            body.rightAnchor.constraint(equalTo: self.rightAnchor),
+            body.topAnchor.constraint(equalTo: self.topAnchor),
+            body.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+        ])
+    }
+
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
     }
 }
 
 
 // MARK: - LayoutBackground
 
-typealias LayoutBackground = Background<Void>
+public struct LayoutBackground {
 
+    let view: UIView
+
+    public init(view: () -> UIView) {
+        self.view = view()
+    }
+}
 
 
 // MARK: - Cell
 
 public struct Cell <ItemValue: Hashable> {
 
-    let width: NSCollectionLayoutDimension
-    let height: NSCollectionLayoutDimension
-    let edgeSpacing: NSCollectionLayoutEdgeSpacing?
-    let contentInsets: NSDirectionalEdgeInsets?
     private let cellFactory: (UICollectionView, IndexPath, ItemValue) -> UICollectionViewCell
     private let cellRegistrar: (UICollectionView) -> Void
-
+    // This only exists to support compositional layout. It's a mildly ugly hack
+    private let makeLayoutItemHandler: (NSCollectionLayoutSize) -> NSCollectionLayoutItem
 
     internal init(
-        width: NSCollectionLayoutDimension,
-        height: NSCollectionLayoutDimension,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing?,
-        contentInsets: NSDirectionalEdgeInsets?,
+        cellFactory: @escaping (UICollectionView, IndexPath, ItemValue) -> UICollectionViewCell,
         cellRegistrar: @escaping (UICollectionView) -> Void,
-        cellFactory: @escaping (UICollectionView, IndexPath, ItemValue) -> UICollectionViewCell)
+        makeLayoutItemHandler: @escaping (NSCollectionLayoutSize) -> NSCollectionLayoutItem)
     {
-        self.width = width
-        self.height = height
-        self.edgeSpacing = edgeSpacing
-        self.contentInsets = contentInsets
-        self.cellRegistrar = cellRegistrar
         self.cellFactory = cellFactory
+        self.cellRegistrar = cellRegistrar
+        self.makeLayoutItemHandler = makeLayoutItemHandler
     }
 
     func registerCellClass(in collectionView: UICollectionView) {
         cellRegistrar(collectionView)
     }
 
-    func makeLayoutItem() -> NSCollectionLayoutItem {
-        let size = NSCollectionLayoutSize(widthDimension: width, heightDimension: height)
-        let supplementaryItems = [NSCollectionLayoutSupplementaryItem]()
-        "TODO: Figure out how to express supplementaryItems"
-        let item = NSCollectionLayoutItem(layoutSize: size, supplementaryItems: supplementaryItems)
-        if let edgeSpacing {
-            item.edgeSpacing = edgeSpacing
-        }
-        if let contentInsets {
-            item.contentInsets = contentInsets
-        }
-        return item
+    func makeLayoutItem(defaultSize: NSCollectionLayoutSize) -> NSCollectionLayoutItem {
+        makeLayoutItemHandler(defaultSize)
     }
 
     func makeCell(with value: ItemValue, for collectionView: UICollectionView, at indexPath: IndexPath) -> UICollectionViewCell {
@@ -541,8 +580,7 @@ public extension Cell {
 
     init<CellClass: CellConfigurable>(
         _ cellClass: CellClass.Type,
-        width: NSCollectionLayoutDimension = .fractionalWidth(1),
-        height: NSCollectionLayoutDimension = .estimated(44),
+        size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil)
     where ItemValue == CellClass.Value {
@@ -556,8 +594,7 @@ public extension Cell {
             collectionView.register(CellClass.self, forCellWithReuseIdentifier: reuseIdentifier)
         }
         self.init(
-            width: width,
-            height: height,
+            size: size,
             edgeSpacing: edgeSpacing,
             contentInsets: contentInsets,
             cellRegistrar: cellRegistrar,
@@ -571,8 +608,7 @@ extension Cell {
     typealias BodyFactory = (AnyPublisher<ItemValue, Never>) -> UIView
 
     init(
-        width: NSCollectionLayoutDimension = .fractionalWidth(1),
-        height: NSCollectionLayoutDimension = .estimated(44),
+        size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
         body bodyFactory: @escaping BodyFactory)
@@ -591,8 +627,7 @@ extension Cell {
             return cell
         }
         self.init(
-            width: width,
-            height: height,
+            size: size,
             edgeSpacing: edgeSpacing,
             contentInsets: contentInsets,
             cellRegistrar: cellRegistrar,
@@ -603,23 +638,9 @@ extension Cell {
 
 internal final class ValuePublishingCell<ItemValue>: UICollectionViewCell, ReusableViewConfigurable {
 
-    static public var reuseIdentifier: String { objCClassName }
-
     var bodyFactory: ((AnyPublisher<ItemValue, Never>) -> UIView)?
-
+    
     private var subject: CurrentValueSubject<ItemValue, Never>?
-
-    private static var objCClassName: String {
-        let cString = class_getName(self)
-        let name = String(cString: cString)
-        return name
-    }
-
-//    private var configurator: AnyCellConfigurator {
-//        let objCClass: AnyClass? = object_getClass(self)
-//        let className = String(cString: class_getName(objCClass!))
-//        return ConfigurableCell.factoriesBySubclassNames[className]!
-//    }
 
     func configure(using value: ItemValue) {
         if let subject {
