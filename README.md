@@ -76,4 +76,20 @@ class CustomControl: UIControl, ViewBodyProvider {
 
 ## How to replace main.storyboard with code
 
-TODO: 
+1. Delete Main.Storyboard from the project
+2. Navigate to Project settings -> The target for the app -> Build Settings
+    - Remove the row 'UIKit Main Storyboard File Base Name'
+3. In Info.plist navigate to 'Application Scene Manifest -> Scene Configuration -> Application Session Role -> Item 0' and delete the row 'Storyboard Name'
+4. In SceneDelegate.swift, replace the implementation of `scene(_ scene:willConnectTo:options:)` with:
+```
+    func scene(_ scene: UIScene, willConnectTo session: UISceneSession, options connectionOptions: UIScene.ConnectionOptions) {
+        guard let scene = scene as? UIWindowScene else {
+            preconditionFailure("Unexpected scene type \(Self.self) can only connect to a UIWindowScene.")
+        }
+        let window = UIWindow(windowScene: scene)
+        self.window = window
+        window.windowScene = scene
+        window.rootViewController = RootViewController() // where RootViewController is the app's initial viewController.
+        window.makeKeyAndVisible()
+    }
+```     
