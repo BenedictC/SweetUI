@@ -82,30 +82,20 @@ open class _FlowController: _ViewController {
 }
 
 
-// MARK: - Extensions
+// MARK: - Additions
 
-/// Creates an instance containerVC if one is not provided
-public extension FlowControllerRequirements where Self: _FlowController {
+/// If a rootVC is not specified then use the containerVC.
+public extension FlowControllerRequirements where Self: _FlowController, RootViewController == UIViewController {
 
-    var containerViewController: ContainerViewController {
-        if let defaultContainerViewController = defaultContainerViewController as? ContainerViewController {
-            return defaultContainerViewController
-        }
-        let containerViewController = ContainerViewController()
-        defaultContainerViewController = containerViewController
-        return containerViewController
+    var rootViewController: RootViewController {
+        _containerViewController
     }
 }
 
 
-/// If a rootVC is not specified then use the containerVC
-public extension FlowControllerRequirements where Self: _FlowController, RootViewController == UIViewController {
+// MARK: - UINavigationController additions
 
-    var rootViewController: RootViewController { _containerViewController }
-}
-
-
-/// ???
+/// Creates and configures a  NavigationController if one is not explicit set. Allows the vc to be declared with only the RootViewController
 public extension FlowControllerRequirements where Self: _FlowController, ContainerViewController: UINavigationController {
 
     var containerViewController: ContainerViewController {
@@ -117,15 +107,16 @@ public extension FlowControllerRequirements where Self: _FlowController, Contain
         let containerViewController = ContainerViewController()
         defaultContainerViewController = containerViewController
         // Configure with the root
-        if rootViewController != containerViewController {
-            containerViewController.setViewControllers([rootViewController], animated: false)
+        guard rootViewController != containerViewController else {
+            preconditionFailure("No rootViewController provided. FlowController class must implement either `containerViewController` or `rootViewController`. \(type(of: self)) provides neither.")
         }
+        containerViewController.setViewControllers([rootViewController], animated: false)
         return containerViewController
     }
 }
 
 
-/// ???
+/// Core navigation methods
 public extension FlowControllerRequirements where ContainerViewController: UINavigationController {
 
     func push(_ viewController: UIViewController, animated: Bool) {
@@ -143,31 +134,4 @@ public extension FlowControllerRequirements where ContainerViewController: UINav
     func popToRoot(animated: Bool) {
         containerViewController.popToRootViewController(animated: animated)
     }
-}
-
-
-/// ???
-public extension FlowControllerRequirements where Self: _FlowController, ContainerViewController: UITabBarController {
-
-    var containerViewController: ContainerViewController {
-        // If we all ready have the container then we're done
-        if let defaultContainerViewController = defaultContainerViewController as? ContainerViewController {
-            return defaultContainerViewController
-        }
-        // Create and store the container
-        let containerViewController = ContainerViewController()
-        defaultContainerViewController = containerViewController
-        // Configure with the root
-        if rootViewController != containerViewController {
-            containerViewController.setViewControllers([rootViewController], animated: false)
-        }
-        return containerViewController
-    }
-}
-
-
-/// ???
-public extension FlowControllerRequirements where ContainerViewController: UITabBarController {
-
-    // TODO: What methods does it make sense to add here?
 }

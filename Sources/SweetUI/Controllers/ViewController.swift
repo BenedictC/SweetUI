@@ -89,4 +89,3 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         self.didDisappear()
     }
 }
-
