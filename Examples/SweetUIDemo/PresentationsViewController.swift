@@ -1,16 +1,9 @@
-import Foundation
 import UIKit
 import SweetUI
+import Combine
 
 
-class DemoFlowController: FlowController {
-
-//    lazy var rootViewController = CollectionViewController()
-    lazy var rootViewController = FormViewController()
-}
-
-
-final class ExampleViewController: ViewController, Presentable {
+final class PresentationsViewController: ViewController, Presentable {
 
     // MARK: - State
 
@@ -60,7 +53,7 @@ static var modalCount = 0
 //            presentAlert()
             presentModal()
 //            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(3)) {
-//                let vc = self.presentedViewController as! ExampleViewController
+//                let vc = self.presentedViewController as! PresentationsViewController
 //                vc.endPresentation(with: .success("BOOM!"), animated: true)
 //            }
         }
@@ -77,7 +70,7 @@ static var modalCount = 0
     func presentModal() {
         Self.modalCount += 1
         Task {
-            let modal = NavigationController(rootViewController: ExampleViewController())
+            let modal = NavigationController(rootViewController: PresentationsViewController())
             do {
                 let value = try await self.present(modal, animated: true)
                 //try await self.present(modal, animated: true)
@@ -92,7 +85,7 @@ static var modalCount = 0
     func presentSheet() {
         Task {
             do {
-                let modal = ExampleViewController()
+                let modal = PresentationsViewController()
                 modal.view.backgroundColor = .yellow
                 let value = try await self.presentSheet(modal, animated: true)
                 print("Sheet completed with value: \(value)")
@@ -105,7 +98,7 @@ static var modalCount = 0
     func presentPopover() {
         Task {
             do {
-                let modal = ExampleViewController()
+                let modal = PresentationsViewController()
                 modal.view.backgroundColor = .yellow
                 let value = try await self.presentPopover(modal, animated: true) { popover in
                     popover.sourceView = rootView

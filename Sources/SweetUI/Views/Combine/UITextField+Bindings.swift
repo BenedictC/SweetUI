@@ -59,6 +59,3 @@ private extension SomeView where Self: UITextField {
         }
     }
 }
-
-
-private var cancellables = Set<AnyCancellable>()

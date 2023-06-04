@@ -14,14 +14,6 @@ class FormViewController: ViewController {
     typealias ValidationKeyPath = KeyPath<RegistrationForm, ViewState<Bool>>
 
 
-    // MARK: Instance life cycle
-
-    override init() {
-        super.init()
-        title = "Form Example"
-    }
-
-    
     // MARK: Properties
 
     private let form = RegistrationForm()
@@ -43,6 +35,10 @@ class FormViewController: ViewController {
 
 
     // Content views
+
+    private(set) lazy var barItems = makeBarItems { builder in
+        builder.$navigationItem.title = form.$name
+    }
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")
             .bindText(to: PublishedSubject(form, read: \.$name, write: \.name))
@@ -84,9 +80,7 @@ class FormViewController: ViewController {
 
     // Layout views
 
-    lazy var rootView = ScrollingContentLayout(
-        configuration: .init(paddingColor: .blue)
-    ) {
+    lazy var rootView = ScrollingContentLayout(configuration: .init(paddingColor: .blue)) {
         ZStack(alignment: .fill) {
             VStack(spacing: 10) {
                 VStack {

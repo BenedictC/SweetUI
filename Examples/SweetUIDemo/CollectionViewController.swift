@@ -2,26 +2,6 @@ import UIKit
 import SweetUI
 import Combine
 
-/*
- - Section:
-    - Other supplementary views
-    - background/decoration
-    - Custom Header and Footer cells
-    - First item as header
-    - Different cells based on predicate
-
- - Root:
-    - Header/Footer
-    - Decoration
-
- - Group:
-    - Multiple items (with predicate)
-
- - Cell:
-    - Supplementary items
-
- */
-
 
 class CollectionViewController: ViewController {
 

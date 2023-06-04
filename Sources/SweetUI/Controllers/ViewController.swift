@@ -18,6 +18,7 @@ public protocol ViewControllerRequirements: _ViewControllerRequirements {
 
 public protocol _ViewControllerRequirements: _ViewController {
     var _rootView: UIView { get }
+    var barItems: BarItems { get }
 }
 
 
@@ -39,12 +40,12 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
 
     public init() {
         super.init(nibName: nil, bundle: nil)
-        // Initialize a lazy barsController
         guard let owner = self as? _ViewControllerRequirements else {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
-        _ = owner
-        //_ = owner.barItems
+        // Initialize a barItems
+        let advice = "Check that closures used to make the barItem that reference the view controller do so with weak references."
+        _ = detectPotentialRetainCycle(of: self, advice: advice) { owner.barItems }  // Force load barItems
     }    
 
     @available(*, unavailable)
@@ -58,7 +59,7 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
         // If the view ignores all safe areas then it can be used as the self.view directly
-        let advice = "Check that closures that reference the view controller are weak, e.g. `button.on(.primaryActionTriggered) { [weak self] _ in self?.submit() }`"
+        let advice = "Check that closures within the view that reference the view controller are weak, e.g. `button.on(.primaryActionTriggered) { [weak self] _ in self?.submit() }`"
         let rootView = detectPotentialRetainCycle(of: self, advice: advice) { owner._rootView }
         let edgesToIgnore = UIView.edgesIgnoringSafeArea(for: rootView)
         let requiresContainer = edgesToIgnore != .all

@@ -7,20 +7,23 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		823E1FCB285B28C200CA5C4D /* DemoFlowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 823E1FCA285B28C200CA5C4D /* DemoFlowController.swift */; };
+		820EBD1E2A2CB5C3005306E1 /* DemoFlowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820EBD1B2A2CB5C3005306E1 /* DemoFlowController.swift */; };
+		820EBD1F2A2CB5C3005306E1 /* PresentationsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820EBD1C2A2CB5C3005306E1 /* PresentationsViewController.swift */; };
+		820EBD202A2CB5C3005306E1 /* CollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 820EBD1D2A2CB5C3005306E1 /* CollectionViewController.swift */; };
 		825CB7D2284276D80063BB17 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 825CB7D1284276D80063BB17 /* AppDelegate.swift */; };
 		825CB7D4284276D80063BB17 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 825CB7D3284276D80063BB17 /* SceneDelegate.swift */; };
 		825CB7D6284276D80063BB17 /* FormViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 825CB7D5284276D80063BB17 /* FormViewController.swift */; };
 		825CB7DB284276DA0063BB17 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 825CB7DA284276DA0063BB17 /* Assets.xcassets */; };
 		825CB7DE284276DA0063BB17 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 825CB7DC284276DA0063BB17 /* LaunchScreen.storyboard */; };
 		825CB7E72842770B0063BB17 /* SweetUI in Frameworks */ = {isa = PBXBuildFile; productRef = 825CB7E62842770B0063BB17 /* SweetUI */; };
-		829DF2872995240F007F41CC /* CollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829DF2862995240F007F41CC /* CollectionViewController.swift */; };
 		829E16B6285A3A200075FA42 /* ScrollingContentLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829E16B5285A3A200075FA42 /* ScrollingContentLayout.swift */; };
 		82BBAB85286269C100141333 /* RegistrationForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82BBAB84286269C100141333 /* RegistrationForm.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		823E1FCA285B28C200CA5C4D /* DemoFlowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DemoFlowController.swift; sourceTree = "<group>"; };
+		820EBD1B2A2CB5C3005306E1 /* DemoFlowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DemoFlowController.swift; sourceTree = "<group>"; };
+		820EBD1C2A2CB5C3005306E1 /* PresentationsViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = PresentationsViewController.swift; sourceTree = "<group>"; };
+		820EBD1D2A2CB5C3005306E1 /* CollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CollectionViewController.swift; sourceTree = "<group>"; };
 		825CB7CE284276D80063BB17 /* SweetUIDemo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SweetUIDemo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		825CB7D1284276D80063BB17 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		825CB7D3284276D80063BB17 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -28,7 +31,6 @@
 		825CB7DA284276DA0063BB17 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		825CB7DD284276DA0063BB17 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		825CB7DF284276DA0063BB17 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		829DF2862995240F007F41CC /* CollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewController.swift; sourceTree = "<group>"; };
 		829E16B5285A3A200075FA42 /* ScrollingContentLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingContentLayout.swift; sourceTree = "<group>"; };
 		82BBAB84286269C100141333 /* RegistrationForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationForm.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -69,7 +71,6 @@
 			children = (
 				825CB7D5284276D80063BB17 /* FormViewController.swift */,
 				82BBAB84286269C100141333 /* RegistrationForm.swift */,
-				829DF2862995240F007F41CC /* CollectionViewController.swift */,
 			);
 			path = FormViewController;
 			sourceTree = "<group>";
@@ -103,7 +104,9 @@
 			isa = PBXGroup;
 			children = (
 				823E1FED285B583100CA5C4D /* App */,
-				82F0F25629BF473D0035B964 /* DemoFlowController */,
+				820EBD1D2A2CB5C3005306E1 /* CollectionViewController.swift */,
+				820EBD1B2A2CB5C3005306E1 /* DemoFlowController.swift */,
+				820EBD1C2A2CB5C3005306E1 /* PresentationsViewController.swift */,
 				823E1FEE285B585700CA5C4D /* FormViewController */,
 				823E1FEF285B586200CA5C4D /* Layouts */,
 				823E1FEC285B581700CA5C4D /* Resources */,
@@ -116,14 +119,6 @@
 			children = (
 			);
 			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		82F0F25629BF473D0035B964 /* DemoFlowController */ = {
-			isa = PBXGroup;
-			children = (
-				823E1FCA285B28C200CA5C4D /* DemoFlowController.swift */,
-			);
-			path = DemoFlowController;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -199,10 +194,11 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				823E1FCB285B28C200CA5C4D /* DemoFlowController.swift in Sources */,
+				820EBD1E2A2CB5C3005306E1 /* DemoFlowController.swift in Sources */,
 				825CB7D6284276D80063BB17 /* FormViewController.swift in Sources */,
 				82BBAB85286269C100141333 /* RegistrationForm.swift in Sources */,
-				829DF2872995240F007F41CC /* CollectionViewController.swift in Sources */,
+				820EBD1F2A2CB5C3005306E1 /* PresentationsViewController.swift in Sources */,
+				820EBD202A2CB5C3005306E1 /* CollectionViewController.swift in Sources */,
 				825CB7D2284276D80063BB17 /* AppDelegate.swift in Sources */,
 				829E16B6285A3A200075FA42 /* ScrollingContentLayout.swift in Sources */,
 				825CB7D4284276D80063BB17 /* SceneDelegate.swift in Sources */,
