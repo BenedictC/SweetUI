@@ -72,15 +72,20 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         guard let owner = self as? _ViewControllerRequirements else {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
+        // If the view ignores all safe areas then it can be used as the self.view directly
         let rootView = owner._rootView
         let edgesToIgnore = UIView.edgesIgnoringSafeArea(for: rootView)
         let requiresContainer = edgesToIgnore != .all
         if requiresContainer {
             let container = rootView.ignoresSafeArea(edges: edgesToIgnore)
-            container.backgroundColor = .systemBackground
             self.view = container
         } else {
             self.view = rootView
+        }
+
+        let shouldSetBackground = self.view.backgroundColor == nil
+        if shouldSetBackground {
+            self.view.backgroundColor = .systemBackground
         }
     }
 
