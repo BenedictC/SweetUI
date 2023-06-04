@@ -17,7 +17,6 @@
 		829DF2872995240F007F41CC /* CollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829DF2862995240F007F41CC /* CollectionViewController.swift */; };
 		829E16B6285A3A200075FA42 /* ScrollingContentLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 829E16B5285A3A200075FA42 /* ScrollingContentLayout.swift */; };
 		82BBAB85286269C100141333 /* RegistrationForm.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82BBAB84286269C100141333 /* RegistrationForm.swift */; };
-		82D280992847EF80006091C0 /* FormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 82D280982847EF80006091C0 /* FormView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,7 +31,6 @@
 		829DF2862995240F007F41CC /* CollectionViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CollectionViewController.swift; sourceTree = "<group>"; };
 		829E16B5285A3A200075FA42 /* ScrollingContentLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrollingContentLayout.swift; sourceTree = "<group>"; };
 		82BBAB84286269C100141333 /* RegistrationForm.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RegistrationForm.swift; sourceTree = "<group>"; };
-		82D280982847EF80006091C0 /* FormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FormView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -71,7 +69,6 @@
 			children = (
 				825CB7D5284276D80063BB17 /* FormViewController.swift */,
 				82BBAB84286269C100141333 /* RegistrationForm.swift */,
-				82D280982847EF80006091C0 /* FormView.swift */,
 				829DF2862995240F007F41CC /* CollectionViewController.swift */,
 			);
 			path = FormViewController;
@@ -204,7 +201,6 @@
 			files = (
 				823E1FCB285B28C200CA5C4D /* DemoFlowController.swift in Sources */,
 				825CB7D6284276D80063BB17 /* FormViewController.swift in Sources */,
-				82D280992847EF80006091C0 /* FormView.swift in Sources */,
 				82BBAB85286269C100141333 /* RegistrationForm.swift in Sources */,
 				829DF2872995240F007F41CC /* CollectionViewController.swift in Sources */,
 				825CB7D2284276D80063BB17 /* AppDelegate.swift in Sources */,
@@ -356,6 +352,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -382,6 +379,7 @@
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

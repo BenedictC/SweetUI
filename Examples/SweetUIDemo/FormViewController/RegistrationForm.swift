@@ -6,20 +6,18 @@ final class RegistrationForm {
 
     // MARK: Publishers
 
-    @Published var name: String?
+    @Published var name: String? // = "Test Name"
     var isNameValid: AnyPublisher<Bool, Never> { $name.map(Self.isValidName).eraseToAnyPublisher() }
 
-    @Published var email: String?
+    @Published var email: String? // = "test@example.com"
     var isEmailValid: AnyPublisher<Bool, Never> { $email.map(Self.isValidEmail).eraseToAnyPublisher() }
 
-    @Published var password: String?
+    @Published var password: String? // = "qwerty12345"
     var isPasswordValid: AnyPublisher<Bool, Never> { $password.map(Self.isValidPassword).eraseToAnyPublisher() }
 
-    var isValid: AnyPublisher<Bool, Never> {
-        Publishers.CombineLatest3(isNameValid, isEmailValid, isPasswordValid)
-            .map { $0.0 && $0.1 && $0.2 }
-            .eraseToAnyPublisher()
-    }
+    private(set) lazy var isValid = Publishers
+        .CombineLatest3(isNameValid, isEmailValid, isPasswordValid)
+        .map { $0.0 && $0.1 && $0.2 }
 
     func reset() {
         name = nil
