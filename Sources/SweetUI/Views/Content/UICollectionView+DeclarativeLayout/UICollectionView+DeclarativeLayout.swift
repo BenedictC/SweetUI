@@ -123,6 +123,11 @@ public class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemI
     }
     private var indexTitlesAndIndexPaths: [IndexTitleAndIndexPath]?
 
+    override init(collectionView: UICollectionView, cellProvider: @escaping CellProvider) {
+        super.init(collectionView: collectionView, cellProvider: cellProvider)
+        self.collectionView = collectionView
+    }
+
     @MainActor
     public override func indexTitles(for collectionView: UICollectionView) -> [String]? {
         guard let indexTitleProvider else {
