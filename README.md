@@ -6,7 +6,7 @@ SweetUI adds a little sugar to UIKit. Goals:
 - Banish storyboards and nibs
 - Declarative style for `UIView` subclassing 
 - Reduce boiler plate code for `UIViewController` subclasses
-
+ 
 Let's dig into each of these points. The core of SweetUI only depends on UIKit and Foundation and there are few methods to integrate with Combine
 
 
