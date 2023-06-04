@@ -49,7 +49,7 @@ class FormViewController: ViewController {
             .delegateWithReturnAction(next: emailTextField)
             .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
 
-    private lazy var nameValidationErrorLabel = makeLabel(text: "Name must be at least 1 character long")
+    private lazy var nameValidationErrorLabel = makeValidationErrorLabel(text: "Name must be at least 1 character long")
             .assign(to: \.alpha, from: nameValidationErrorLabelAlpha)
 
     private lazy var emailTextField = makeTextField(placeholder: "Email")
@@ -59,7 +59,7 @@ class FormViewController: ViewController {
             .delegateWithReturnAction(next: passwordTextField)
             .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
 
-    private lazy var emailValidationErrorLabel = makeLabel(text: "Email must be a valid email address")
+    private lazy var emailValidationErrorLabel = makeValidationErrorLabel(text: "Email must be a valid email address")
             .assign(to: \.alpha, from: emailValidationErrorLabelAlpha)
 
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
@@ -68,7 +68,7 @@ class FormViewController: ViewController {
             .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
             .delegateWithReturnAction { [weak self] in self?.submit() }
 
-    private lazy var passwordValidationErrorLabel = makeLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
+    private lazy var passwordValidationErrorLabel = makeValidationErrorLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
             .assign(to: \.alpha, from: passwordValidationErrorLabelAlpha)
 
     private lazy var submitButton = UIButton(type: .system)
@@ -114,7 +114,7 @@ class FormViewController: ViewController {
 }
 
 
-// MARK: View life cycle
+// MARK: - View life cycle
 
 extension FormViewController {
 
@@ -126,7 +126,7 @@ extension FormViewController {
 }
 
 
-// MARK: Actions
+// MARK: - Actions
 
 private extension FormViewController {
 
@@ -182,7 +182,7 @@ private extension FormViewController {
             .placeholder(placeholder)
     }
 
-    private func makeLabel(text: String) -> UILabel {
+    private func makeValidationErrorLabel(text: String) -> UILabel {
         UILabel()
             .text(text)
             .font(.preferredFont(forTextStyle: .caption1))
