@@ -70,8 +70,10 @@ extension _ViewBodyProvider {
 
     func initializeBodyHosting() {
         if _body.superview == nil {
-            Self.initializeInstance(of: self)
-            Self.initializeBody(of: self)
+            detectPotentialRetainCycle(of: self) {
+                Self.initializeInstance(of: self)
+                Self.initializeBody(of: self)
+            }
         }
     }
 }

@@ -1,14 +1,21 @@
 import Foundation
 
 
-func detectPotentialRetainCycle<T>(of object: CFTypeRef, performing work: () -> T) -> T {
+func detectPotentialRetainCycle<T>(of object: CFTypeRef, advice: String? = nil, performing work: () -> T) -> T {
     let expectedCount = CFGetRetainCount(object)
     let result = work()
     let actualCount = CFGetRetainCount(object)
 
     if actualCount != expectedCount {
         let increment = actualCount - expectedCount
-        DebugWarning.raise("Potential retain cycle detected. Retain count incremented by \(increment). This may be a false positive caused by the object being temporarily retained by asynchronous functions (e.g. a Task, DispatchQueue or Operation).")
+        let message = [
+            "Potential retain cycle of **\(type(of: object))** detected. Retain count incremented by \(increment).",
+            advice,
+            "This may be a false positive caused by a transient retain for concurrency (e.g. a Task, DispatchQueue or Operation).",
+        ]
+            .compactMap { $0 }
+            .joined(separator: "\n")
+        DebugWarning.raise(message)
     }
 
     return result

@@ -73,7 +73,8 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
         // If the view ignores all safe areas then it can be used as the self.view directly
-        let rootView = owner._rootView
+        let advice = "Check that closures that reference the view controller are weak, e.g. `button.on(.primaryActionTriggered) { [weak self] _ in self?.submit() }`"
+        let rootView = detectPotentialRetainCycle(of: self, advice: advice) { owner._rootView }
         let edgesToIgnore = UIView.edgesIgnoringSafeArea(for: rootView)
         let requiresContainer = edgesToIgnore != .all
         if requiresContainer {
