@@ -7,16 +7,19 @@ public extension ViewControllerRequirements {
     var barItems: BarItems { BarItems(cancellables: []) }
 
     func makeBarItems(configuration: (BarItemsBuilder<Self>) -> Void) -> BarItems {
-        let factory = BarItemsBuilder(viewController: self)
-        let barItems = factory.configure(using: configuration)
+        let builder = BarItemsBuilder(viewController: self)
+        let barItems = builder.build(using: configuration)
         return barItems
     }
 }
 
-public struct BarItems {
 
+// MARK: -
+
+public struct BarItems {
     internal var cancellables = Set<AnyCancellable>()
 }
+
 
 public class BarItemsBuilder<VC: UIViewController> {
 
@@ -30,7 +33,7 @@ public class BarItemsBuilder<VC: UIViewController> {
         self.tabBarItem = viewController.tabBarItem
     }
 
-    func configure(using configuration: (BarItemsBuilder<VC>) -> Void) -> BarItems {
+    func build(using configuration: (BarItemsBuilder<VC>) -> Void) -> BarItems {
         configuration(self)
         var cancellables = Set<AnyCancellable>()
         cancellables.formUnion($viewController.cancellables)
@@ -41,6 +44,8 @@ public class BarItemsBuilder<VC: UIViewController> {
 }
 
 
+// MARK: -
+
 @propertyWrapper
 public struct Subscribable<T> {
 
@@ -49,10 +54,10 @@ public struct Subscribable<T> {
         set { projectedValue.source = newValue }
     }
 
-    public var projectedValue: SubscribingProxy<T>
+    public var projectedValue: SubscribableProxy<T>
 
     public init(wrappedValue: T) {
-        self.projectedValue = SubscribingProxy(source: wrappedValue)
+        self.projectedValue = SubscribableProxy(source: wrappedValue)
     }
 }
 
@@ -60,10 +65,11 @@ public struct Subscribable<T> {
 // MARK: - SubscribingProxy
 
 @dynamicMemberLookup
-public class SubscribingProxy<Source> {
+public class SubscribableProxy<Source> {
 
     var source: Source
     var cancellables = Set<AnyCancellable>()
+    var storedKeyPaths = Set<AnyHashable>()
 
     init(source: Source) {
         self.source = source
@@ -78,12 +84,19 @@ public class SubscribingProxy<Source> {
     // Published values
     public subscript<T, P: Publisher>(dynamicMember member: ReferenceWritableKeyPath<Source, T>) -> P where P.Output == T, P.Failure == Never {
         set {
+            if storedKeyPaths.contains(member) {
+                print("⚠️ Attempted to set a publisher more than once during barItem building. Only the first publisher is stored. Subsequent publishers are ignored.")
+                return
+            }
+            storedKeyPaths.formUnion([member])
+
             let source = self.source
             newValue.sink {
                 source[keyPath: member] = $0
             }
             .store(in: &cancellables)
         }
+        @available(*, unavailable, message: "Publishers cannot be read.")
         get {
             fatalError()
         }
