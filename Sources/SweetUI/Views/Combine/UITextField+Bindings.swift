@@ -39,9 +39,13 @@ private extension SomeView where Self: UITextField {
     }
 
     func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>) -> AnyCancellable where S.Output == V, S.Failure == Never {
-        // TODO: Add support for begin & end editing synchronization behaviour
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
+        }
+        let editingDidEnd = self.addAction(for: [.editingDidEnd]) { textField, event in
+            // Changes from the subject are ignore while the textField has focus so
+            // resynchronize the value when editing ends.
+            _ = subject.sink { textField[keyPath: keyPath] = $0 }
         }
         let receive = subject.sink { [weak self] value in
             guard let self = self else { return }
@@ -49,8 +53,12 @@ private extension SomeView where Self: UITextField {
             self[keyPath: keyPath] = value
         }
         return AnyCancellable {
+            editingDidEnd.cancel()
             send.cancel()
             receive.cancel()
         }
     }
 }
+
+
+private var cancellables = Set<AnyCancellable>()
