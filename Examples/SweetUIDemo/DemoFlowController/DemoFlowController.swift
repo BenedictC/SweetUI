@@ -5,7 +5,8 @@ import SweetUI
 
 class DemoFlowController: FlowController {
 
-    lazy var rootViewController = CollectionViewController()
+//    lazy var rootViewController = CollectionViewController()
+    lazy var rootViewController = FormViewController()
 }
 
 
@@ -15,35 +16,6 @@ final class ExampleViewController: ViewController, Presentable {
 
     @State var message = ""
 
-
-    // MARK: - Bars
-/*
-    lazy var barItems = BarItems {
-        Title {
-            //$message
-        }
-        BackItem {
-            Button {
-
-            }
-        }
-        RightItems {
-            Menu {
-
-            }
-        }
-        Toolbar {
-            Button {
-
-            }
-            BarSpacer()
-            Button()
-        }
-        TabBarItem {
-
-        }
-    }
-*/
 
     // MARK: - View
 

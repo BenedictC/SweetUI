@@ -18,7 +18,6 @@ public protocol ViewControllerRequirements: _ViewControllerRequirements {
 
 public protocol _ViewControllerRequirements: _ViewController {
     var _rootView: UIView { get }
-//    var barItems: BarItems { get }
 }
 
 
@@ -27,20 +26,6 @@ public protocol _ViewControllerRequirements: _ViewController {
 public extension ViewControllerRequirements {
     var _rootView: UIView { rootView }
 }
-
-//private var barItemsByViewController = NSMapTable<UIViewController, BarItems>.weakToStrongObjects()
-//
-//public extension ViewControllerRequirements where Self: UIViewController {
-//
-//    var barItems: BarItems {
-//        if let existing = barItemsByViewController.object(forKey: self) {
-//            return existing
-//        }
-//        let new = BarItems(viewController: self)
-//        barItemsByViewController.setObject(new, forKey: self)
-//        return new
-//    }
-//}
 
 
 open class _ViewController: UIViewController, _TraitCollectionPublisherProviderImplementation {
