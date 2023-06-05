@@ -125,12 +125,13 @@ public extension Supplement {
 
     init<V: ReusableViewConfigurable>(
         _ viewClass: V.Type,
+        elementKind optionalElementKind: String? = nil,
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil
     ) {
-        let elementKind = UniqueIdentifier("SupplementaryView").value
-        let reuseIdentifier = elementKind
+        let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
 
         self.elementKind = elementKind
         self.viewRegistrar = { collectionView in
@@ -157,14 +158,15 @@ public extension Supplement {
 public extension Supplement {
 
     init(
+        elementKind optionalElementKind: String? = nil,
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
         configuration: @escaping (UICollectionViewListCell, ItemValue) -> Void)
     {
         let viewClass = UICollectionViewListCell.self
-        let elementKind = UniqueIdentifier("SupplementaryView").value
-        let reuseIdentifier = elementKind
+        let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
 
         self.elementKind = elementKind
         self.viewRegistrar = { collectionView in
@@ -192,14 +194,15 @@ public extension Supplement {
 public extension Supplement {
 
     init(
+        elementKind optionalElementKind: String? = nil,
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
         body bodyFactory: @escaping (AnyPublisher<ItemValue, Never>) -> UIView)
     {
         let viewClass = ValuePublishingCell<ItemValue>.self
-        let elementKind = UniqueIdentifier("SupplementaryView").value
-        let reuseIdentifier = elementKind
+        let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
 
         self.elementKind = elementKind
         self.viewRegistrar = { collectionView in

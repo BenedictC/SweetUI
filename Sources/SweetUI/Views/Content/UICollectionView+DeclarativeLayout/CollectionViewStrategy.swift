@@ -468,8 +468,12 @@ public struct Background: DecorationComponent {
 
 public extension Background {
 
-    init<T: UICollectionReusableView>(_ viewClass: T.Type, zIndex: Int? = nil) {
-        let elementKind = UniqueIdentifier("Section Background").value
+    init<T: UICollectionReusableView>(
+        _ viewClass: T.Type,
+        elementKind optionalElementKind: String? = nil,
+        zIndex: Int? = nil)
+    {
+        let elementKind = optionalElementKind ?? UniqueIdentifier("Section Background").value
         let viewClass = T.self
         let viewRegistrar = { (layout: UICollectionViewLayout) in
             layout.register(viewClass, forDecorationViewOfKind: elementKind)
@@ -477,8 +481,12 @@ public extension Background {
         self.init(elementKind: elementKind, zIndex: zIndex, viewRegistrar: viewRegistrar)
     }
 
-    init(zIndex: Int? = nil, bodyFactory: @escaping () -> UIView) {
-        let elementKind = UniqueIdentifier("Section Background").value
+    init(
+        elementKind optionalElementKind: String? = nil,
+        zIndex: Int? = nil,
+        bodyFactory: @escaping () -> UIView)
+    {
+        let elementKind = optionalElementKind ?? UniqueIdentifier("Section Background").value
         let viewClass: AnyClass = ConfigurableBackground.makeSubclass(bodyFactory: bodyFactory)
         let viewRegistrar = { (layout: UICollectionViewLayout) in
             layout.register(viewClass, forDecorationViewOfKind: elementKind)

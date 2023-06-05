@@ -66,7 +66,7 @@ public extension ViewBodyProvider {
 
 // MARK: - Convenience
 
-extension _ViewBodyProvider {
+public extension _ViewBodyProvider {
 
     func initializeBodyHosting() {
         if _body.superview == nil {
