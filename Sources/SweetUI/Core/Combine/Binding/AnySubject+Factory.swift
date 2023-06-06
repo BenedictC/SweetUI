@@ -1,18 +1,20 @@
 import Combine
 
 
-// MARK: - Convenience 
+// MARK: - @Published
 
+/// Transforms a @Published property into a Subject
 public extension AnySubject {
 
-    convenience init<T: AnyObject, P: Publisher>(for object: T, _ keyPath: ReferenceWritableKeyPath<T, Output>, publisher: P) where P.Output == Output, P.Failure == Never, Failure == Never {
+    convenience init<T: AnyObject>(publishedBy object: T, get getPublisher: KeyPath<T, Published<Output>.Publisher>, set setValue: ReferenceWritableKeyPath<T, Output>) where Failure == Never {
+        let publisher = object[keyPath: getPublisher]
         self.init(
             receiveHandler: { publisher.receive(subscriber: $0) },
-            sendValueHandler: { [weak object] in object?[keyPath: keyPath] = $0 },
+            sendValueHandler: { [weak object] in object?[keyPath: setValue] = $0 },
             sendCompletionHandler: { _ in /* Published can't complete */ },
             sendSubscriptionHandler: { _ in /* ??? */ }
         )
-    }
+    }    
 }
 
 

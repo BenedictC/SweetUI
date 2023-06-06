@@ -41,7 +41,7 @@ class FormViewController: ViewController {
     }
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")
-            .bindText(to: PublishedSubject(form, read: \.$name, write: \.name))
+        .bindText(to: AnySubject(publishedBy: form, get: \.$name, set: \.name))
             .delegateWithReturnAction(next: emailTextField)
             .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
 
@@ -51,7 +51,7 @@ class FormViewController: ViewController {
     private lazy var emailTextField = makeTextField(placeholder: "Email")
             .keyboardType(.emailAddress)
             .autocapitalizationType(.none)
-            .bindText(to: PublishedSubject(form, read: \.$email, write: \.email))
+            .bindText(to: AnySubject(publishedBy: form, get: \.$email, set: \.email))
             .delegateWithReturnAction(next: passwordTextField)
             .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
 
@@ -60,7 +60,7 @@ class FormViewController: ViewController {
 
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
             .isSecureTextEntry(true)
-            .bindText(to: PublishedSubject(form, read: \.$password, write: \.password))
+            .bindText(to: AnySubject(publishedBy: form, get: \.$password, set: \.password))
             .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
             .delegateWithReturnAction { [weak self] in self?.submit() }
 
