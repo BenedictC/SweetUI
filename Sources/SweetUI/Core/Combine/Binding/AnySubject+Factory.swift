@@ -6,11 +6,11 @@ import Combine
 /// Transforms a @Published property into a Subject
 public extension AnySubject {
 
-    convenience init<T: AnyObject>(publishedBy object: T, get getPublisher: KeyPath<T, Published<Output>.Publisher>, set setValue: ReferenceWritableKeyPath<T, Output>) where Failure == Never {
+    convenience init<T: AnyObject>(publishedBy object: T, get getPublisher: KeyPath<T, Published<Output>.Publisher>, set setKeyPath: ReferenceWritableKeyPath<T, Output>) where Failure == Never {
         let publisher = object[keyPath: getPublisher]
         self.init(
             receiveHandler: { publisher.receive(subscriber: $0) },
-            sendValueHandler: { [weak object] in object?[keyPath: setValue] = $0 },
+            sendValueHandler: { [weak object] in object?[keyPath: setKeyPath] = $0 },
             sendCompletionHandler: { _ in /* Published can't complete */ },
             sendSubscriptionHandler: { _ in /* ??? */ }
         )
@@ -21,6 +21,16 @@ public extension AnySubject {
 // MARK: - Public Initializers
 
 public extension AnySubject {
+
+    convenience init<P: Publisher>(get publisher: P, set setHandler: @escaping (Output) -> Void) where P.Output == Output, P.Failure == Failure {
+        // TODO: How do we cancel the set handler? Do we need to?
+        self.init(
+            receiveHandler: { publisher.receive(subscriber: $0) },
+            sendValueHandler: setHandler,
+            sendCompletionHandler: { _ in /* Published can't complete */ },
+            sendSubscriptionHandler: { _ in /* ??? */ }
+        )
+    }
 
     convenience init<T: Subject>(_ wrapped: T) where T.Output == Output, T.Failure == Failure {
         self.init(
