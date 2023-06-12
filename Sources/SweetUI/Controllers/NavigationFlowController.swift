@@ -1,7 +1,7 @@
 import UIKit
 
 
-final public class NavigationController<Root: UIViewController>: FlowController {
+final public class NavigationFlowController<Root: UIViewController>: FlowController {
 
     public let rootViewController: Root
 
@@ -23,7 +23,7 @@ final public class NavigationController<Root: UIViewController>: FlowController 
 }
 
 
-extension NavigationController: Presentable where Root: Presentable {
+extension NavigationFlowController: Presentable where Root: Presentable {
 
     public func resultForCancelledPresentation() -> Result<Root.Success, Error> {
         rootViewController.resultForCancelledPresentation()
