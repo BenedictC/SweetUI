@@ -1,4 +1,5 @@
 import Foundation
+import Combine
 import UIKit
 
 
@@ -34,6 +35,8 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
     // MARK: Properties
 
     public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
+    public var isEditingPublisher: AnyPublisher<Bool, Never> { isEditingSubject.eraseToAnyPublisher() }
+    internal let isEditingSubject = CurrentValueSubject<Bool, Never>(false)
 
 
     // MARK: Instance life cycle
@@ -88,5 +91,10 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         super.viewDidDisappear(animated)
 
         self.didDisappear()
+    }
+
+    open override func setEditing(_ value: Bool, animated: Bool) {
+        super.setEditing(value, animated: animated)
+        isEditingSubject.send(value)
     }
 }
