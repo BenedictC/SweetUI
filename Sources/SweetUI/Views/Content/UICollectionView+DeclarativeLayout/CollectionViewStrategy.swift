@@ -107,6 +107,8 @@ public protocol BoundarySupplementaryComponentFactory: BoundarySupplementaryComp
 }
 
 
+// MARK:
+
 public extension BoundarySupplementaryComponentFactory {
 
     init<View: ReusableViewConfigurable>(
@@ -140,6 +142,24 @@ public extension BoundarySupplementaryComponentFactory {
             viewFactory: viewFactory)
     }
 }
+
+
+// MARK:
+
+final class EmptyBoundarySupplementaryViewBody<Value>: UICollectionReusableView, ReusableViewConfigurable {
+    // Do nothing
+    func configure(using value: Value) { }
+}
+
+public extension BoundarySupplementaryComponentFactory {
+
+    static var empty: Self {
+        Self.init(EmptyBoundarySupplementaryViewBody<SectionIdentifier>.self)
+    }
+}
+
+
+// MARK:
 
 @available(iOS 14, *)
 public extension BoundarySupplementaryComponentFactory {
@@ -176,6 +196,9 @@ public extension BoundarySupplementaryComponentFactory {
     }
 }
 
+
+// MARK:
+
 public extension BoundarySupplementaryComponentFactory {
 
     init(
@@ -196,6 +219,44 @@ public extension BoundarySupplementaryComponentFactory {
         let viewFactory = { (collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView in
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<SectionIdentifier>
             view.bodyFactory = bodyFactory
+            view.configure(using: sectionIdentifier)
+            return view
+        }
+        self.init(
+            width: width,
+            height: height,
+            alignment: alignment,
+            absoluteOffset: absoluteOffset,
+            extendsBoundary: extendsBoundary,
+            pinToVisibleBounds: pinToVisibleBounds,
+            viewRegistrar: viewRegistrar,
+            viewFactory: viewFactory)
+    }
+}
+
+
+// MARK: 
+
+public extension BoundarySupplementaryComponentFactory where SectionIdentifier == Void {
+
+    init(
+        width: NSCollectionLayoutDimension = .fractionalWidth(1),
+        height: NSCollectionLayoutDimension = .estimated(44),
+        alignment: NSRectAlignment = Self.defaultAlignment,
+        absoluteOffset: CGPoint = .zero,
+        extendsBoundary: Bool? = nil,
+        pinToVisibleBounds: Bool? = nil,
+        body bodyFactory: @escaping () -> UIView
+    ) {
+        let viewClass = ValuePublishingCell<Void>.self
+        let elementKind = Self.elementKind
+        let reuseIdentifier = UniqueIdentifier(elementKind).value
+        let viewRegistrar = { (collectionView: UICollectionView) in
+            collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
+        }
+        let viewFactory = { (collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: Void) -> UICollectionReusableView in
+            let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<Void>
+            view.bodyFactory =  { _ in bodyFactory() }
             view.configure(using: sectionIdentifier)
             return view
         }
@@ -327,7 +388,7 @@ public struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementar
     public typealias SectionIdentifier = Void
 
     public static var defaultAlignment: NSRectAlignment { .topLeading }
-    public static var elementKind: String { UniqueIdentifier("Layout Header").value }
+    public static let elementKind = UniqueIdentifier("Layout Header").value
     public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
@@ -348,7 +409,6 @@ public struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementar
         self.viewRegistrar = viewRegistrar
         self.viewFactory = viewFactory
     }
-
 
     public func registerSupplementaryView(in collectionView: UICollectionView) {
         viewRegistrar(collectionView)
@@ -383,7 +443,7 @@ public struct LayoutFooter: BoundarySupplementaryComponent, BoundarySupplementar
     public typealias SectionIdentifier = Void
 
     public static var defaultAlignment: NSRectAlignment { .bottomLeading }
-    public static var elementKind: String { UniqueIdentifier("Layout Footer").value }
+    public static let elementKind = UniqueIdentifier("Layout Header").value
     public var elementKind: String { Self.elementKind }
     let width: NSCollectionLayoutDimension
     let height: NSCollectionLayoutDimension
@@ -667,10 +727,10 @@ internal final class ValuePublishingCell<ItemValue>: UICollectionViewCell, Reusa
         self.contentView.addSubview(body)
         body.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            body.leftAnchor.constraint(equalTo: contentView.leftAnchor),
-            body.rightAnchor.constraint(equalTo: contentView.rightAnchor),
-            body.topAnchor.constraint(equalTo: contentView.topAnchor),
-            body.bottomAnchor.constraint(equalTo: contentView.bottomAnchor)
+            body.leftAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leftAnchor),
+            body.rightAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.rightAnchor),
+            body.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor),
+            body.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor)
                 .priority(.almostRequired),
         ])
     }
