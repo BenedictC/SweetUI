@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import Combine
 
 
 extension UICollectionView {
@@ -73,6 +74,7 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
     public final class Storage {
 
         public private(set) var dataSource: CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>!
+        public var snapshotPublisher: AnyPublisher<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>, Never> { dataSource.snapshotPublisher }
 
         fileprivate func initialize(collectionView: UICollectionView, cellProvider: @escaping CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider) -> UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue> {
             self.dataSource = CollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
@@ -111,7 +113,7 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
 
 // MARK: - CollectionViewDiffableDataSource
 
-public class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier> {
+public final class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier> {
 
     public typealias IndexTitleAndIndexPath = (indexTitle: String, indexPath: IndexPath)
     public typealias IndexTitleAndIndexPathProvider = (NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>) -> [IndexTitleAndIndexPath]
@@ -122,10 +124,19 @@ public class CollectionViewDiffableDataSource<SectionIdentifier: Hashable, ItemI
         didSet { collectionView?.reloadData() }
     }
     private var indexTitlesAndIndexPaths: [IndexTitleAndIndexPath]?
+    private let snapshotSubject = PassthroughSubject<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>, Never>()
+    public var snapshotPublisher: AnyPublisher<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>, Never> { snapshotSubject.eraseToAnyPublisher() }
+
 
     override init(collectionView: UICollectionView, cellProvider: @escaping CellProvider) {
         super.init(collectionView: collectionView, cellProvider: cellProvider)
         self.collectionView = collectionView
+    }
+
+    public override func apply(_ snapshot: NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>, animatingDifferences: Bool = true, completion: (() -> Void)? = nil) {
+        "TODO: Do we need to override any of the other apply methods?"
+        super.apply(snapshot, animatingDifferences: animatingDifferences, completion: completion)
+        snapshotSubject.send(snapshot)
     }
 
     @MainActor
