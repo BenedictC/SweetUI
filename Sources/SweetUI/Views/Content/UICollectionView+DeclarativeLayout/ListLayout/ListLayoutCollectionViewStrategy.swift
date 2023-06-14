@@ -58,7 +58,9 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
             let footerItem = footer.makeLayoutBoundarySupplementaryItem()
             layoutConfiguration.boundarySupplementaryItems += [footerItem]
         }
-
+        var builder = listConfiguration as any LayoutConfigurationBuilder
+        components.configuration?.builder(&builder)
+        listConfiguration = builder as! UICollectionLayoutListConfiguration
         let layout = UICollectionViewCompositionalLayout.list(using: listConfiguration)
         layout.configuration = layoutConfiguration
 
@@ -109,15 +111,17 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
     }
 }
 
-
+@available(iOS 14, *)
 public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
+    let configuration: LayoutConfiguration?
     let header: LayoutHeader?
     let footer: LayoutFooter?
     let sections: [AnyListSection<SectionIdentifier, ItemValue>]
 }
 
 
+@available(iOS 14, *)
 @resultBuilder
 public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
@@ -127,7 +131,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
     where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
     {
         let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(header: nil, footer: nil, sections: erasedSections)
+        return ListLayoutComponents(configuration: nil, header: nil, footer: nil, sections: erasedSections)
     }
 
     public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
@@ -137,7 +141,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
     where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
     {
         let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(header: header, footer: nil, sections: erasedSections)
+        return ListLayoutComponents(configuration: nil, header: header, footer: nil, sections: erasedSections)
     }
 
     public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
@@ -147,7 +151,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
     where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
     {
         let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(header: nil, footer: footer, sections: erasedSections)
+        return ListLayoutComponents(configuration: nil, header: nil, footer: footer, sections: erasedSections)
     }
 
     public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
@@ -158,7 +162,82 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
     where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
     {
         let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(header: header, footer: footer, sections: erasedSections)
+        return ListLayoutComponents(configuration: nil, header: header, footer: footer, sections: erasedSections)
+    }
+
+    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+        _ configuration: LayoutConfiguration,
+        _ sections: Section...
+    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
+    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
+    {
+        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
+        return ListLayoutComponents(configuration: configuration, header: nil, footer: nil, sections: erasedSections)
+    }
+
+    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+        _ configuration: LayoutConfiguration,
+        _ header: LayoutHeader,
+        _ sections: Section...
+    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
+    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
+    {
+        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
+        return ListLayoutComponents(configuration: configuration, header: header, footer: nil, sections: erasedSections)
+    }
+
+    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+        _ configuration: LayoutConfiguration,
+        _ footer: LayoutFooter,
+        _ sections: Section...
+    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
+    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
+    {
+        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
+        return ListLayoutComponents(configuration: configuration, header: nil, footer: footer, sections: erasedSections)
+    }
+
+    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+        _ configuration: LayoutConfiguration,
+        _ header: LayoutHeader,
+        _ footer: LayoutFooter,
+        _ sections: Section...
+    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
+    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
+    {
+        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
+        return ListLayoutComponents(configuration: configuration, header: header, footer: footer, sections: erasedSections)
+    }
+}
+
+
+// MARK: - LayoutConfiguration
+
+@available(iOS 14, *)
+public protocol LayoutConfigurationBuilder {
+    var showsSeparators: Bool { get set }
+    @available(iOS 14.5, *)
+    var separatorConfiguration: UIListSeparatorConfiguration { get set }
+    @available(iOS 14.5, *)
+    var itemSeparatorHandler: UICollectionLayoutListConfiguration.ItemSeparatorHandler?  { get set }
+    var backgroundColor: UIColor? { get set }
+    var leadingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
+    var trailingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
+    @available(iOS 15, *)
+    var headerTopPadding: CGFloat? { get set }
+}
+
+@available(iOS 14, *)
+extension UICollectionLayoutListConfiguration: LayoutConfigurationBuilder { }
+
+@available(iOS 14, *)
+public struct LayoutConfiguration {
+
+    let builder: (inout LayoutConfigurationBuilder) -> Void
+
+    @available(iOS 14, *)
+    public init(builder: @escaping (inout LayoutConfigurationBuilder) -> Void) {
+        self.builder = builder
     }
 }
 
