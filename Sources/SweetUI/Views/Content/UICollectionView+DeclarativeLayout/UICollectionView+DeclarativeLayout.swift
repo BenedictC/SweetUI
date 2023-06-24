@@ -73,11 +73,16 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
 
     public final class Storage {
 
+        fileprivate var initialSnapshot: NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>?
+
         public private(set) var dataSource: CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>!
         public var snapshotPublisher: AnyPublisher<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>, Never> { dataSource.snapshotPublisher }
 
         fileprivate func initialize(collectionView: UICollectionView, cellProvider: @escaping CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider) -> UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue> {
+            assert(dataSource == nil)
             self.dataSource = CollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
+            initialSnapshot.flatMap { dataSource.apply($0) }
+            initialSnapshot = nil
             return dataSource
         }
     }
@@ -89,14 +94,13 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
     public var wrappedValue: NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue> {
         get {
             guard let dataSource = projectedValue.dataSource else {
-                print("⚠️ Attempted to access CollectionViewDataSource.dataSource before collectionView has been initialized. Returning empty snapshot.")
-                return NSDiffableDataSourceSnapshot()
+                return projectedValue.initialSnapshot ?? NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>()
             }
             return dataSource.snapshot()
         }
         set {
             guard let dataSource = projectedValue.dataSource else {
-                print("⚠️ Attempted to access CollectionViewDataSource.dataSource before collectionView has been initialized. New value will be discarded.")
+                projectedValue.initialSnapshot = newValue
                 return
             }
             dataSource.apply(newValue)
