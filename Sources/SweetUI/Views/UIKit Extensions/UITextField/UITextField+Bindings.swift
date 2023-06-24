@@ -6,6 +6,8 @@ import Combine
 
 public extension SomeView where Self: UITextField {
 
+    // TODO: Add variations where Output = Optional<_>
+
     func bindText<S: Subject>(
         to subject: S,
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
