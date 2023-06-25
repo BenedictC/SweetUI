@@ -64,8 +64,6 @@ public extension UICollectionView {
 
 // MARK: - CollectionViewDataSource propertyWrapper
 
-// TODO: Add support for indexTitles: https://stackoverflow.com/questions/69936255/how-do-i-support-the-fast-scrolling-scrubber-using-uicollectionviewdiffabledatas
-
 @propertyWrapper
 public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
