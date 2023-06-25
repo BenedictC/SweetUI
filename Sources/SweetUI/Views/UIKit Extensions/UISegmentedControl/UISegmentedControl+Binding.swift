@@ -22,6 +22,14 @@ public extension UISegmentedControl {
         return self
     }
 
+    func selectedSegmentIndex<P: Publisher>(
+        _ initialPublisher: P,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) -> Self where P.Output == Int?, P.Failure == Never {
+        let publisher = initialPublisher.map { $0 ?? UISegmentedControl.noSegment }
+        return selectedSegmentIndex(publisher, cancellableStorageHandler: cancellableStorageHandler)
+    }
+
 //    func selectedSegmentIndex<S: Subject>(
 //        _ subject: S,
 //        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
