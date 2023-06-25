@@ -117,6 +117,11 @@ public extension UIView {
         self.overrideUserInterfaceStyle = value
         return self
     }
+
+    func translatesAutoresizingMaskIntoConstraints(_ value: Bool) -> Self {
+        self.translatesAutoresizingMaskIntoConstraints = value
+        return self
+    }
 }
 
 
