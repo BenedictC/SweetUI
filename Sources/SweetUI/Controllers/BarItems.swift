@@ -44,10 +44,10 @@ public class BarItemsBuilder<VC: UIViewController> {
 }
 
 
-// MARK: -
+// MARK: - Subscribable
 
 @propertyWrapper
-public struct Subscribable<T> {
+public struct Subscribable<T: NSObject> {
 
     public var wrappedValue: T {
         get { projectedValue.source }
@@ -65,40 +65,70 @@ public struct Subscribable<T> {
 // MARK: - SubscribingProxy
 
 @dynamicMemberLookup
-public class SubscribableProxy<Source> {
+public class SubscribableProxy<Source: NSObject> {
 
     var source: Source
     var cancellables = Set<AnyCancellable>()
-    var storedKeyPaths = Set<AnyHashable>()
+    var anyPublishersByKeyPaths = [AnyHashable: Any]()
 
     init(source: Source) {
         self.source = source
     }
 
-//    // Plain values
-//    public subscript<T>(dynamicMember member: ReferenceWritableKeyPath<Source, T>) -> T {
-//        set { source[keyPath: member] = newValue }
-//        get { source[keyPath: member] }
-//    }
 
     // Published values
-    public subscript<T, P: Publisher>(dynamicMember member: ReferenceWritableKeyPath<Source, T>) -> P where P.Output == T, P.Failure == Never {
+
+    public subscript<T>(dynamicMember keyPath: ReferenceWritableKeyPath<Source, T>) -> AnyPublisher<T, Never>? {
         set {
-            if storedKeyPaths.contains(member) {
-                print("⚠️ Attempted to set a publisher more than once during barItem building. Only the first publisher is stored. Subsequent publishers are ignored.")
+            let isUnseenKeyPath = anyPublishersByKeyPaths[keyPath] == nil
+            guard isUnseenKeyPath else {
+                print("⚠️ Attempted to set a publisher more than once while building barItems. Only the first publisher is stored. Subsequent publishers are ignored.")
                 return
             }
-            storedKeyPaths.formUnion([member])
-
-            let source = self.source
-            newValue.sink {
-                source[keyPath: member] = $0
+            guard let newValue else {
+                // Nothing to do
+                return
+            }
+            anyPublishersByKeyPaths[keyPath] = newValue
+            let contentController = BarItemContentController.controller(for: Source.self)
+            newValue.sink { [weak source] value in
+                guard let source else { return }
+                contentController.setValue(value: value, for: keyPath, of: source)
             }
             .store(in: &cancellables)
         }
-        @available(*, unavailable, message: "Publishers cannot be read.")
+
         get {
-            fatalError()
+            let any = anyPublishersByKeyPaths[keyPath]
+            return any as? AnyPublisher<T, Never>
         }
+    }
+}
+
+
+final class BarItemContentController {
+
+    private static let `default` = BarItemContentController()
+    private static let controllersByClass = NSMapTable<AnyObject, BarItemContentController>.strongToStrongObjects()
+
+    var settersByKeyPath =  [AnyHashable: Any]()
+
+    static func controller<T: NSObject>(for classType: T.Type) -> BarItemContentController {
+        var optionalClassType: AnyClass? = classType
+        while let classType = optionalClassType {
+            if let existing = controllersByClass.object(forKey: classType) {
+                return existing
+            }
+            optionalClassType = class_getSuperclass(classType)
+        }
+        return Self.default
+    }
+
+    func setValue<Root, Value>(value: Value, for keyPath: ReferenceWritableKeyPath<Root, Value>, of source: Root) {
+        if let setter = settersByKeyPath[keyPath] as? (Value, Root) -> Void {
+            setter(value, source)
+            return
+        }
+        source[keyPath: keyPath] = value
     }
 }
