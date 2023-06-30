@@ -37,7 +37,7 @@ class FormViewController: ViewController {
     // Content views
 
     private(set) lazy var barItems = makeBarItems { builder in
-        builder.$navigationItem.title = form.$name
+        builder.$navigationItem.title = form.$name.eraseToAnyPublisher()
     }
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")

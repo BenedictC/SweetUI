@@ -70,11 +70,11 @@ static var modalCount = 0
     func presentModal() {
         Self.modalCount += 1
         Task {
-            let modal = NavigationController(rootViewController: PresentationsViewController())
+            let modal = UINavigationController(rootViewController: PresentationsViewController())
             do {
-                let value = try await self.present(modal, animated: true)
+                try await self.present(modal, animated: true)
                 //try await self.present(modal, animated: true)
-                print("Modal completed with value: \(value)")
+                // print("Modal completed with value: \(value)")
             } catch {
                 print("Failed to retrieve value from modal")
             }
