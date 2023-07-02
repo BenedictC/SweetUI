@@ -3,7 +3,9 @@ import Foundation
 
 func detectPotentialRetainCycle<T>(of object: CFTypeRef, advice: String? = nil, performing work: () -> T) -> T {
     let expectedCount = CFGetRetainCount(object)
-    let result = work()
+    let result = autoreleasepool {
+        work()
+    }
     let actualCount = CFGetRetainCount(object)
 
     if actualCount != expectedCount {
