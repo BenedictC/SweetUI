@@ -671,7 +671,7 @@ public extension Cell {
 }
 
 
-extension Cell {
+public extension Cell {
 
     typealias BodyFactory = (AnyPublisher<ItemValue, Never>) -> UIView
 

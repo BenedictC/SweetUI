@@ -256,6 +256,15 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
 }
 
 
+@resultBuilder
+public struct GroupItemBuilder<ItemValue: Hashable> {
+
+    public static func buildBlock<Item: GroupItem>(_ item: Item) -> AnyGroupItem<ItemValue> where Item.ItemValue == ItemValue {
+        AnyGroupItem(item: item)
+    }
+}
+
+
 // MARK: - AxisGroup
 
 public protocol AxisGroup: Group {
@@ -295,9 +304,18 @@ extension AxisGroup {
 
     public init(
         size: NSCollectionLayoutSize? = nil,
-        @GroupItemsBuilder<ItemValue> items itemsBuilder: () -> [AnyGroupItem<ItemValue>])
-    {
+        @GroupItemsBuilder<ItemValue> items itemsBuilder: () -> [AnyGroupItem<ItemValue>]
+    ) {
         self.init(size: size, items: itemsBuilder())
+    }
+
+    public init(
+        repetitions: Int,
+        @GroupItemBuilder<ItemValue> items itemBuilder: () -> AnyGroupItem<ItemValue>
+    ) {
+        let item = itemBuilder()
+        let items = Array(repeating: item, count: repetitions)
+        self.init(size: nil, items: items)
     }
 
     public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemValue>] {
