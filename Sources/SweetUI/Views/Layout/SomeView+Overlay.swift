@@ -8,8 +8,8 @@ public extension SomeView {
 
     typealias OverlayContainer<V: UIView, O: UIView> = Container<(view: V, overlay: O)>
 
-    func overlay<O: UIView>(alignment: OverlayAlignment, view overlayFactory: () -> O) -> OverlayContainer<Self, O> {
-        let overlay = overlayFactory()
+    func overlay<O: UIView>(alignment: OverlayAlignment, view overlayBuilder: () -> O) -> OverlayContainer<Self, O> {
+        let overlay = overlayBuilder()
         let container = OverlayContainer(content: (self, overlay))
 
         self.translatesAutoresizingMaskIntoConstraints = false

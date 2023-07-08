@@ -43,7 +43,7 @@ public extension AnySubject {
 }
 
 
-// MARK: - Type erasure factory
+// MARK: - Type erasure
 
 public extension Subject {
 

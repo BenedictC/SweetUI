@@ -558,7 +558,7 @@ public extension Background {
 
 private class ConfigurableBackground: UICollectionReusableView {
 
-    static var classAndBodyFactoryPairs = [(class: AnyClass, builder: () -> UIView)]()
+    static var classAndBodyFactoryPairs = [(class: AnyClass, factory: () -> UIView)]()
 
     static func makeSubclass(bodyFactory: @escaping () -> UIView) -> AnyClass {
         let name = UniqueIdentifier("\(ConfigurableBackground.self)").value
@@ -577,7 +577,7 @@ private class ConfigurableBackground: UICollectionReusableView {
         let pair = ConfigurableBackground.classAndBodyFactoryPairs.first(where: { $0.class == thisClass }) else {
             return
         }
-        let body = pair.builder()
+        let body = pair.factory()
 
         body.translatesAutoresizingMaskIntoConstraints = false
         self.addSubview(body)
