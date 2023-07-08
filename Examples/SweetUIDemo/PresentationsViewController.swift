@@ -14,11 +14,9 @@ final class PresentationsViewController: ViewController, Presentable {
 
     lazy var rootView = ZStack(alignment: .center) {
         VStack {
-            UILabel()
-                .text("Hiya!")
+            UILabel(text: "Hiya!")
                 .font(.preferredFont(forTextStyle: .headline))
-            UILabel()
-                .assign(to: \.text, from: $message)
+            UILabel(text: $message)
         }
         .configure {
             $0.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(endModal)))

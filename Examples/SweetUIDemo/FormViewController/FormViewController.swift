@@ -41,9 +41,9 @@ class FormViewController: ViewController {
     }
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")
-        .bindText(to: AnySubject(publishedBy: form, get: \.$name, set: \.name))
+        .text(AnySubject(publishedBy: form, get: \.$name, set: \.name))
             .delegateWithReturnAction(next: emailTextField)
-            .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
+            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
 
     private lazy var nameValidationErrorLabel = makeValidationErrorLabel(text: "Name must be at least 1 character long")
             .assign(to: \.alpha, from: nameValidationErrorLabelAlpha)
@@ -51,17 +51,17 @@ class FormViewController: ViewController {
     private lazy var emailTextField = makeTextField(placeholder: "Email")
             .keyboardType(.emailAddress)
             .autocapitalizationType(.none)
-            .bindText(to: AnySubject(publishedBy: form, get: \.$email, set: \.email))
+            .text(AnySubject(publishedBy: form, get: \.$email, set: \.email))
             .delegateWithReturnAction(next: passwordTextField)
-            .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
+            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
 
     private lazy var emailValidationErrorLabel = makeValidationErrorLabel(text: "Email must be a valid email address")
             .assign(to: \.alpha, from: emailValidationErrorLabelAlpha)
 
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
             .isSecureTextEntry(true)
-            .bindText(to: AnySubject(publishedBy: form, get: \.$password, set: \.password))
-            .on(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
+            .text(AnySubject(publishedBy: form, get: \.$password, set: \.password))
+            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
             .delegateWithReturnAction { [weak self] in self?.submit() }
 
     private lazy var passwordValidationErrorLabel = makeValidationErrorLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
@@ -70,12 +70,11 @@ class FormViewController: ViewController {
     private lazy var submitButton = UIButton(type: .system)
             .title("Submit", for: .normal)
             .assign(to: \.isEnabled, from: isReadyToSubmit)
-            .on(.primaryActionTriggered) { [weak self] _ in self?.submit() }
+            .onEvent(.primaryActionTriggered) { [weak self] _ in self?.submit() }
 
-    private lazy var activityIndicator = UIActivityIndicatorView(style: .large)
+    private lazy var activityIndicator = UIActivityIndicatorView(style: .large, isActive: isWaiting)
             .backgroundColor(.secondarySystemFill.withAlphaComponent(0.5))
             .animate(true)
-            .assign(to: \.isActive, from: isWaiting)
 
 
     // Layout views

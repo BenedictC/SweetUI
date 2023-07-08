@@ -17,10 +17,41 @@ class DemoFlowController: FlowController {
             CollectionViewController()
         }.configure { $0.tabBarItem.title = "Collection" }
 //        UINavigationController {
-//            OneOfViewController()
-//        }.configure { $0.tabBarItem.title = "OneOf" }
+//            StorageCaptureViewController()
+//        }.configure { $0.tabBarItem.title = "Storage" }
     }
 }
+
+
+class StorageCaptureViewController: ViewController {
+
+    let publisher = Timer.publish(every: 1, on: .main, in: .common)
+        .autoconnect()
+        .map { Int($0.timeIntervalSince1970) }
+
+    private var block: (() -> Void)?
+
+    private(set) lazy var rootView = withStorage { label1, label2 in
+        HStack {
+            UILabel(text: "Foo")
+                .store(in: label1)
+            UILabel(text: "Arf")
+            UILabel(text: "Bar")
+                .store(in: label2)
+        }.configure { _ in
+            self.block = {
+                print(label1.boxed.text ?? "")
+                print(label2.boxed.text ?? "")
+            }
+        }
+    }
+
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        block?()
+    }
+}
+
 
 
 class OneOfViewController: ViewController {
@@ -43,8 +74,7 @@ class OneOfViewController: ViewController {
                 .backgroundColor(.brown)
         }
         Component<Int>.default {
-            UILabel()
-                .assign(to: \.text, from: $0.map { "\($0)" })
+            UILabel(text: $0.map { "\($0)" })
                 .backgroundColor(.lightGray)
         }
     }
