@@ -1,12 +1,10 @@
 # TODO
 
-- Bindings for:
-    - UISwitch.isOn // Copy and paste of button.isSelected binding
+- Bindings and inits for:
     - UISlider.value // Copy and paste of textField.text binding
     - UIStepper.value // Copy and paste of textField.text binding
 
 - Remaining UIKit modifiers
-    - Accessibility
     - GestureRecognizers
     - Any others?
     
