@@ -72,7 +72,7 @@ public extension SomeView where Self: UISlider {
 
     @available(iOS 14.0, *)
     func withValueSnappedToIncrements(of increment: Float, handler: @escaping (Self, Float) -> Void) -> Self {
-        self.on(.valueChanged, perform: UIAction { action in
+        self.onEvent(.valueChanged, perform: UIAction { action in
             guard let slider = action.sender as? Self else { return }
 
             let initialValue = slider.value

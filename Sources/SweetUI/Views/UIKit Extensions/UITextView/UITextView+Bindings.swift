@@ -1,10 +1,13 @@
 import UIKit
 import Combine
 
+
+// MARK: - Modifiers
+
 public extension SomeView where Self: UITextView {
 
-    func bindText<S: Subject>(
-        to subject: S,
+    func text<S: Subject>(
+        _ subject: S,
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     )
     -> Self where S.Output == String?, S.Failure == Never {
@@ -13,14 +16,36 @@ public extension SomeView where Self: UITextView {
         return self
     }
 
-    func bindAttributedText<S: Subject>(
-        to subject: S,
+    func attributedText<S: Subject>(
+        _ subject: S,
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     )
     -> Self where S.Output == NSAttributedString?, S.Failure == Never {
         let cancellable = subscribeAndSendAttributedText(to: subject)
         cancellableStorageHandler(cancellable, self)
         return self
+    }
+}
+
+
+// MARK: - Initializers
+
+public extension UITextView {
+
+    convenience init<S: Subject>(
+        text subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) where S.Output == String?, S.Failure == Never {
+        self.init()
+        _ = self.text(subject, cancellableStorageHandler: cancellableStorageHandler)
+    }
+
+    convenience init<S: Subject>(
+        text subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) where S.Output == NSAttributedString?, S.Failure == Never {
+        self.init()
+        _ = self.attributedText(subject, cancellableStorageHandler: cancellableStorageHandler)
     }
 }
 

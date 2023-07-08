@@ -4,10 +4,22 @@ import Combine
 
 // MARK: - CancellablesStorageProvider
 
+public extension UISwitch {
+
+    convenience init<S: Subject>(
+        isOn subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) where S.Output == Bool, S.Failure == Never {
+        self.init()
+        _ = self.isOn(subject, cancellableStorageHandler: cancellableStorageHandler)
+    }
+}
+
+
 public extension SomeView where Self: UISwitch {
 
-    func bindIsOn<S: Subject>(
-        to subject: S,
+    func isOn<S: Subject>(
+        _ subject: S,
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
     -> Self where S.Output == Bool, S.Failure == Never {
         let cancellable = subscribeAndSendIsOn(to: subject)

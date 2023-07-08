@@ -5,13 +5,13 @@ import UIKit
 
 public extension UIControl {
 
-    func on(_ event: UIControl.Event, send action: Selector, to target: Any? = nil) -> Self {
+    func onEvent(_ event: UIControl.Event, send action: Selector, to target: Any? = nil) -> Self {
         self.addTarget(target, action: action, for: event)
         return self
     }
 
     @available(iOS 14.0, *)
-    func on(_ event: UIControl.Event, perform action: UIAction) -> Self {
+    func onEvent(_ event: UIControl.Event, perform action: UIAction) -> Self {
         self.addAction(action, for: event)
         return self
     }

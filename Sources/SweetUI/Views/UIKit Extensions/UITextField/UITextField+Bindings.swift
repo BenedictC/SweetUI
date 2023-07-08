@@ -1,29 +1,50 @@
 import UIKit
 import Combine
 
+// TODO: Add variants for non-optional subjects (String? & NSAttributedString?)
 
-// MARK: - CancellablesStorageProvider continuous
+// MARK: - Init
 
 public extension SomeView where Self: UITextField {
 
-    // TODO: Add variations where Output = Optional<_>
-
-    func bindText<S: Subject>(
-        to subject: S,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
-    -> Self where S.Output == String?, S.Failure == Never {
+    func text<S: Subject>(
+        _ subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) -> Self where S.Output == String?, S.Failure == Never {
         let cancellable = subscribeAndSendText(to: subject)
         cancellableStorageHandler(cancellable, self)
         return self
     }
-    
-    func bindAttributedText<S: Subject>(
-        to subject: S,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
-    -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+
+    func attributedText<S: Subject>(
+        _ subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
         let cancellable = subscribeAndSendAttributedText(to: subject)
         cancellableStorageHandler(cancellable, self)
         return self
+    }
+}
+
+
+// MARK: - Initializers
+
+public extension UITextField {
+
+    convenience init<S: Subject>(
+        text subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) where S.Output == String?, S.Failure == Never {
+        self.init()
+        _ = self.text(subject, cancellableStorageHandler: cancellableStorageHandler)
+    }
+
+    convenience init<S: Subject>(
+        text subject: S,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) where S.Output == NSAttributedString?, S.Failure == Never {
+        self.init()
+        _ = self.attributedText(subject, cancellableStorageHandler: cancellableStorageHandler)
     }
 }
 
