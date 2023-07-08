@@ -2,13 +2,9 @@ import Foundation
 import UIKit
 
 
-public extension SomeView {
+// MARK: - Single constraints
 
-    func constrain(_ factory: (Self) -> NSLayoutConstraint) -> Self {
-        let constraint = factory(self)
-        constraint.isActive = true
-        return self
-    }
+public extension SomeView {
 
     func constrain(_ attribute1: NSLayoutConstraint.Attribute, of item1: Any, to attribute2: NSLayoutConstraint.Attribute, of item2: Any?, relatedBy: NSLayoutConstraint.Relation = .equal, multiplier: CGFloat = 1, constant: CGFloat = 0, activate: Bool = true, priority: UILayoutPriority = .required, completion: (NSLayoutConstraint) -> Void = { _ in }) -> Self {
         let constraint = NSLayoutConstraint(item: item1, attribute: attribute1, relatedBy: relatedBy, toItem: item2, attribute: attribute2, multiplier: multiplier, constant: constant)
@@ -66,4 +62,65 @@ public extension SomeView {
         completion(constraint)
         return self
     }
+}
+
+
+// MARK: - Multiple constraints
+
+public extension SomeView {
+
+    // With self
+
+    func constraints(@ConstraintsBuilder _ builder: (Self) -> [NSLayoutConstraint]) -> Self {
+        var ignore: [NSLayoutConstraint]? = nil
+        return constraints(storeIn: &ignore, builder)
+    }
+
+    func constraints(storeIn: inout [NSLayoutConstraint]?, @ConstraintsBuilder _ builder: (Self) -> [NSLayoutConstraint]) -> Self {
+        let constraints = builder(self)
+        NSLayoutConstraint.activate(constraints)
+        return self
+    }
+
+
+    // Without self
+
+    func constraints(@ConstraintsBuilder _ builder: () -> [NSLayoutConstraint]) -> Self {
+        var ignore: [NSLayoutConstraint]? = nil
+        return constraints(storeIn: &ignore, builder)
+    }
+
+    func constraints(storeIn ref: inout [NSLayoutConstraint]?, @ConstraintsBuilder _ builder: () -> [NSLayoutConstraint]) -> Self {
+        let constraints = builder()
+        NSLayoutConstraint.activate(constraints)
+        ref = constraints
+        return self
+    }
+}
+
+
+// MARK: - Constraints builder
+
+@resultBuilder
+public struct ConstraintsBuilder {
+
+    public static func buildBlock(_ components: NSLayoutConstraint?...) -> [NSLayoutConstraint] {
+        components.compactMap { $0 }
+    }
+
+//    public static func buildEither(first components: NSLayoutConstraint?) -> [NSLayoutConstraint] {
+//        [components].compactMap { $0 }
+//    }
+//
+//    public static func buildEither(second components: NSLayoutConstraint?) -> [NSLayoutConstraint] {
+//        [components].compactMap { $0 }
+//    }
+//
+//    public static func buildPartialBlock(first components: NSLayoutConstraint?) -> [NSLayoutConstraint] {
+//        [components].compactMap { $0 }
+//    }
+//
+//    public static func buildPartialBlock(accumulated: [NSLayoutConstraint], next: NSLayoutConstraint?) -> [NSLayoutConstraint] {
+//        accumulated + [next].compactMap { $0 }
+//    }
 }
