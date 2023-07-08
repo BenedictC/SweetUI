@@ -20,28 +20,20 @@ public final class OneOf: UIView {
 
     // MARK: Properties
 
-    let cancellable: AnyCancellable
+    var cancellable: AnyCancellable!
 
 
     // MARK: Instance life cycle
 
     public init<P: Publisher>(publisher: P, components: [Component<P.Output>]) where P.Failure == Never {
-        // Configure when the views are shown
-        cancellable = publisher.sink { value in
-            let visibleViewIndex = components.firstIndex(where: { $0.predicate(value) })
-            for (index, component) in components.enumerated() {
-                let isWinner = index == visibleViewIndex
-                component.view.isHidden = !isWinner
-            }
-        }
         super.init(frame: .zero)
-
         // Add the subviews
         var constraints = [
             // Default to no size
             widthAnchor.constraint(equalToConstant: 0).priority(.lowest),
             heightAnchor.constraint(equalToConstant: 0).priority(.lowest)
         ]
+
         for component in components {
             let subview = component.view
             subview.isHidden = true
@@ -56,6 +48,15 @@ public final class OneOf: UIView {
             ]
         }
         NSLayoutConstraint.activate(constraints)
+
+        // Configure when the views are shown
+        cancellable = publisher.sink { value in
+            let visibleViewIndex = components.firstIndex(where: { $0.predicate(value) })
+            for (index, component) in components.enumerated() {
+                let isWinner = index == visibleViewIndex
+                component.view.isHidden = !isWinner
+            }
+        }
     }
 
     required init?(coder: NSCoder) {
