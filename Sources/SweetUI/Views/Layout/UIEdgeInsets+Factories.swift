@@ -3,12 +3,12 @@ import UIKit
 
 public extension UIEdgeInsets {
 
-    init(top: CGFloat = 0, left: CGFloat = 0, bottom: CGFloat = 0, right: CGFloat = 0) {
+    init(vertical: CGFloat, horizontal: CGFloat) {
         var insets = Self.zero
-        insets.left = left
-        insets.top = top
-        insets.right = right
-        insets.bottom = bottom
+        insets.left = horizontal
+        insets.top = vertical
+        insets.right = horizontal
+        insets.bottom = vertical
         self = insets
     }
 
@@ -20,8 +20,8 @@ public extension UIEdgeInsets {
         self.init(top: value, left: 0, bottom: value, right: 0)
     }
 
-    static func left(_ value: CGFloat) -> UIEdgeInsets { self.init(left: value) }
-    static func top(_ value: CGFloat) -> UIEdgeInsets { self.init(top: value) }
-    static func bottom(_ value: CGFloat) -> UIEdgeInsets { self.init(bottom: value) }
-    static func right(_ value: CGFloat) -> UIEdgeInsets { self.init(right: value) }
+    static func left(_ value: CGFloat) -> UIEdgeInsets { self.init(top: 0, left: value, bottom: 0, right: 0) }
+    static func top(_ value: CGFloat) -> UIEdgeInsets { self.init(top: value, left: 0, bottom: 0, right: 0) }
+    static func bottom(_ value: CGFloat) -> UIEdgeInsets { self.init(top: 0, left: 0, bottom: value, right: 0) }
+    static func right(_ value: CGFloat) -> UIEdgeInsets { self.init(top: 0, left: 0, bottom: 0, right: value) }
 }
