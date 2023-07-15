@@ -25,6 +25,10 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
             initialSnapshot = nil
             return dataSource
         }
+
+        public func newSnapshot() -> NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue> {
+            NSDiffableDataSourceSnapshot()
+        }
     }
 
 
