@@ -22,6 +22,23 @@ public extension UIBarButtonItem {
         self.init(systemItem: systemItem, primaryAction: action, menu: nil)
     }
 
+    convenience init(title: String? = nil, imageNamed imageName: String? = nil, action handler: @escaping (Self) -> Void) {
+        let action = UIAction { handler(($0.sender as? Self)!) }
+        let image = imageName.flatMap { UIImage(named: $0) }
+        self.init(title: title, image: image, primaryAction: action)
+    }
+
+    convenience init(title: String? = nil, systemImageNamed imageName: String, action handler: @escaping (Self) -> Void) {
+        let action = UIAction { handler(($0.sender as? Self)!) }
+        let image = UIImage(systemName: imageName)
+        self.init(title: title, image: image, primaryAction: action)
+    }
+
+    convenience init(systemItem: UIBarButtonItem.SystemItem, action handler: @escaping (Self) -> Void) {
+        let action = UIAction { handler(($0.sender as? Self)!) }
+        self.init(systemItem: systemItem, primaryAction: action, menu: nil)
+    }
+
     convenience init(customView builder: () -> UIView) {
         let customView = builder()
         self.init(customView: customView)
