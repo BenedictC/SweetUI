@@ -27,34 +27,33 @@ public final class OneOf: UIView {
 
     public init<P: Publisher>(publisher: P, components: [Component<P.Output>]) where P.Failure == Never {
         super.init(frame: .zero)
-        // Add the subviews
-        var constraints = [
+        NSLayoutConstraint.activate([
             // Default to no size
             widthAnchor.constraint(equalToConstant: 0).priority(.lowest),
             heightAnchor.constraint(equalToConstant: 0).priority(.lowest)
-        ]
-
-        for component in components {
-            let subview = component.view
-            subview.isHidden = true
-            subview.translatesAutoresizingMaskIntoConstraints = false
-            addSubview(subview)
-
-            constraints += [
-                subview.leftAnchor.constraint(equalTo: leftAnchor),
-                subview.rightAnchor.constraint(equalTo: rightAnchor),
-                subview.topAnchor.constraint(equalTo: topAnchor),
-                subview.bottomAnchor.constraint(equalTo: bottomAnchor),
-            ]
-        }
-        NSLayoutConstraint.activate(constraints)
+        ])
 
         // Configure when the views are shown
-        cancellable = publisher.sink { value in
+        cancellable = publisher.sink { [weak self] value in
+            guard let self else { return }
             let visibleViewIndex = components.firstIndex(where: { $0.predicate(value) })
+
             for (index, component) in components.enumerated() {
                 let isWinner = index == visibleViewIndex
-                component.view.isHidden = !isWinner
+                let subview = component.view
+                guard isWinner else {
+                    subview.removeFromSuperview()
+                    continue
+                }
+                if subview.superview == self { return }
+                subview.translatesAutoresizingMaskIntoConstraints = false
+                self.addSubview(subview)
+                NSLayoutConstraint.activate([
+                    subview.leftAnchor.constraint(equalTo: self.leftAnchor),
+                    subview.rightAnchor.constraint(equalTo: self.rightAnchor),
+                    subview.topAnchor.constraint(equalTo: self.topAnchor),
+                    subview.bottomAnchor.constraint(equalTo: self.bottomAnchor),
+                ])
             }
         }
     }
