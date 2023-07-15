@@ -49,6 +49,20 @@ public extension UIBarButtonItem {
 @available(iOS 15, *)
 public extension UIBarButtonItem {
 
+    func enabled<P: Publisher>(
+        _ publisher: P,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) -> Self where P.Output == Bool, P.Failure == Never {
+        // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
+        // assign(to: \.isHidden, from: publisher, cancellableStorageHandler: cancellableStorageHandler)
+        // So we have to do it the long way:
+        let cancellable = publisher.sink { [weak self] value in
+            self?.isEnabled = value
+        }
+        cancellableStorageHandler(cancellable, self)
+        return self
+    }
+
     func selected<P: Publisher>(
         _ publisher: P,
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
@@ -58,6 +72,25 @@ public extension UIBarButtonItem {
         // So we have to do it the long way:
         let cancellable = publisher.sink { [weak self] value in
             self?.isSelected = value
+        }
+        cancellableStorageHandler(cancellable, self)
+        return self
+    }
+}
+
+
+@available(iOS 16, *)
+public extension UIBarButtonItem {
+
+    func hidden<P: Publisher>(
+        _ publisher: P,
+        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+    ) -> Self where P.Output == Bool, P.Failure == Never {
+        // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
+        // assign(to: \.isHidden, from: publisher, cancellableStorageHandler: cancellableStorageHandler)
+        // So we have to do it the long way:
+        let cancellable = publisher.sink { [weak self] value in
+            self?.isHidden = value
         }
         cancellableStorageHandler(cancellable, self)
         return self
