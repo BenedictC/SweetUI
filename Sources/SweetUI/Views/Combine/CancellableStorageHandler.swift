@@ -61,7 +61,7 @@ public extension NSObject {
 
     func collectCancellables(for key: AnyHashable = UUID(), @CancellablesBuilder using cancellableBuilder: () -> AnyCancellable) {
         let cancellable = detectPotentialRetainCycle(of: self) { cancellableBuilder() }
-        DefaultCancellableStorage.shared.store(cancellable, for: self)
+        DefaultCancellableStorage.shared.store(cancellable, for: self, key: key)
     }
 }
 
