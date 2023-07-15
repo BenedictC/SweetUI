@@ -72,7 +72,7 @@ public final class CollectionViewDiffableDataSource<SectionIdentifier: Hashable,
         didSet { collectionView?.reloadData() }
     }
     private var indexTitlesAndIndexPaths: [IndexTitleAndIndexPath]?
-    private let snapshotSubject = PassthroughSubject<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>, Never>()
+    private let snapshotSubject = CurrentValueSubject<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>, Never>(NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>())
     public var snapshotPublisher: AnyPublisher<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemIdentifier>, Never> { snapshotSubject.eraseToAnyPublisher() }
 
 
