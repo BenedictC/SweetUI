@@ -13,22 +13,22 @@ open class AlertController<T>: UIAlertController, Presentable {
     public enum Component {
         case text(AlertTextSubject<String?, Never>, configuration: (UITextField) -> Void = { _ in })
         case attributedText(AlertTextSubject<NSAttributedString?, Never>, configuration: (UITextField) -> Void = { _ in })
-        case action(title: String, style: UIAlertAction.Style, result: Result<T, Error>, isPreferred: Bool)
+        case action(title: String, style: UIAlertAction.Style, result: Result<T, Error>, isPreferred: Bool, isEnabled: AnyPublisher<Bool, Never>)
 
-        public static func cancelAction(_ title: String, error: Error = PresentableError.cancelled) -> Self {
-            .action(title: title, style: .cancel, result: .failure(error), isPreferred: false)
+        public static func cancelAction<P: Publisher>(_ title: String, error: Error = PresentableError.cancelled, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+            .action(title: title, style: .cancel, result: .failure(error), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
-        public static func cancelAction(_ title: String, value: T) -> Self {
-            .action(title: title, style: .cancel, result: .success(value), isPreferred: false)
+        public static func cancelAction<P: Publisher>(_ title: String, value: T, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+            .action(title: title, style: .cancel, result: .success(value), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
-        public static func destructiveAction(_ title: String, value: T) -> Self {
-            .action(title: title, style: .destructive, result: .success(value), isPreferred: false)
+        public static func destructiveAction<P: Publisher>(_ title: String, value: T, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+            .action(title: title, style: .destructive, result: .success(value), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
-        public static func standardAction(_ title: String, value: T) -> Self {
-            .action(title: title, style: .default, result: .success(value), isPreferred: false)
+        public static func standardAction<P: Publisher>(_ title: String, value: T, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+            .action(title: title, style: .default, result: .success(value), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
         public static func preferred(_ action: Self) -> Self {
@@ -37,8 +37,8 @@ open class AlertController<T>: UIAlertController, Presentable {
                 print("Attempted to erroneously set a textField as a preferred action.")
                 return action
                 
-            case .action(let title, let style, let result, _):
-                return .action(title: title, style: style, result: result, isPreferred: true)
+            case .action(let title, let style, let result, _, let isEnabledPublisher):
+                return .action(title: title, style: style, result: result, isPreferred: true, isEnabled: isEnabledPublisher)
             }
         }
     }
@@ -47,6 +47,7 @@ open class AlertController<T>: UIAlertController, Presentable {
     // MARK: Properties
 
     private var continuation: CheckedContinuation<Success, Error>?
+    private var cancellables = Set<AnyCancellable>()
 
 
     // MARK: Instance life cycle
@@ -57,10 +58,13 @@ open class AlertController<T>: UIAlertController, Presentable {
         var preferredAction: UIAlertAction?
         for component in components {
             switch component {
-            case .action(let title, let style, let result, let isPreferred):
+            case .action(let title, let style, let result, let isPreferred, let isEnabledPublisher):
                 let action = UIAlertAction(title: title, style: style) { [weak self] _ in
                     self?.continuation?.resume(with: result)
                 }
+                isEnabledPublisher
+                    .sink { action.isEnabled = $0 }
+                    .store(in: &cancellables)
                 addAction(action)
                 if isPreferred {
                     preferredAction = action
