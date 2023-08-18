@@ -152,7 +152,6 @@ public extension UIViewController {
         sheet.detents = [.medium(), .large()]
         sheet.largestUndimmedDetentIdentifier = .medium
         sheet.prefersScrollingExpandsWhenScrolledToEdge = false
-        sheet.prefersEdgeAttachedInCompactHeight = true
         sheet.widthFollowsPreferredContentSizeWhenEdgeAttached = true
     }
 }
