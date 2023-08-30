@@ -5,22 +5,35 @@ import Combine
 
 // MARK: - Init
 
+public struct UITextFieldBindingOption: OptionSet {
+
+    public static let updatesTextWhenIsFirstResponder = Self(rawValue: 1 << 0)
+
+    public let rawValue: UInt
+
+    public init(rawValue: UInt) {
+        self.rawValue = rawValue
+    }
+}
+
 public extension SomeView where Self: UITextField {
 
     func text<S: Subject>(
         _ subject: S,
+        options: UITextFieldBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) -> Self where S.Output == String?, S.Failure == Never {
-        let cancellable = subscribeAndSendText(to: subject)
+        let cancellable = bindText(to: subject, options: options)
         cancellableStorageHandler(cancellable, self)
         return self
     }
 
     func attributedText<S: Subject>(
         _ subject: S,
+        options: UITextFieldBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        let cancellable = subscribeAndSendAttributedText(to: subject)
+        let cancellable = bindAttributedText(to: subject, options: options)
         cancellableStorageHandler(cancellable, self)
         return self
     }
@@ -33,35 +46,41 @@ public extension UITextField {
 
     convenience init<S: Subject>(
         text subject: S,
+        options: UITextFieldBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) where S.Output == String?, S.Failure == Never {
         self.init()
-        _ = self.text(subject, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.text(subject, options: options, cancellableStorageHandler: cancellableStorageHandler)
     }
 
     convenience init<S: Subject>(
         text subject: S,
+        options: UITextFieldBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) where S.Output == NSAttributedString?, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.attributedText(subject, options: options, cancellableStorageHandler: cancellableStorageHandler)
     }
 }
 
 
 // MARK: - Core binding creation
 
+public extension SomeView where Self: UITextField {
+
+    func bindText<S: Subject>(to subject: S, options: UITextFieldBindingOption = []) -> AnyCancellable where S.Output == String?, S.Failure == Never {
+        return makeBindings(for: subject, keyPath: \.text, options: options)
+    }
+
+    func bindAttributedText<S: Subject>(to subject: S, options: UITextFieldBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
+        makeBindings(for: subject, keyPath: \.attributedText, options: options)
+    }
+}
+
+
 private extension SomeView where Self: UITextField {
 
-    func subscribeAndSendText<S: Subject>(to subject: S) -> AnyCancellable where S.Output == String?, S.Failure == Never {
-       return makeBindings(for: subject, keyPath: \.text)
-    }
-
-    func subscribeAndSendAttributedText<S: Subject>(to subject: S) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
-        makeBindings(for: subject, keyPath: \.attributedText)
-    }
-
-    func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>) -> AnyCancellable where S.Output == V, S.Failure == Never {
+    func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>, options: UITextFieldBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
         }
@@ -72,7 +91,8 @@ private extension SomeView where Self: UITextField {
         }
         let receive = subject.sink { [weak self] value in
             guard let self = self else { return }
-            if self.isFirstResponder { return }
+            let shouldUpdate = !self.isFirstResponder || options.contains(.updatesTextWhenIsFirstResponder)
+            guard shouldUpdate else { return }
             self[keyPath: keyPath] = value
         }
         return AnyCancellable {
