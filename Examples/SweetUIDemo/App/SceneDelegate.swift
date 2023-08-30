@@ -1,10 +1,3 @@
-//
-//  SceneDelegate.swift
-//  SweetUIDemo
-//
-//  Created by Benedict Cohen on 28/05/2022.
-//
-
 import UIKit
 import SweetUI
 
