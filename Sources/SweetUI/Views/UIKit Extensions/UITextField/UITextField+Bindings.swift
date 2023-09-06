@@ -3,24 +3,14 @@ import Combine
 
 // TODO: Add variants for non-optional subjects (String? & NSAttributedString?)
 
+
 // MARK: - Init
-
-public struct UITextFieldBindingOption: OptionSet {
-
-    public static let updatesTextWhenIsFirstResponder = Self(rawValue: 1 << 0)
-
-    public let rawValue: UInt
-
-    public init(rawValue: UInt) {
-        self.rawValue = rawValue
-    }
-}
 
 public extension SomeView where Self: UITextField {
 
     func text<S: Subject>(
         _ subject: S,
-        options: UITextFieldBindingOption = [],
+        options: UITextInputBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) -> Self where S.Output == String?, S.Failure == Never {
         let cancellable = bindText(to: subject, options: options)
@@ -30,7 +20,7 @@ public extension SomeView where Self: UITextField {
 
     func attributedText<S: Subject>(
         _ subject: S,
-        options: UITextFieldBindingOption = [],
+        options: UITextInputBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
         let cancellable = bindAttributedText(to: subject, options: options)
@@ -46,7 +36,7 @@ public extension UITextField {
 
     convenience init<S: Subject>(
         text subject: S,
-        options: UITextFieldBindingOption = [],
+        options: UITextInputBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) where S.Output == String?, S.Failure == Never {
         self.init()
@@ -55,7 +45,7 @@ public extension UITextField {
 
     convenience init<S: Subject>(
         text subject: S,
-        options: UITextFieldBindingOption = [],
+        options: UITextInputBindingOption = [],
         cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
     ) where S.Output == NSAttributedString?, S.Failure == Never {
         self.init()
@@ -68,11 +58,11 @@ public extension UITextField {
 
 public extension SomeView where Self: UITextField {
 
-    func bindText<S: Subject>(to subject: S, options: UITextFieldBindingOption = []) -> AnyCancellable where S.Output == String?, S.Failure == Never {
+    func bindText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == String?, S.Failure == Never {
         return makeBindings(for: subject, keyPath: \.text, options: options)
     }
 
-    func bindAttributedText<S: Subject>(to subject: S, options: UITextFieldBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
+    func bindAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
         makeBindings(for: subject, keyPath: \.attributedText, options: options)
     }
 }
@@ -80,7 +70,7 @@ public extension SomeView where Self: UITextField {
 
 private extension SomeView where Self: UITextField {
 
-    func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>, options: UITextFieldBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
+    func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>, options: UITextInputBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
         }
