@@ -14,7 +14,7 @@ public extension UIViewController {
     func presentSheet<Modal: UIViewController>(
         _ modal: Modal,
         animated: Bool,
-        configuration: @MainActor (UISheetPresentationController) -> Void = UIViewController.defaultSheetPresentationConfiguration)
+        configuration: @MainActor (UISheetPresentationController) -> Void = { UIViewController.defaultSheetPresentationConfiguration($0) })
     async throws {
         let wrapper: any Presentable = AsyncPresentationWrapperViewController(wrapped: modal)
         _ = try await presentSheet(wrapper, animated: animated, configuration: configuration)

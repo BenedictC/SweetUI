@@ -136,7 +136,7 @@ public extension UIViewController {
     func presentSheet<Modal: Presentable>(
         _ modal: Modal,
         animated: Bool,
-        configuration: @MainActor (UISheetPresentationController) -> Void = UIViewController.defaultSheetPresentationConfiguration)
+        configuration: @MainActor (UISheetPresentationController) -> Void = { UIViewController.defaultSheetPresentationConfiguration($0) })
     async throws -> Modal.Success {
         let presenting = self
         let coordinator = AsyncPresentationCoordinators.createCoordinator(for: modal)
@@ -149,7 +149,6 @@ public extension UIViewController {
 @MainActor
 public extension UIViewController {
 
-    @MainActor
     static func defaultSheetPresentationConfiguration(_ sheet: UISheetPresentationController) -> Void {
         sheet.detents = [.medium(), .large()]
         sheet.largestUndimmedDetentIdentifier = .medium
