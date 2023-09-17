@@ -149,6 +149,7 @@ public extension UIViewController {
 @MainActor
 public extension UIViewController {
 
+    @MainActor
     static func defaultSheetPresentationConfiguration(_ sheet: UISheetPresentationController) -> Void {
         sheet.detents = [.medium(), .large()]
         sheet.largestUndimmedDetentIdentifier = .medium
