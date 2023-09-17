@@ -12,16 +12,16 @@ public class SafeAreaAdjustmentContainer<Content: UIView>: Container<Content>, E
         optionalEdgesIgnoringSafeArea ?? UIView.edgesIgnoringSafeArea(for: content)
     }
 
-    var keyboardNotificationObservation: Any?
+    var keyboardNotificationObservations: [Any]?
     var latestKeyboardFrame: CGRect?
     var additionalSafeAreaInsets = UIEdgeInsets.zero
 
     override public var safeAreaInsets: UIEdgeInsets {
         var result = super.safeAreaInsets
-        result.top += additionalSafeAreaInsets.top
-        result.left += additionalSafeAreaInsets.left
-        result.bottom += additionalSafeAreaInsets.bottom
-        result.right += additionalSafeAreaInsets.right
+        result.top = max(result.top, additionalSafeAreaInsets.top)
+        result.left = max(result.left, additionalSafeAreaInsets.left)
+        result.bottom = max(result.bottom, additionalSafeAreaInsets.bottom)
+        result.right = max(result.right, additionalSafeAreaInsets.right)
         return result
     }
 
@@ -63,24 +63,31 @@ public class SafeAreaAdjustmentContainer<Content: UIView>: Container<Content>, E
 
     private func initializeKeyboardAvoidance() {
         let notificationCenter = NotificationCenter.default
-        let notificationName = UIApplication.keyboardWillChangeFrameNotification
-
-        self.keyboardNotificationObservation = notificationCenter.addObserver(forName: notificationName, object: nil, queue: nil) { [weak self] notification in
-            let keyboardFrameValue = notification.userInfo?[UIApplication.keyboardFrameEndUserInfoKey] as? NSValue
-            let keyboardFrame = keyboardFrameValue?.cgRectValue ?? .zero
-            self?.latestKeyboardFrame = keyboardFrame
-
-            let animationCurveValue = notification.userInfo?[UIApplication.keyboardAnimationCurveUserInfoKey] as? NSNumber
-            let animationCurve = animationCurveValue.flatMap { UIView.AnimationCurve(rawValue: $0.intValue) } ?? .linear
-
-            let animationDurationValue = notification.userInfo?[UIApplication.keyboardAnimationDurationUserInfoKey] as? NSNumber
-            let animationDuration = animationDurationValue?.doubleValue ?? 0.35
-            self?.updateSafeAreaInsets(animationCurve: animationCurve, animationDuration: animationDuration)
-        }
+        self.keyboardNotificationObservations = [
+            notificationCenter.addObserver(forName: UIApplication.keyboardWillChangeFrameNotification, object: nil, queue: nil, using: { [weak self] notification in
+                self?.updateSafeAreaInsets(notification: notification)
+            }),
+            notificationCenter.addObserver(forName: UIApplication.keyboardDidChangeFrameNotification, object: nil, queue: nil, using: { [weak self] notification in
+                self?.updateSafeAreaInsets(notification: notification)
+            }),
+        ]
     }
 
 
     // MARK: Safe area insets
+
+    func updateSafeAreaInsets(notification: Notification) {
+        let keyboardFrameValue = notification.userInfo?[UIApplication.keyboardFrameEndUserInfoKey] as? NSValue
+        let keyboardFrame = keyboardFrameValue?.cgRectValue ?? .zero
+        latestKeyboardFrame = keyboardFrame
+
+        let animationCurveValue = notification.userInfo?[UIApplication.keyboardAnimationCurveUserInfoKey] as? NSNumber
+        let animationCurve = animationCurveValue.flatMap { UIView.AnimationCurve(rawValue: $0.intValue) } ?? .linear
+
+        let animationDurationValue = notification.userInfo?[UIApplication.keyboardAnimationDurationUserInfoKey] as? NSNumber
+        let animationDuration = animationDurationValue?.doubleValue ?? 0.35
+        updateSafeAreaInsets(animationCurve: animationCurve, animationDuration: animationDuration)
+    }
 
     func updateSafeAreaInsets(animationCurve: UIView.AnimationCurve, animationDuration: TimeInterval) {
         guard let keyboardFrame = latestKeyboardFrame else {
@@ -102,6 +109,7 @@ public class SafeAreaAdjustmentContainer<Content: UIView>: Container<Content>, E
             return
         }
         self.additionalSafeAreaInsets = newValue
+        super.safeAreaInsetsDidChange()
         self.setNeedsLayout()
         if animationDuration > 0 {
             UIViewPropertyAnimator(duration: animationDuration, curve: animationCurve) {
