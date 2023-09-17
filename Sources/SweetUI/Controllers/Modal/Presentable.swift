@@ -146,6 +146,7 @@ public extension UIViewController {
 
 
 @available(iOS 15, *)
+@MainActor
 public extension UIViewController {
 
     static func defaultSheetPresentationConfiguration(_ sheet: UISheetPresentationController) -> Void {
