@@ -78,6 +78,7 @@ private extension SomeView where Self: UITextView {
         let receive = subject.sink { value in
             let shouldUpdate = !self.isFirstResponder || options.contains(.updatesTextWhenIsFirstResponder)
             guard shouldUpdate else { return }
+            // TODO: Maintain cursor/selection when isFirstResponder
             self[keyPath: keyPath] = value
         }
         return AnyCancellable {
