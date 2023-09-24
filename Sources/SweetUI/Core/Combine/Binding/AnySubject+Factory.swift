@@ -6,7 +6,7 @@ import Combine
 /// Transforms a @Published property into a Subject
 public extension AnySubject {
 
-    convenience init<T: AnyObject>(publishedBy object: T, get getPublisher: KeyPath<T, Published<Output>.Publisher>, set setKeyPath: ReferenceWritableKeyPath<T, Output>) where Failure == Never {
+    convenience init<T: AnyObject, P: Publisher>(publishedBy object: T, get getPublisher: KeyPath<T, P>, set setKeyPath: ReferenceWritableKeyPath<T, Output>) where Failure == Never, P.Output == Output, P.Failure == Never {
         let publisher = object[keyPath: getPublisher]
         self.init(
             receiveHandler: { publisher.receive(subscriber: $0) },
