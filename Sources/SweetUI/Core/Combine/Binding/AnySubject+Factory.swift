@@ -4,7 +4,7 @@ import Combine
 // MARK: - @Published
 
 /// Transforms a @Published property into a Subject
-public extension AnySubject {
+internal extension AnySubject {
 
     convenience init<T: AnyObject, P: Publisher>(publishedBy object: T, get getPublisher: KeyPath<T, P>, set setKeyPath: ReferenceWritableKeyPath<T, Output>) where Failure == Never, P.Output == Output, P.Failure == Never {
         let publisher = object[keyPath: getPublisher]
@@ -20,7 +20,7 @@ public extension AnySubject {
 
 // MARK: - Public Initializers
 
-public extension AnySubject {
+internal extension AnySubject {
 
     convenience init<P: Publisher>(get publisher: P, set setHandler: @escaping (Output) -> Void) where P.Output == Output, P.Failure == Failure {
         // TODO: How do we cancel the set handler? Do we need to?
@@ -45,7 +45,7 @@ public extension AnySubject {
 
 // MARK: - Type erasure
 
-public extension Subject {
+internal extension Subject {
 
     func eraseToAnySubject() -> AnySubject<Output, Failure> {
         if let existing = self as? AnySubject<Output, Failure> {

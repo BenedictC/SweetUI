@@ -56,7 +56,7 @@ public final class Binding<Output>: Subject {
     // MARK: Subject
 
     public func send(_ value: Output) {
-        subject.send(value)
+        setter(value)
     }
 
     public func send(completion: Subscribers.Completion<Never>) {
@@ -69,9 +69,17 @@ public final class Binding<Output>: Subject {
 }
 
 
-// MARK: - Init
+// MARK: - Init from publishers
 
 public extension Binding {
+
+    convenience init(currentValueSubject: CurrentValueSubject<Output, Never>) {
+        self.init(
+            subject: currentValueSubject.eraseToAnySubject(),
+            getter: { currentValueSubject.value },
+            setter: { currentValueSubject.send($0) }
+        )
+    }
 
     convenience init<P: Publisher>(publisher: P, get getter: @escaping () -> Output, set setter: @escaping (Output) -> Void) where P.Output == Output, P.Failure == Never  {
         let subject = AnySubject(get: publisher, set: setter)
@@ -90,18 +98,28 @@ public extension Binding {
             setter: { object[keyPath: setKeyPath] = $0 }
         )
     }
+}
 
-    convenience init(initialValue: Output, set setter: @escaping (Output) -> Output? = { $0 }) {
+
+// MARK: - Init from value
+
+public extension Binding {
+
+    convenience init(initialValue: Output, set setter: @escaping (_ current: Output, _ proposed: Output) -> Output = { $1 }) {
         let subject = CurrentValueSubject<Output, Never>(initialValue)
         self.init(
             subject: subject.eraseToAnySubject(),
             getter: { subject.value },
-            setter: { setter($0).flatMap { subject.send($0) } }
+            setter: { proposed in
+                let current = subject.value
+                let fresh = setter(current, proposed)
+                subject.send(fresh)
+            }
         )
     }
 }
 
 
-// MARK: -
+// MARK: - Overly descriptive typealias
 
 public typealias TwoWayBinding = Binding

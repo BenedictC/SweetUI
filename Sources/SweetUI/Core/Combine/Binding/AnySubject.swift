@@ -1,12 +1,12 @@
 import Combine
 
 
-public final class AnySubject<Output, Failure: Error>: Subject {
+internal final class AnySubject<Output, Failure: Error>: Subject {
 
     // MARK: Types
 
-    public typealias Output = Output
-    public typealias Failure = Failure
+    typealias Output = Output
+    typealias Failure = Failure
 
 
     // MARK: Instance life cycle
@@ -34,20 +34,20 @@ public final class AnySubject<Output, Failure: Error>: Subject {
 
     // MARK: Subject
 
-    public func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
+    func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
         let anySubscriber = AnySubscriber(subscriber)
         receiveHandler(anySubscriber)
     }
 
-    public func send(_ value: Output) {
+    func send(_ value: Output) {
         sendValueHandler(value)
     }
 
-    public func send(completion: Subscribers.Completion<Failure>) {
+    func send(completion: Subscribers.Completion<Failure>) {
         sendCompletionHandler(completion)
     }
 
-    public func send(subscription: Subscription) {
+    func send(subscription: Subscription) {
         sendSubscriptionHandler(subscription)
     }
 }
