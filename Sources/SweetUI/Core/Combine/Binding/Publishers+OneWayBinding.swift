@@ -5,7 +5,7 @@ import Combine
 
 public extension Binding {
 
-    func eraseToOneWayBinding() -> OneWayBinding<Output> {
+    func makeOneWayBinding() -> OneWayBinding<Output> {
         OneWayBinding(publisher: self, get: { self.value })
     }
 }
@@ -13,7 +13,7 @@ public extension Binding {
 
 public extension CurrentValueSubject where Failure == Never {
 
-    func eraseToOneWayBinding() -> OneWayBinding<Output> {
+    func makeOneWayBinding() -> OneWayBinding<Output> {
         OneWayBinding(publisher: self, get: { self.value })
     }
 }
@@ -21,7 +21,7 @@ public extension CurrentValueSubject where Failure == Never {
 
 public extension Just {
 
-    func eraseToOneWayBinding() -> OneWayBinding<Output> {
+    func makeOneWayBinding() -> OneWayBinding<Output> {
         OneWayBinding(publisher: self, get: { self.output })
     }
 }
