@@ -125,7 +125,7 @@ public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemValue: Hasha
 @resultBuilder
 public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ sections: Section...
     ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
     where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
@@ -134,7 +134,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: nil, header: nil, footer: nil, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ header: LayoutHeader,
         _ sections: Section...
     ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
@@ -144,7 +144,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: nil, header: header, footer: nil, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ footer: LayoutFooter,
         _ sections: Section...
     ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
@@ -154,7 +154,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: nil, header: nil, footer: footer, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ header: LayoutHeader,
         _ footer: LayoutFooter,
         _ sections: Section...
@@ -165,7 +165,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: nil, header: header, footer: footer, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ configuration: LayoutConfiguration,
         _ sections: Section...
     ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
@@ -175,7 +175,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: configuration, header: nil, footer: nil, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ configuration: LayoutConfiguration,
         _ header: LayoutHeader,
         _ sections: Section...
@@ -186,7 +186,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: configuration, header: header, footer: nil, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ configuration: LayoutConfiguration,
         _ footer: LayoutFooter,
         _ sections: Section...
@@ -197,7 +197,7 @@ public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue
         return ListLayoutComponents(configuration: configuration, header: nil, footer: footer, sections: erasedSections)
     }
 
-    public static func buildBlock<Section: ListSection, SectionIdentifier: Hashable, ItemValue: Hashable>(
+    public static func buildBlock<Section: ListSection>(
         _ configuration: LayoutConfiguration,
         _ header: LayoutHeader,
         _ footer: LayoutFooter,
@@ -305,7 +305,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
     // MARK: Types
 
     @resultBuilder
-    public struct ComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
+    public struct ComponentsBuilder {
 
         public static func buildBlock(_ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
             return ListSectionComponents(cell: cell, header: nil, footer: nil)
@@ -327,7 +327,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
 
     public init(
         identifier: SectionIdentifier,
-        @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
+        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
         let predicate = { $0 == identifier }
         self.init(predicate: predicate, components: components)
@@ -335,7 +335,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
 
     public init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
-        @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
+        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
         self.predicate = predicate
         self.components = components()
@@ -350,7 +350,7 @@ public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemVal
     // MARK: Types
 
     @resultBuilder
-    public struct ComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
+    public struct ComponentsBuilder {
 
         public static func buildBlock(_ header: Header<SectionIdentifier>, _ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
             return ListSectionComponents(cell: cell, header: .standard(header), footer: nil)
@@ -372,7 +372,7 @@ public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemVal
 
     public init(
         identifier: SectionIdentifier,
-        @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
+        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
         let predicate = { $0 == identifier }
         self.init(predicate: predicate, components: components)
@@ -380,7 +380,7 @@ public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemVal
 
     public init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
-        @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
+        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
         self.predicate = predicate
         self.components = components()
@@ -395,7 +395,7 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
     // MARK: Types
 
     @resultBuilder
-    public struct ComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
+    public struct ComponentsBuilder {
 
         public static func buildBlock(_ header: Cell<ItemValue>, _ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
             return ListSectionComponents(cell: cell, header: .collapsable(header), footer: nil)
@@ -417,7 +417,7 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
 
     public init(
         identifier: SectionIdentifier,
-        @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
+        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
         let predicate = { $0 == identifier }
         self.init(predicate: predicate, components: components)
@@ -425,7 +425,7 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
 
     public init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
-        @ComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
+        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
     {
         self.predicate = predicate
         self.components = components()
