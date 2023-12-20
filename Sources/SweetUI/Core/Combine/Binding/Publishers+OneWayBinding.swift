@@ -5,8 +5,8 @@ import Combine
 
 public extension Binding {
 
-    func makeOneWayBinding() -> OneWayBinding<Output> {
-        OneWayBinding(publisher: self, get: { self.value })
+    func asOneWayBinding() -> OneWayBinding<Output> {
+        self
     }
 }
 
@@ -33,7 +33,7 @@ public extension Publisher where Failure == Never {
         let subject = CurrentValueSubject<Output, Never>(currentValue)
         let cancellable = self.sink { subject.send($0) }
 
-        var result = OneWayBinding(publisher: subject, get: { subject.value })
+        let result = OneWayBinding(publisher: subject, get: { subject.value })
         result.cancellable = cancellable
 
         return result

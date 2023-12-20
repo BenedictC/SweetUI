@@ -4,7 +4,7 @@ import Combine
 // MARK: - Binding
 
 @propertyWrapper
-public final class Binding<Output>: Subject {
+public final class Binding<Output>: OneWayBinding<Output>, Subject {
 
     // MARK: Types
 
@@ -14,41 +14,42 @@ public final class Binding<Output>: Subject {
 
     // MARK: Properties
 
-    public var value: Output {
+    override public var value: Output {
         get { wrappedValue }
         set { wrappedValue = newValue }
     }
 
     public var projectedValue: Binding<Output> { self }
-    public var wrappedValue: Output {
+    override public var wrappedValue: Output {
         get { getter() }
         set { setter(newValue) }
     }
 
     private let subject: AnySubject<Output, Never>
-    private let getter: () -> Output
+    // private let getter: () -> Output
     private let setter: (Output) -> Void
 
 
     // MARK: Instance life cycle
 
-    public init(wrappedValue: Output) {
+    public override init(wrappedValue: Output) {
         let subject = CurrentValueSubject<Output, Never>(wrappedValue)
         self.subject = subject.eraseToAnySubject()
-        self.getter = { subject.value }
         self.setter = { subject.send($0) }
+        let getter = { subject.value }
+        super.init(publisher: subject, get: getter)
     }
 
     internal init(subject: AnySubject<Output, Never>, getter: @escaping () -> Output, setter: @escaping (Output) -> Void) {
         self.subject = subject
-        self.getter = getter
         self.setter = setter
+        super.init(publisher: subject, get: getter)
     }
 
 
     // MARK: Publisher
 
-    public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Output == S.Input {
+    override public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Output == S.Input {
         subject.receive(subscriber: subscriber)
     }
 
