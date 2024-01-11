@@ -5,6 +5,7 @@ import Combine
 
 /// OneWayBinding is a readonly publisher that also provides a getter
 @propertyWrapper
+@dynamicMemberLookup
 public class OneWayBinding<Output>: Publisher {
 
     // MARK: Types
@@ -31,6 +32,15 @@ public class OneWayBinding<Output>: Publisher {
     public init(wrappedValue: Output) {
         self.publisher = Just(wrappedValue).eraseToAnyPublisher()
         self.getter = { wrappedValue }
+    }
+
+
+    // MARK: Subscript
+
+    public subscript<T>(dynamicMember keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
+        if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
+        let rootGetter = getter
+        return OneWayBinding<T>(publisher: self.map { $0[keyPath: keyPath] }, get: { rootGetter()[keyPath: keyPath] })
     }
 
 
