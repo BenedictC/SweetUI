@@ -47,7 +47,7 @@ public class BarItemsBuilder<VC: UIViewController> {
 // MARK: - Subscribable
 
 @propertyWrapper
-public struct Subscribable<T: NSObject> {
+public struct Subscribable<T: AnyObject> {
 
     public var wrappedValue: T {
         get { projectedValue.source }
@@ -65,7 +65,7 @@ public struct Subscribable<T: NSObject> {
 // MARK: - SubscribingProxy
 
 @dynamicMemberLookup
-public class SubscribableProxy<Source: NSObject> {
+public class SubscribableProxy<Source: AnyObject> {
 
     var source: Source
     var cancellables = Set<AnyCancellable>()
@@ -113,7 +113,7 @@ final class BarItemContentController {
 
     var settersByKeyPath =  [AnyHashable: Any]()
 
-    static func controller<T: NSObject>(for classType: T.Type) -> BarItemContentController {
+    static func controller<T: AnyObject>(for classType: T.Type) -> BarItemContentController {
         var optionalClassType: AnyClass? = classType
         while let classType = optionalClassType {
             if let existing = controllersByClass.object(forKey: classType) {

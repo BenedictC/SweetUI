@@ -1,6 +1,20 @@
 import Combine
 
 
+//public struct BindingOption: OptionSet {
+//    public let rawValue: UInt
+//
+//    public static let mainQueue = Self(rawValue: 1 << 0)
+//    public static let removeDuplicates = Self(rawValue: 1 << 1)
+//
+//    public static let defaults: Self = [.mainQueue, .removeDuplicates]
+//
+//    public init(rawValue: UInt) {
+//        self.rawValue = rawValue
+//    }
+//}
+
+
 /// OneWayBinding is a readonly publisher that also provides a getter
 @propertyWrapper
 @dynamicMemberLookup

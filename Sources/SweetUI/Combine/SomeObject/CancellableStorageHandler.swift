@@ -4,14 +4,14 @@ import Combine
 
 // MARK: -
 
-public typealias CancellableStorageHandler = (_ cancellable: AnyCancellable, _ forObject: NSObject) -> Void
+public typealias CancellableStorageHandler = (_ cancellable: AnyCancellable, _ forObject: AnyObject) -> Void
 
 
 public extension DefaultCancellableStorage {
 
     static let shared = DefaultCancellableStorage()
 
-    func store(_ cancellable: AnyCancellable, for object: NSObject) {
+    func store(_ cancellable: AnyCancellable, for object: AnyObject) {
         let key = UUID()
         self.store(cancellable, for: object, key: key)
     }
@@ -23,7 +23,7 @@ public extension DefaultCancellableStorage {
 // TODO: Should we enforce @MainActor?
 public class DefaultCancellableStorage {
 
-    private class StoredCancellables: NSObject {
+    private class StoredCancellables: SomeObject {
         private var keyed = [AnyHashable: AnyCancellable]()
 
         func store(_ cancellable: AnyCancellable, for key: AnyHashable) {
@@ -35,10 +35,10 @@ public class DefaultCancellableStorage {
         }
     }
 
-    private let cancellablesByObject = NSMapTable<NSObject, StoredCancellables>.weakToStrongObjects()
+    private let cancellablesByObject = NSMapTable<AnyObject, StoredCancellables>.weakToStrongObjects()
 
 
-    public func store(_ cancellable: AnyCancellable, for object: NSObject, key: AnyHashable) {
+    public func store(_ cancellable: AnyCancellable, for object: AnyObject, key: AnyHashable) {
         let cancellables: StoredCancellables
         if let existing = cancellablesByObject.object(forKey: object) {
             cancellables = existing
@@ -49,7 +49,7 @@ public class DefaultCancellableStorage {
         cancellables.store(cancellable, for: key)
     }
 
-    func removeCancellable(for object: NSObject, key: AnyHashable) {
+    func removeCancellable(for object: AnyObject, key: AnyHashable) {
         guard let cancellables = cancellablesByObject.object(forKey: object) else { return }
         cancellables.removeCancellable(for: key)
     }
@@ -57,7 +57,7 @@ public class DefaultCancellableStorage {
 
 
 
-public extension NSObject {
+public extension SomeObject {
 
     func collectCancellables(for key: AnyHashable = UUID(), @CancellablesBuilder using cancellableBuilder: () -> AnyCancellable) {
         let cancellable = detectPotentialRetainCycle(of: self) { cancellableBuilder() }
