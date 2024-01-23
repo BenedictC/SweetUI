@@ -5,9 +5,10 @@ import Combine
 
 public extension UISegmentedControl {
 
+    // TODO: Should this take a subject instead of a publisher?
     func selectedSegmentIndex<P: Publisher>(
         _ publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where P.Output == Int, P.Failure == Never {
         let cancellable = publisher.sink { [weak self] index in
             guard let self else { return }
@@ -18,24 +19,25 @@ public extension UISegmentedControl {
             }
             self.selectedSegmentIndex = index
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
+    // TODO: Should this take a subject instead of a publisher?
     func selectedSegmentIndex<P: Publisher>(
         _ initialPublisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where P.Output == Int?, P.Failure == Never {
         let publisher = initialPublisher.map { $0 ?? UISegmentedControl.noSegment }
-        return selectedSegmentIndex(publisher, cancellableStorageHandler: cancellableStorageHandler)
+        return selectedSegmentIndex(publisher, cancellableStorageProvider: cancellableStorageProvider)
     }
 
 //    func selectedSegmentIndex<S: Subject>(
 //        _ subject: S,
-//        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+//        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
 //    ) -> Self where S.Output == Int, S.Failure == Never {
 //        let cancellable = SelectedSegmentIndexReceiver.shared.bindIndexSelection(of: self, to: subject)
-//        cancellableStorageHandler(cancellable, self)
+//        cancellableStorageProvider.storeCancellable(cancellable, self)
 //        return self
 //    }
 }

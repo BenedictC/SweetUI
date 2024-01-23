@@ -36,28 +36,36 @@ final class OneWayBindingTests: XCTestCase {
         sink0.cancel()
         XCTAssertEqual(sinkInvocationCount, 2)
     }
-
+    
     func testInitCurrentValueSubject() async throws {
         var testIndex = 0
         let currentValueSubject = CurrentValueSubject<Int, Never>(0)
         let binding = OneWayBinding(currentValueSubject: currentValueSubject)
         var sinkInvocationCount = 0
+        let expectation0 = expectation(description: #function + "0")
+        let expectation1 = expectation(description: #function + "1")
         let sink0 = binding.sink { value in
             sinkInvocationCount += 1
             switch testIndex {
             case 0:
                 XCTAssertEqual(value, 0)
+                expectation0.fulfill()
 
             case 1:
                 XCTAssertEqual(value, 1)
+                expectation1.fulfill()
 
             default:
                 XCTFail()
             }
         }
+        await fulfillment(of: [expectation0], timeout: 1)
 
         testIndex = 1
-        currentValueSubject.send(1)
+        DispatchQueue.global(qos: .background).sync {
+            currentValueSubject.send(1)
+        }
+        await fulfillment(of: [expectation1], timeout: 1)
         XCTAssertEqual(binding.wrappedValue, 1)
 
         sink0.cancel()

@@ -1,20 +1,6 @@
 import Combine
 
 
-//public struct BindingOption: OptionSet {
-//    public let rawValue: UInt
-//
-//    public static let mainQueue = Self(rawValue: 1 << 0)
-//    public static let removeDuplicates = Self(rawValue: 1 << 1)
-//
-//    public static let defaults: Self = [.mainQueue, .removeDuplicates]
-//
-//    public init(rawValue: UInt) {
-//        self.rawValue = rawValue
-//    }
-//}
-
-
 /// OneWayBinding is a readonly publisher that also provides a getter
 @propertyWrapper
 @dynamicMemberLookup
@@ -24,6 +10,18 @@ public class OneWayBinding<Output>: Publisher {
 
     public typealias Output = Output
     public typealias Failure = Never
+
+    public struct Options: OptionSet {
+        public var rawValue: Int
+
+        public init(rawValue: Int) {
+            self.rawValue = rawValue
+        }
+
+        public static var removesDuplicates: Self { Self(rawValue: 1 << 0) }
+        public static var bounceToMainThread: Self { Self(rawValue: 1 << 1) }
+        public static var `default`: Self { [.removesDuplicates, .bounceToMainThread] }
+    }
 
 
     // MARK: Properties
@@ -37,21 +35,21 @@ public class OneWayBinding<Output>: Publisher {
 
     // MARK: Instance life cycle
 
-    internal init<P: Publisher>(publisher: P, cancellable: AnyCancellable?, get getter: @escaping () -> Output) where P.Output == Output, P.Failure == Never {
-        self.publisher = publisher as? AnyPublisher<Output, Never> ?? publisher.eraseToAnyPublisher()
+    internal init<P: Publisher>(publisher: P, cancellable: AnyCancellable?, get getter: @escaping () -> Output, options: Options = .default) where P.Output == Output, P.Failure == Never {
+        self.publisher = options.decorate(publisher)
         self.getter = getter
         self.cancellable = cancellable
     }
 
-    public init(wrappedValue: Output) {
+    public init(wrappedValue: Output, options: Options = .default) {
         let just = Just(wrappedValue)
-        self.publisher = just.eraseToAnyPublisher()
+        self.publisher = options.decorate(just)
         self.cancellable = nil
         self.getter = { just.output }
     }
 
-    public init(currentValueSubject: CurrentValueSubject<Output, Never>) {
-        self.publisher = currentValueSubject.eraseToAnyPublisher()
+    public init(currentValueSubject: CurrentValueSubject<Output, Never>, options: Options = .default) {
+        self.publisher = options.decorate(currentValueSubject)
         self.cancellable = nil
         self.getter = { currentValueSubject.value }
     }

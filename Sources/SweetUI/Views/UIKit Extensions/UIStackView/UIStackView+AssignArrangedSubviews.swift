@@ -6,7 +6,7 @@ public extension SomeView where Self: UIStackView {
 
     func assignArrangedSubviews<P: Publisher, V: UIView>(
         from publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared)
     -> Self where P.Failure == Never, P.Output == ([V]?) {
         let stackView = self
         let cancellable = publisher.sink { [weak stackView] views in
@@ -15,7 +15,7 @@ public extension SomeView where Self: UIStackView {
             stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
             views?.forEach { stackView.addArrangedSubview($0) }
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }

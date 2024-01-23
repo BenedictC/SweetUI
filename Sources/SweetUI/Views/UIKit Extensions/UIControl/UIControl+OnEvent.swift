@@ -8,13 +8,13 @@ public extension SomeView where Self: UIControl {
 
     func onEvent(
         _ event: UIControl.Event,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         perform handler: @escaping (Self) -> Void
     ) -> Self {
         let cancellable = addAction(for: event) { control, _ in
             handler(control)
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }

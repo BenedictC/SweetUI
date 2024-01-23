@@ -11,40 +11,40 @@ public extension SomeView where Self: UITextField {
     func text<S: Subject>(
         _ subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == String?, S.Failure == Never {
         let cancellable = bindText(to: subject, options: options)
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
     func attributedText<S: Subject>(
         _ subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
         let cancellable = bindAttributedText(to: subject, options: options)
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
     func text<S: Subject>(
         _ subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == String, S.Failure == Never {
         let cancellable = bindText(to: subject, options: options)
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
     func attributedText<S: Subject>(
         _ subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == NSAttributedString, S.Failure == Never {
         let cancellable = bindAttributedText(to: subject, options: options)
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }
@@ -57,37 +57,37 @@ public extension UITextField {
     convenience init<S: Subject>(
         text subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == String?, S.Failure == Never {
         self.init()
-        _ = self.text(subject, options: options, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
         text subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == NSAttributedString?, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, options: options, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
         text subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == String, S.Failure == Never {
         self.init()
-        _ = self.text(subject, options: options, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
         text subject: S,
         options: UITextInputBindingOption = [],
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == NSAttributedString, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, options: options, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 }
 

@@ -75,7 +75,6 @@ internal extension AnySubject {
 internal extension AnySubject {
 
     convenience init<P: Publisher>(get publisher: P, set setHandler: @escaping (Output) -> Void) where P.Output == Output, P.Failure == Failure {
-        // TODO: How do we cancel the set handler? Do we need to?
         self.init(
             receiveHandler: { publisher.receive(subscriber: $0) },
             sendValueHandler: setHandler,

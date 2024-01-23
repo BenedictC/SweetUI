@@ -2,11 +2,6 @@ import UIKit
 import Combine
 
 
-// MARK: SomeObject
-
-// extension UIBarItem: SomeObject { }
-
-
 // MARK: Properties
 
 public extension UIBarItem {
@@ -18,15 +13,15 @@ public extension UIBarItem {
 
     func enabled<P: Publisher>(
         _ publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where P.Output == Bool, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageHandler: cancellableStorageHandler)
+        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
         let cancellable = publisher.sink { [weak self] value in
             self?.isEnabled = value
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
@@ -37,15 +32,15 @@ public extension UIBarItem {
 
     func title<P: Publisher>(
         _ publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where P.Output == String?, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageHandler: cancellableStorageHandler)
+        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
         let cancellable = publisher.sink { [weak self] value in
             self?.title = value
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
@@ -56,15 +51,15 @@ public extension UIBarItem {
 
     func image<P: Publisher>(
         _ publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where P.Output == UIImage?, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageHandler: cancellableStorageHandler)
+        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
         let cancellable = publisher.sink { [weak self] value in
             self?.image = value
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }

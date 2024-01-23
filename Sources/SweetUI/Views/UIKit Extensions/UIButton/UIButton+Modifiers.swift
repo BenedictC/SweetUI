@@ -136,28 +136,3 @@ public extension UIButton {
         return self
     }
 }
-
-
-// MARK: - Convenience inits
-
-public extension UIButton {
-
-    convenience init(title: String?) {
-        self.init()
-        self.setTitle(title, for: .normal)
-    }
-
-    convenience init(title: String? = nil, image: UIImage?) {
-        self.init()
-        self.setTitle(title, for: .normal)
-        self.setImage(image, for: .normal)
-    }
-
-    convenience init(title: String? = nil, imageWithSystemName systemName: String) {
-        self.init()
-        self.setTitle(title, for: .normal)
-        let image = UIImage(systemName: systemName)
-        self.setImage(image, for: .normal)
-    }
-}
-

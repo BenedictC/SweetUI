@@ -6,7 +6,7 @@ public extension SomeView {
 
     func onTraitCollectionChange<T: TraitCollectionPublisherProvider>(
         of provider: T,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         _ handler: @escaping (Self, T, PublishedTraitCollection) -> Void)
     -> Self {
         let view = self
@@ -15,7 +15,7 @@ public extension SomeView {
             guard let view, let provider else { return }
             handler(view, provider, publishedTraitCollection)
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }

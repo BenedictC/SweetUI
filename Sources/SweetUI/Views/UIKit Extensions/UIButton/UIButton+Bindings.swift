@@ -6,13 +6,13 @@ import Combine
 
 public extension SomeView where Self: UIButton {
 
-    func bindIsSelected<S: Subject>(
+    func selected<S: Subject>(
         to subject: S,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     )
     -> Self where S.Output == Bool, S.Failure == Never {
         let cancellable = subscribeAndSendIsSelected(to: subject)
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }

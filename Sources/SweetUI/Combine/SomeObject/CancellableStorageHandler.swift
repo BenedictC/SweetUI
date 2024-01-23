@@ -2,71 +2,100 @@ import Foundation
 import Combine
 
 
-// MARK: -
+// MARK: - CancellableStorageProvider
 
-public typealias CancellableStorageHandler = (_ cancellable: AnyCancellable, _ forObject: AnyObject) -> Void
+public protocol CancellableStorageProvider {
+
+    func storeCancellable(_ cancellable: AnyCancellable, forKey key: CancellableStorageKey)
+    func removeCancellable(forKey key: CancellableStorageKey) -> AnyCancellable?
+}
 
 
-public extension DefaultCancellableStorage {
+public struct CancellableStorageKey: Equatable {
 
-    static let shared = DefaultCancellableStorage()
+    public let object: AnyObject
+    public let identifier: AnyHashable
 
-    func store(_ cancellable: AnyCancellable, for object: AnyObject) {
-        let key = UUID()
-        self.store(cancellable, for: object, key: key)
+    public init(object: AnyObject, identifier: AnyHashable) {
+        self.object = object
+        self.identifier = identifier
+    }
+
+    public static func ==(lhs: Self, rhs: Self) -> Bool {
+        return lhs.object === rhs.object && lhs.identifier == rhs.identifier
+    }
+
+    public static func unique(for object: AnyObject, fileID: StaticString = #fileID, line: UInt = #line, column: UInt = #column) -> Self {
+        let identifier = "\(fileID):\(line):\(column)"
+        return CancellableStorageKey(object: object, identifier: identifier)
     }
 }
 
 
-// MARK: - Default
+// MARK: - DefaultCancellableStorageProvider
 
-// TODO: Should we enforce @MainActor?
-public class DefaultCancellableStorage {
+public class DefaultCancellableStorageProvider: CancellableStorageProvider {
+    
+    // MARK: Types
 
     private class StoredCancellables: SomeObject {
-        private var keyed = [AnyHashable: AnyCancellable]()
+        private var cancellablesByIdentifier = [AnyHashable: AnyCancellable]()
 
-        func store(_ cancellable: AnyCancellable, for key: AnyHashable) {
-            keyed[key] = cancellable
+        func store(_ cancellable: AnyCancellable, for identifier: AnyHashable) {
+            cancellablesByIdentifier[identifier] = cancellable
         }
 
-        func removeCancellable(for key: AnyHashable) {
-            keyed.removeValue(forKey: key)
+        func removeCancellable(for identifier: AnyHashable) -> AnyCancellable? {
+            cancellablesByIdentifier.removeValue(forKey: identifier)
         }
     }
+
+
+    // MARK: Properties
+
+    public static let shared = DefaultCancellableStorageProvider()
 
     private let cancellablesByObject = NSMapTable<AnyObject, StoredCancellables>.weakToStrongObjects()
 
 
-    public func store(_ cancellable: AnyCancellable, for object: AnyObject, key: AnyHashable) {
+    // MARK: CancellableStorageProvider
+
+    public func storeCancellable(_ cancellable: AnyCancellable, forKey key: CancellableStorageKey) {
         let cancellables: StoredCancellables
-        if let existing = cancellablesByObject.object(forKey: object) {
+        if let existing = cancellablesByObject.object(forKey: key.object) {
             cancellables = existing
         } else {
             cancellables = StoredCancellables()
-            cancellablesByObject.setObject(cancellables, forKey: object)
+            cancellablesByObject.setObject(cancellables, forKey: key.object)
         }
-        cancellables.store(cancellable, for: key)
+        cancellables.store(cancellable, for: key.identifier)
     }
 
-    func removeCancellable(for object: AnyObject, key: AnyHashable) {
-        guard let cancellables = cancellablesByObject.object(forKey: object) else { return }
-        cancellables.removeCancellable(for: key)
+    @discardableResult
+    public func removeCancellable(forKey key: CancellableStorageKey) -> AnyCancellable? {
+        guard let cancellables = cancellablesByObject.object(forKey: key.object) else { return nil }
+        return cancellables.removeCancellable(for: key.identifier)
     }
 }
 
 
+// MARK: - Handling multiple Cancellables
 
 public extension SomeObject {
 
-    func collectCancellables(for key: AnyHashable = UUID(), @CancellablesBuilder using cancellableBuilder: () -> AnyCancellable) {
+    func storeCancellables(for key: AnyHashable = UUID(), cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared, @CancellablesBuilder using cancellableBuilder: () -> AnyCancellable) {
         let cancellable = detectPotentialRetainCycle(of: self) { cancellableBuilder() }
-        DefaultCancellableStorage.shared.store(cancellable, for: self, key: key)
+        let storageKey = CancellableStorageKey(object: self, identifier: key)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: storageKey)
+    }
+
+    @discardableResult
+    func removeCancellables(for key: AnyHashable, from cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) -> AnyCancellable? {
+        let storageKey = CancellableStorageKey(object: self, identifier: key)
+        return cancellableStorageProvider.removeCancellable(forKey: storageKey)
     }
 }
 
-
-// MARK: - CancellablesBuilder
 
 @resultBuilder
 public struct CancellablesBuilder {
@@ -78,3 +107,16 @@ public struct CancellablesBuilder {
         }
     }
 }
+
+
+// MARK: - Cancellable
+
+//extension Cancellable {
+//
+//    @_disfavoredOverload
+//    func store(in object: AnyObject, forKey key: AnyHashable = UUID(), using cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) {
+//        let anyCancellable = self as? AnyCancellable ?? AnyCancellable(self)
+//        let storageKey = CancellableStorageKey(object: object, identifier: key)
+//        cancellableStorageProvider.storeCancellable(anyCancellable, forKey: storageKey)
+//    }
+//}

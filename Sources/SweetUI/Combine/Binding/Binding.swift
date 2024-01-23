@@ -12,6 +12,8 @@ public final class Binding<Output>: OneWayBinding<Output>, Subject {
     public typealias Output = Output
     public typealias Failure = Never
 
+    public typealias Options = OneWayBinding<Output>.Options
+
 
     // MARK: Properties
 
@@ -26,21 +28,44 @@ public final class Binding<Output>: OneWayBinding<Output>, Subject {
 
     // MARK: Instance life cycle
 
-    internal init(subject: AnySubject<Output, Never>, cancellable: AnyCancellable?, getter: @escaping () -> Output) {
+    internal init(subject: AnySubject<Output, Never>, cancellable: AnyCancellable?, getter: @escaping () -> Output, options: Options = .default) {
         self.subject = subject
-        super.init(publisher: subject, cancellable: nil, get: getter)
+        super.init(publisher: subject, cancellable: nil, get: getter, options: options)
     }
 
-    public override init(wrappedValue: Output) {
+    public  init(wrappedValue: Output, setterGuard: @escaping (Output, (Output) -> Void) -> Void = { $1($0) }, options: Options = .default) {
         let subject = CurrentValueSubject<Output, Never>(wrappedValue)
-        self.subject = subject.eraseToAnySubject()
+        self.subject = AnySubject(
+            receiveHandler: { subject.receive(subscriber: $0) },
+            sendValueHandler: { proposed in
+                let setter = { subject.send($0) }
+                setterGuard(proposed, setter)
+            },
+            sendCompletionHandler: { _ in /* Published can't complete */ },
+            sendSubscriptionHandler: { _ in /* ??? */ }
+        )
         let getter = { subject.value }
-        super.init(publisher: subject, cancellable: nil, get: getter)
+        super.init(publisher: subject, cancellable: nil, get: getter, options: options)
     }
 
-    public override init(currentValueSubject: CurrentValueSubject<Output, Never>) {
+    public override init(currentValueSubject: CurrentValueSubject<Output, Never>, options: Options = .default) {
         self.subject = currentValueSubject.eraseToAnySubject()
-        super.init(currentValueSubject: currentValueSubject)
+        super.init(currentValueSubject: currentValueSubject, options: options)
+    }
+
+    
+    // MARK: Subject
+
+    public func send(_ value: Output) {
+        subject.send(value)
+    }
+
+    public func send(completion: Subscribers.Completion<Never>) {
+        subject.send(completion: completion)
+    }
+
+    public func send(subscription: Subscription) {
+        subject.send(subscription: subscription)
     }
 
 
@@ -73,28 +98,6 @@ public final class Binding<Output>: OneWayBinding<Output>, Subject {
 
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
         return self[binding: keyPath]
-    }
-    
-
-    // MARK: Publisher
-
-    override public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Output == S.Input {
-        subject.receive(subscriber: subscriber)
-    }
-
-
-    // MARK: Subject
-
-    public func send(_ value: Output) {
-        subject.send(value)
-    }
-
-    public func send(completion: Subscribers.Completion<Never>) {
-        subject.send(completion: completion)
-    }
-
-    public func send(subscription: Subscription) {
-        subject.send(subscription: subscription)
     }
 }
 
@@ -136,5 +139,13 @@ public extension Binding {
 
     func asOneWayBinding() -> OneWayBinding<Output> {
         self
+    }
+}
+
+
+public extension Binding {
+
+    convenience init<Root>(proxyFor keyPath: ReferenceWritableKeyPath<Root, Output>) {
+        fatalError()
     }
 }

@@ -8,7 +8,7 @@ public extension SomeView {
 
     func constraints<P: Publisher>(
         for publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) },
         constraintsFactory: @escaping (Self, P.Output, [NSLayoutConstraint]) -> [NSLayoutConstraint]
     ) -> Self where P.Failure == Never {
@@ -29,7 +29,7 @@ public extension SomeView {
             }
         }
 
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }
@@ -41,7 +41,7 @@ public extension SomeView {
 
     func constraint<P: Publisher>(
         active publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = UIViewPropertyAnimator.defaultAnimator,
         constraint constraintBuilder: (Self) -> NSLayoutConstraint
     )
@@ -59,13 +59,13 @@ public extension SomeView {
             animator.startAnimation()
         }
 
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 
     func constraint<P: Publisher>(
         constant publisher: P,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         animatorFactory: @escaping () -> UIViewPropertyAnimator = UIViewPropertyAnimator.defaultAnimator,
         constraint constraintBuilder: (Self) -> NSLayoutConstraint
     ) -> Self where P.Output == CGFloat, P.Failure == Never {
@@ -80,7 +80,7 @@ public extension SomeView {
             animator.addAnimations { container.layoutIfNeeded() }
             animator.startAnimation()
         }
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }

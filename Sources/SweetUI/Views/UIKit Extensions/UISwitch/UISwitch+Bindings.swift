@@ -8,10 +8,10 @@ public extension UISwitch {
 
     convenience init<S: Subject>(
         isOn subject: S,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == Bool, S.Failure == Never {
         self.init()
-        _ = self.isOn(subject, cancellableStorageHandler: cancellableStorageHandler)
+        _ = self.isOn(subject, cancellableStorageProvider: cancellableStorageProvider)
     }
 }
 
@@ -20,10 +20,10 @@ public extension SomeView where Self: UISwitch {
 
     func isOn<S: Subject>(
         _ subject: S,
-        cancellableStorageHandler: CancellableStorageHandler = DefaultCancellableStorage.shared.store)
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared)
     -> Self where S.Output == Bool, S.Failure == Never {
         let cancellable = subscribeAndSendIsOn(to: subject)
-        cancellableStorageHandler(cancellable, self)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
 }
