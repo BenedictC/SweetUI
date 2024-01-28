@@ -3,11 +3,11 @@ import UIKit
 
 public extension UIViewController {
 
-    func present<Modal: UIViewController>(_ modal: Modal, animated: Bool) async throws {
+    func presentModal<Modal: UIViewController>(_ modal: Modal, animated: Bool) async throws {
         let wrapper = AsyncPresentationWrapperViewController(wrapped: modal)
         wrapper.modalPresentationStyle = modal.modalPresentationStyle
         wrapper.modalTransitionStyle = modal.modalTransitionStyle
-        _ = try await present(wrapper, animated: animated)
+        _ = try await presentModal(wrapper, animated: animated)
     }
 
     @available(iOS 15, *)

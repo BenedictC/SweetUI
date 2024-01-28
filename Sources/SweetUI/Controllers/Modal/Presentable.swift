@@ -110,7 +110,7 @@ public extension Presentable {
 @MainActor
 public extension UIViewController {
 
-    func present<Modal: Presentable>(_ modal: Modal, animated: Bool) async throws -> Modal.Success {
+    func presentModal<Modal: Presentable>(_ modal: Modal, animated: Bool) async throws -> Modal.Success {
         let presenting = viewControllerForModalPresentation(rootedAt: self)
         let coordinator = AsyncPresentationCoordinators.createCoordinator(for: modal)
         return try await coordinator.beginPresentation(from: presenting, animated: animated)
