@@ -17,7 +17,7 @@ struct BindingFactoryMacro: ExpressionMacro {
             throw BindingFactoryMacroError.unknown("\(node)")
         }
 
-        var bindingClass = macroSyntax.macroName.trimmed.text
+        let bindingClass = macroSyntax.macroName.trimmed.text
         var valueKeyPath: String?
         var publisherKeyPath: String?
         var captureObject: String?
