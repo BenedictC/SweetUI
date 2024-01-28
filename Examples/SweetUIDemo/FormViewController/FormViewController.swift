@@ -11,15 +11,15 @@ class FormViewController: ViewController {
         case invalid, ready, waiting
     }
 
-    typealias ValidationKeyPath = KeyPath<RegistrationForm, ViewState<Bool>>
+    typealias ValidationKeyPath = KeyPath<RegistrationForm, AnyPublisher<Bool, Never>>
 
 
     // MARK: Properties
 
     private let form = RegistrationForm()
 
-    @Published private var isSubmitInProgress = false
-    @Published private var validationKeyPaths = Set<ValidationKeyPath>()
+    @Binding private var isSubmitInProgress = false
+    @Binding private var validationKeyPaths = Set<ValidationKeyPath>()
     private lazy var status = Publishers
         .CombineLatest($isSubmitInProgress, form.isValid)
         .map { pair -> Status in
@@ -27,8 +27,6 @@ class FormViewController: ViewController {
             if isSubmitInProgress { return .waiting }
             return isValid ? .ready : .invalid
         }
-    private lazy var isReadyToSubmit = status.map { $0 == .ready }
-    private lazy var isWaiting = status.map { $0 == .waiting }
     private lazy var nameValidationErrorLabelAlpha = makeValidationPublisher(for: \.isNameValid)
     private lazy var emailValidationErrorLabelAlpha = makeValidationPublisher(for: \.isEmailValid)
     private lazy var passwordValidationErrorLabelAlpha = makeValidationPublisher(for: \.isPasswordValid)
@@ -41,40 +39,37 @@ class FormViewController: ViewController {
     }
 
     private lazy var nameTextField = makeTextField(placeholder: "Name")
-        .text(AnySubject(publishedBy: form, get: \.$name, set: \.name))
+        .text(#Binding(toPublishedAt: form.name))
             .delegateWithReturnAction(next: emailTextField)
             .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
 
     private lazy var nameValidationErrorLabel = makeValidationErrorLabel(text: "Name must be at least 1 character long")
-            .assign(to: \.alpha, from: nameValidationErrorLabelAlpha)
+            .alpha(nameValidationErrorLabelAlpha)
 
     private lazy var emailTextField = makeTextField(placeholder: "Email")
             .keyboardType(.emailAddress)
             .autocapitalizationType(.none)
-            .text(AnySubject(publishedBy: form, get: \.$email, set: \.email))
+            .text(#Binding(toPublishedAt: form.email))
             .delegateWithReturnAction(next: passwordTextField)
             .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
 
     private lazy var emailValidationErrorLabel = makeValidationErrorLabel(text: "Email must be a valid email address")
-            .assign(to: \.alpha, from: emailValidationErrorLabelAlpha)
+            .alpha(emailValidationErrorLabelAlpha)
 
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
             .isSecureTextEntry(true)
-            .text(AnySubject(publishedBy: form, get: \.$password, set: \.password))
-            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
+            .text(#Binding(toPublishedAt: form.password))
             .delegateWithReturnAction { [weak self] in self?.submit() }
+            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
 
     private lazy var passwordValidationErrorLabel = makeValidationErrorLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
-            .assign(to: \.alpha, from: passwordValidationErrorLabelAlpha)
+            .alpha(passwordValidationErrorLabelAlpha)
 
-    private lazy var submitButton = UIButton(type: .system)
-            .title("Submit", for: .normal)
-            .assign(to: \.isEnabled, from: isReadyToSubmit)
-            .onEvent(.primaryActionTriggered) { [weak self] _ in self?.submit() }
+    private lazy var submitButton = UIButton(title: "Submit", action: { [weak self] in self?.submit() })
+            .enabled(status.isEqualTo(.ready))
 
-    private lazy var activityIndicator = UIActivityIndicatorView(style: .large, isActive: isWaiting)
+    private lazy var activityIndicator = UIActivityIndicatorView(style: .large, isActive: status.isEqualTo(.waiting))
             .backgroundColor(.secondarySystemFill.withAlphaComponent(0.5))
-            .animate(true)
 
 
     // Layout views
@@ -145,9 +140,9 @@ private extension FormViewController {
             .standardAction("OK", value: ())
         ])
         Task {
-            try? await Task.sleep(for: .seconds(2))
+            try? await Task.sleep(for: .seconds(1))
             self.isSubmitInProgress = false
-            try? await self.present(alertVC, animated: true)
+            try? await self.presentModal(alertVC, animated: true)
             resetState()
         }
     }

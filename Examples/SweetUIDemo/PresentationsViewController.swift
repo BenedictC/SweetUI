@@ -7,7 +7,7 @@ final class PresentationsViewController: ViewController, Presentable {
 
     // MARK: - State
 
-    @State var message = ""
+    @Binding var message = ""
 
 
     // MARK: - View
@@ -30,7 +30,7 @@ final class PresentationsViewController: ViewController, Presentable {
         super.init()
         title = "\(Date())"
 
-        collectCancellables {
+        storeCancellables {
             Timer.publish(every: 0.5, on: .main, in: .default)
                 .autoconnect()
                 .sink { [weak self] in
@@ -70,7 +70,7 @@ static var modalCount = 0
         Task {
             let modal = UINavigationController(rootViewController: PresentationsViewController())
             do {
-                try await self.present(modal, animated: true)
+                try await self.presentModal(modal, animated: true)
                 //try await self.present(modal, animated: true)
                 // print("Modal completed with value: \(value)")
             } catch {
@@ -124,7 +124,7 @@ static var modalCount = 0
 
         Task {
             do {
-                let result = try await present(alert, animated: true)
+                let result = try await presentModal(alert, animated: true)
                 print("Username: \(username ?? "")")
                 switch result {
                 case true:

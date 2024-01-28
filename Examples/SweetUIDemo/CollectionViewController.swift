@@ -201,7 +201,7 @@ private extension CollectionViewController {
         fresh.appendSections(["Foo"])
         items = fresh
 
-        collectCancellables {
+        storeCancellables {
             Timer.publish(every: 2, on: .main, in: .default)
                 .autoconnect()
                 .receive(on: DispatchQueue.main)
