@@ -5,7 +5,7 @@ public extension UITabBarController {
 
     convenience init(
         delegate: UITabBarControllerDelegate? = DefaultTabBarControllerDelegate.shared,
-        @TabBarControllerChildrenBuilder childViewControllers builder: () -> [UIViewController])
+        @ArrayBuilder<UIViewController> childViewControllers builder: () -> [UIViewController])
     {
         self.init()
         self.delegate = delegate
@@ -48,16 +48,5 @@ public final class DefaultTabBarControllerDelegate: NSObject, UITabBarController
         tabBarController.view.setNeedsLayout()
         tabBarController.view.layoutIfNeeded()
         tabBarController.tabBar.isTranslucent = false
-    }
-}
-
-
-// MARK: - TabBarControllerChildrenBuilder
-
-@resultBuilder
-public struct TabBarControllerChildrenBuilder {
-
-    public static func buildBlock(_ components: UIViewController...) -> [UIViewController] {
-        return components
     }
 }

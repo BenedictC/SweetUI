@@ -198,7 +198,7 @@ private extension ZStack {
 
 public extension ZStack {
 
-    convenience init(alignment: Alignment = .fill,  @ArrangedSubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
+    convenience init(alignment: Alignment = .fill,  @SubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
         self.init(alignment: alignment)
 
         let arrangedSubviews = arrangedSubviewsBuilder()

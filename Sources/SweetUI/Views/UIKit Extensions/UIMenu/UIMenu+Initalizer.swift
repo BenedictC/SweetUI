@@ -3,6 +3,8 @@ import UIKit
 
 public extension UIMenu {
 
+    typealias MenuBuilder = ArrayBuilder<UIMenuElement>
+    
     convenience init(title: String = "", image: UIImage? = nil, identifier: UIMenu.Identifier? = nil, options: UIMenu.Options = [], @MenuBuilder childrenBuilder: () -> [UIMenuElement]) {
         let children = childrenBuilder()
         self.init(title: title, image: image, identifier: identifier, options: options, children: children)
@@ -22,10 +24,3 @@ public extension UIMenu {
 }
 
 
-@resultBuilder
-public struct MenuBuilder {
-
-    public static func buildBlock(_ components: UIMenuElement...) -> [UIMenuElement] {
-        components
-    }
-}

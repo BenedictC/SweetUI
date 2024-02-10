@@ -35,7 +35,7 @@ public struct OverlayAlignment {
 
     public let constraintsFactory: (_ base: UIView, _ overlay: UIView) -> [NSLayoutConstraint]
 
-    public init(@ConstraintsBuilder constraintsFactory: @escaping (_ base: UIView, _ overlay: UIView) -> [NSLayoutConstraint]) {
+    public init(@ArrayBuilder<NSLayoutConstraint> constraintsFactory: @escaping (_ base: UIView, _ overlay: UIView) -> [NSLayoutConstraint]) {
         self.constraintsFactory = constraintsFactory
     }
 }

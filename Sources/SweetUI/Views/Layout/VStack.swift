@@ -31,7 +31,7 @@ public final class VStack: UIStackView {
 
 public extension VStack {
 
-    convenience init(distribution: UIStackView.Distribution = .fill, alignment: UIStackView.Alignment = .fill, spacing: CGFloat = UIStackView.spacingUseDefault,  @ArrangedSubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
+    convenience init(distribution: UIStackView.Distribution = .fill, alignment: UIStackView.Alignment = .fill, spacing: CGFloat = UIStackView.spacingUseDefault,  @SubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
         let arrangedSubviews = arrangedSubviewsBuilder()
         self.init(distribution: distribution, alignment: alignment, spacing: spacing, arrangedSubviews: arrangedSubviews)
     }

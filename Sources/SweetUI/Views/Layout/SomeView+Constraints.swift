@@ -71,12 +71,12 @@ public extension SomeView {
 
     // With self
 
-    func constraints(@ConstraintsBuilder _ builder: (Self) -> [NSLayoutConstraint]) -> Self {
+    func constraints(@ArrayBuilder<NSLayoutConstraint> _ builder: (Self) -> [NSLayoutConstraint]) -> Self {
         var ignore: [NSLayoutConstraint]? = nil
         return constraints(storeIn: &ignore, builder)
     }
 
-    func constraints(storeIn: inout [NSLayoutConstraint]?, @ConstraintsBuilder _ builder: (Self) -> [NSLayoutConstraint]) -> Self {
+    func constraints(storeIn: inout [NSLayoutConstraint]?, @ArrayBuilder<NSLayoutConstraint> _ builder: (Self) -> [NSLayoutConstraint]) -> Self {
         let constraints = builder(self)
         NSLayoutConstraint.activate(constraints)
         return self
@@ -85,42 +85,15 @@ public extension SomeView {
 
     // Without self
 
-    func constraints(@ConstraintsBuilder _ builder: () -> [NSLayoutConstraint]) -> Self {
+    func constraints(@ArrayBuilder<NSLayoutConstraint> _ builder: () -> [NSLayoutConstraint]) -> Self {
         var ignore: [NSLayoutConstraint]? = nil
         return constraints(storeIn: &ignore, builder)
     }
 
-    func constraints(storeIn ref: inout [NSLayoutConstraint]?, @ConstraintsBuilder _ builder: () -> [NSLayoutConstraint]) -> Self {
+    func constraints(storeIn ref: inout [NSLayoutConstraint]?, @ArrayBuilder<NSLayoutConstraint> _ builder: () -> [NSLayoutConstraint]) -> Self {
         let constraints = builder()
         NSLayoutConstraint.activate(constraints)
         ref = constraints
         return self
     }
-}
-
-
-// MARK: - Constraints builder
-
-@resultBuilder
-public struct ConstraintsBuilder {
-
-    public static func buildBlock(_ components: NSLayoutConstraint?...) -> [NSLayoutConstraint] {
-        components.compactMap { $0 }
-    }
-
-//    public static func buildEither(first components: NSLayoutConstraint?) -> [NSLayoutConstraint] {
-//        [components].compactMap { $0 }
-//    }
-//
-//    public static func buildEither(second components: NSLayoutConstraint?) -> [NSLayoutConstraint] {
-//        [components].compactMap { $0 }
-//    }
-//
-//    public static func buildPartialBlock(first components: NSLayoutConstraint?) -> [NSLayoutConstraint] {
-//        [components].compactMap { $0 }
-//    }
-//
-//    public static func buildPartialBlock(accumulated: [NSLayoutConstraint], next: NSLayoutConstraint?) -> [NSLayoutConstraint] {
-//        accumulated + [next].compactMap { $0 }
-//    }
 }
