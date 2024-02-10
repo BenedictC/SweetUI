@@ -27,6 +27,28 @@ public extension SomeView where Self: UITextView {
         cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
         return self
     }
+
+    func text<S: Subject>(
+        _ subject: S,
+        options: UITextInputBindingOption,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    )
+    -> Self where S.Output == String, S.Failure == Never {
+        let cancellable = subscribeAndSendText(to: subject, options: options)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        return self
+    }
+
+    func attributedText<S: Subject>(
+        _ subject: S,
+        options: UITextInputBindingOption,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    )
+    -> Self where S.Output == NSAttributedString, S.Failure == Never {
+        let cancellable = subscribeAndSendAttributedText(to: subject, options: options)
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        return self
+    }
 }
 
 
@@ -51,6 +73,24 @@ public extension UITextView {
         self.init()
         _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
+
+    convenience init<S: Subject>(
+        text subject: S,
+        options: UITextInputBindingOption = [],
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    ) where S.Output == String, S.Failure == Never {
+        self.init()
+        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+    }
+
+    convenience init<S: Subject>(
+        text subject: S,
+        options: UITextInputBindingOption = [],
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    ) where S.Output == NSAttributedString, S.Failure == Never {
+        self.init()
+        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+    }
 }
 
 
@@ -63,6 +103,14 @@ private extension SomeView where Self: UITextView {
     }
 
     func subscribeAndSendAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
+        makeBindings(for: subject, options: options, keyPath: \.attributedText)
+    }
+
+    func subscribeAndSendText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == String, S.Failure == Never {
+       return makeBindings(for: subject, options: options, keyPath: \.text)
+    }
+
+    func subscribeAndSendAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == NSAttributedString, S.Failure == Never {
         makeBindings(for: subject, options: options, keyPath: \.attributedText)
     }
 
