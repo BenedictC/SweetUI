@@ -11,6 +11,21 @@ public extension UILayoutPriority {
 
 public extension NSLayoutConstraint {
 
+    func active(_ value: Bool) -> Self {
+        self.isActive = value
+        return self
+    }
+
+    func constant(_ value: CGFloat) -> Self {
+        self.constant = value
+        return self
+    }
+
+    func identifier(_ value: String?) -> Self {
+        self.identifier = value
+        return self
+    }
+
     func priority(_ value: UILayoutPriority) -> Self {
         self.priority = value
         return self
