@@ -149,3 +149,8 @@ public extension Binding {
         fatalError()
     }
 }
+
+
+// MARK: - Avoid collision with another framework
+
+public typealias UIBinding = Binding
