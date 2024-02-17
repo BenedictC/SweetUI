@@ -10,6 +10,11 @@ public protocol SomeObject: AnyObject {
 
 public extension SomeObject {
 
+    func set<T>(_ keyPath: ReferenceWritableKeyPath<Self, T>, to value: T) -> Self {
+        self[keyPath: keyPath] = value
+        return self
+    }
+
     func configure(using closure: (Self) -> Void) -> Self {
         closure(self)
         return self
