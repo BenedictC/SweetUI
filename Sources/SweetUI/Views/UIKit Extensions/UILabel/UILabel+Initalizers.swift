@@ -11,6 +11,11 @@ public extension UILabel {
         self.text = text
     }
 
+    convenience init(attributedText: NSAttributedString) {
+        self.init()
+        self.attributedText = attributedText
+    }
+
     convenience init(_ key: StaticString, tableName: StaticString? = nil, bundle: Bundle = .main, comment: StaticString) {
         self.init()
         let text = NSLocalizedString(
