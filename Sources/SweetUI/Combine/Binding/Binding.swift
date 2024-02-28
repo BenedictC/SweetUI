@@ -108,14 +108,15 @@ public extension Binding {
 
     /// Allows a Binding to be created from a  @Published property
     convenience init<Root: AnyObject, P: Publisher>(
-        for keyPaths: (publisher: KeyPath<Root, P>, accessor: ReferenceWritableKeyPath<Root, Output>), 
-        of object: Root
+        forPropertyOf object: Root,
+        at publisherKeyPath: KeyPath<Root, P>,
+        _ accessorKeyPath: ReferenceWritableKeyPath<Root, Output>
     ) where P.Output == Output, P.Failure == Never {
-        let subject = AnySubject(publishedBy: object, get: keyPaths.publisher, set: keyPaths.accessor)
+        let subject = AnySubject(publishedBy: object, get: publisherKeyPath, set: accessorKeyPath)
         self.init(
             subject: subject,
             cancellable: nil,
-            getter: { object[keyPath: keyPaths.accessor] }
+            getter: { object[keyPath: accessorKeyPath] }
         )
     }
 
@@ -139,14 +140,6 @@ public extension Binding {
 
     func asOneWayBinding() -> OneWayBinding<Output> {
         self
-    }
-}
-
-
-public extension Binding {
-
-    convenience init<Root>(proxyFor keyPath: ReferenceWritableKeyPath<Root, Output>) {
-        fatalError()
     }
 }
 
