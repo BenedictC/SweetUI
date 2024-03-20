@@ -45,7 +45,7 @@ public final class StorageBox<T> {
 }
 
 
-public extension SomeView {
+public extension SomeObject {
 
     func store(in box: StorageBox<Self>) -> Self {
         box.wrappedValue = self
