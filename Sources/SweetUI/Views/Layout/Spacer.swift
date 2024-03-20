@@ -8,6 +8,7 @@ public class Spacer: UIView {
     public init() {
         super.init(frame: .zero)
         self.translatesAutoresizingMaskIntoConstraints = false
+        self.isUserInteractionEnabled = false
         addLowestPriorityZeroHeightConstraint()
         addLowestPriorityZeroWidthConstraint()
     }
