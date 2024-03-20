@@ -7,3 +7,4 @@ DerivedData/
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 Package.resolved
 /.swiftpm/xcode/xcshareddata
+/Sources/SweetUI/Views/Skunkworks
