@@ -96,3 +96,12 @@ public extension UISegmentedControl {
 //    open func segmentIndex(identifiedBy actionIdentifier: UIAction.Identifier) -> Int
 //
 //}
+
+
+public extension UISegmentedControl {
+
+    func setTitleTextAttributes(_ attributes: [NSAttributedString.Key : Any]?, state: UIControl.State = .normal) -> Self {
+        self.setTitleTextAttributes(attributes, for: state)
+        return self
+    }    
+}
