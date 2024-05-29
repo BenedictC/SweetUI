@@ -9,6 +9,14 @@ internal final class AnySubject<Output, Failure: Error>: Subject {
     typealias Failure = Failure
 
 
+    // MARK: Properties
+
+    let receiveHandler: (AnySubscriber<Output, Failure>) -> Void
+    let sendValueHandler: (Output) -> Void
+    let sendCompletionHandler: (Subscribers.Completion<Failure>) -> Void
+    let sendSubscriptionHandler: (Subscription) -> Void
+
+
     // MARK: Instance life cycle
 
     init(
@@ -22,14 +30,6 @@ internal final class AnySubject<Output, Failure: Error>: Subject {
         self.sendCompletionHandler = sendCompletionHandler
         self.sendSubscriptionHandler = sendSubscriptionHandler
     }
-
-
-    // MARK: Properties
-
-    let receiveHandler: (AnySubscriber<Output, Failure>) -> Void
-    let sendValueHandler: (Output) -> Void
-    let sendCompletionHandler: (Subscribers.Completion<Failure>) -> Void
-    let sendSubscriptionHandler: (Subscription) -> Void
 
 
     // MARK: Subject
