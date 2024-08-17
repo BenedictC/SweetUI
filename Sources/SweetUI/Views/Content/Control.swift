@@ -10,12 +10,16 @@ public typealias Control = _Control & ViewBodyProvider
 
 // MARK: - Implementation
 
-open class _Control: UIControl, _TraitCollectionPublisherProviderImplementation {
+open class _Control: UIControl, TraitCollectionChangesProvider {
 
     // MARK: Properties
 
-    public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
+    private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
+    public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
 
+
+    // TODO: Add a publisher that emits state changes
+    
 
     // MARK: Instance life cycle
 
@@ -37,6 +41,6 @@ open class _Control: UIControl, _TraitCollectionPublisherProviderImplementation 
 
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)
-        _traitCollectionPublisherController.send(previous: previous, current: traitCollection)
+        traitCollectionChangesController.send(previous: previous, current: traitCollection)
     }
 }

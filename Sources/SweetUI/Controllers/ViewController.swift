@@ -31,7 +31,7 @@ public extension ViewControllerRequirements {
 }
 
 
-open class _ViewController: UIViewController, _TraitCollectionPublisherProviderImplementation {
+open class _ViewController: UIViewController, TraitCollectionChangesProvider {
 
     // MARK: Types
 
@@ -43,7 +43,8 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
 
     // MARK: Properties
 
-    public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
+    private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
+    public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
     @Published public private(set) var editMode: EditMode = .inactive
 
 
@@ -92,7 +93,7 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
 
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)
-        _traitCollectionPublisherController.send(previous: previous, current: traitCollection)
+        traitCollectionChangesController.send(previous: previous, current: traitCollection)
     }
 
     open override func viewDidAppear(_ animated: Bool) {

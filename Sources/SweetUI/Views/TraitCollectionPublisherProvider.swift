@@ -2,32 +2,21 @@ import UIKit
 import Combine
 
 
-public typealias PublishedTraitCollection = (previous: UITraitCollection?, current: UITraitCollection)
+public typealias TraitCollectionChanges = (previous: UITraitCollection?, current: UITraitCollection)
 
 
-public protocol TraitCollectionPublisherProvider: AnyObject {
+public protocol TraitCollectionChangesProvider: AnyObject {
 
-    var traitCollectionPublisher: AnyPublisher<PublishedTraitCollection, Never> { get }
+    var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { get }
 }
 
 
-// MARK: - Implementation
+// MARK: - TraitCollectionChangesController (Internal implementation helper)
 
-public protocol _TraitCollectionPublisherProviderImplementation: TraitCollectionPublisherProvider {
-    var _traitCollectionPublisherController: TraitCollectionPublisherController { get }
-}
+class TraitCollectionChangesController {
 
-
-public extension _TraitCollectionPublisherProviderImplementation {
-
-    var traitCollectionPublisher: AnyPublisher<PublishedTraitCollection, Never> { _traitCollectionPublisherController.traitCollectionPublisher }
-}
-
-
-public class TraitCollectionPublisherController {
-
-    private let subject: CurrentValueSubject<PublishedTraitCollection, Never>
-    var traitCollectionPublisher: AnyPublisher<PublishedTraitCollection, Never> { subject.eraseToAnyPublisher() }
+    private let subject: CurrentValueSubject<TraitCollectionChanges, Never>
+    var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { subject.eraseToAnyPublisher() }
 
     init(initialTraitCollection: UITraitCollection) {
         self.subject = CurrentValueSubject((nil, initialTraitCollection))
