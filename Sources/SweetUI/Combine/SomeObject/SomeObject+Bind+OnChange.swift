@@ -7,6 +7,7 @@ import Combine
 /// Take a keyPath and return Self
 public extension SomeObject {
 
+    @discardableResult
     func bind<P: Publisher>(
         _ destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>,
         to publisher: P, 
@@ -24,6 +25,7 @@ public extension SomeObject {
 
     // MARK: Promote non-optional publisher to optional
     
+    @discardableResult
     func bind<P: Publisher>(
         _ destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>,
         to publisher: P,
@@ -45,6 +47,7 @@ public extension SomeObject {
 /// Take a closure and return Self
 public extension SomeObject {
 
+    @discardableResult
     func onChange<V, P: Publisher>(
         of publisher: P,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,

@@ -79,44 +79,42 @@ public class DefaultCancellableStorageProvider: CancellableStorageProvider {
 }
 
 
-// MARK: - Handling multiple Cancellables
+// MARK: - SomeObject additions
 
 public extension SomeObject {
 
-    func storeCancellables(for key: AnyHashable = UUID(), cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared, @CancellablesBuilder using cancellableBuilder: () -> AnyCancellable) {
-        let cancellable = detectPotentialRetainCycle(of: self) { cancellableBuilder() }
+    func storeCancellable(_ cancellable: Cancellable, forKey key: AnyHashable = UUID(), cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) {
         let storageKey = CancellableStorageKey(object: self, identifier: key)
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: storageKey)
+        let anyCancellable = (cancellable as? AnyCancellable) ?? AnyCancellable(cancellable)
+        cancellableStorageProvider.storeCancellable(anyCancellable, forKey: storageKey)
     }
 
     @discardableResult
-    func removeCancellables(for key: AnyHashable, from cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) -> AnyCancellable? {
+    func removeCancellable(forKey key: AnyHashable, from cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) -> AnyCancellable? {
         let storageKey = CancellableStorageKey(object: self, identifier: key)
         return cancellableStorageProvider.removeCancellable(forKey: storageKey)
     }
 }
 
 
-@resultBuilder
-public struct CancellablesBuilder {
+// MARK: - Cancellable additions
 
-    public static func buildBlock(_ components: (any Cancellable)?...) -> AnyCancellable {
-        let cancellables = components.compactMap { $0 }
-        return AnyCancellable {
-            cancellables.forEach { $0.cancel() }
-        }
+public extension Cancellable {
+
+    func store(with object: SomeObject, forKey key: AnyHashable = UUID(), cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) {
+        object.storeCancellable(self, forKey: key, cancellableStorageProvider: cancellableStorageProvider)
     }
 }
 
 
-// MARK: - Cancellable
+public extension AnyCancellable {
 
-//extension Cancellable {
-//
-//    @_disfavoredOverload
-//    func store(in object: AnyObject, forKey key: AnyHashable = UUID(), using cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared) {
-//        let anyCancellable = self as? AnyCancellable ?? AnyCancellable(self)
-//        let storageKey = CancellableStorageKey(object: object, identifier: key)
-//        cancellableStorageProvider.storeCancellable(anyCancellable, forKey: storageKey)
-//    }
-//}
+    static func collect(@ArrayBuilder<Cancellable> builder: () -> [Cancellable]) -> Cancellable{
+        let cancellables = builder()
+        return AnyCancellable {
+            for cancellable in cancellables {
+                cancellable.cancel()
+            }
+        }
+    }
+}

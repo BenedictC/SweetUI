@@ -19,6 +19,22 @@ public extension SomeObject {
             self?[keyPath: keyPath] = value
         }
     }
+
+
+    // MARK: Optional variants
+
+    func assign<V, P: Publisher>(to keyPath: ReferenceWritableKeyPath<Self, V?>, from publisher: P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+        publisher.sink { [weak self] value in
+            self?[keyPath: keyPath] = value
+        }
+    }
+
+    func assign<V, P: Publisher>(to keyPath: ReferenceWritableKeyPath<Self, V?>, from publisherBuilder: () -> P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+        let publisher = publisherBuilder()
+        return publisher.sink { [weak self] value in
+            self?[keyPath: keyPath] = value
+        }
+    }
 }
 
 
