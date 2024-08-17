@@ -19,7 +19,7 @@ public protocol ViewControllerRequirements: _ViewControllerRequirements {
 
 public protocol _ViewControllerRequirements: _ViewController {
     var _rootView: UIView { get }
-    var barItems: BarItems { get }
+    func awake()
 }
 
 
@@ -27,16 +27,24 @@ public protocol _ViewControllerRequirements: _ViewController {
 
 public extension ViewControllerRequirements {
     var _rootView: UIView { rootView }
+    func awake() { }
 }
 
 
 open class _ViewController: UIViewController, _TraitCollectionPublisherProviderImplementation {
 
+    // MARK: Types
+
+    public enum EditMode {
+        case active, inactive
+        init(value: Bool) { self = value ? .active : .inactive }
+    }
+
+
     // MARK: Properties
 
     public private(set) lazy var _traitCollectionPublisherController = TraitCollectionPublisherController(initialTraitCollection: traitCollection)
-    public var isEditingPublisher: AnyPublisher<Bool, Never> { isEditingSubject.eraseToAnyPublisher() }
-    internal let isEditingSubject = CurrentValueSubject<Bool, Never>(false)
+    @Published public private(set) var editMode: EditMode = .inactive
 
 
     // MARK: Instance life cycle
@@ -48,13 +56,16 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         }
         // Initialize a barItems
         let advice = "Check that closures used to make the barItem that reference the view controller do so with weak references."
-        _ = detectPotentialRetainCycle(of: self, advice: advice) { owner.barItems }  // Force load barItems
-    }    
+        detectPotentialRetainCycle(of: self, advice: advice) { owner.awake() }  // Force load barItems
+    }
 
     @available(*, unavailable)
     public required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
+
+
+    // MARK: View life cycle
 
     @available(*, deprecated, message: "Use viewDidLoad to configure the view.")
     override public func loadView() {
@@ -79,12 +90,14 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
         }
     }
 
-
-    // MARK: View life cycle
-
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)
         _traitCollectionPublisherController.send(previous: previous, current: traitCollection)
+    }
+
+    open override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        NotificationCenter.default.post(name: .viewDidAppear, object: self, userInfo: nil)
     }
 
     open override func viewDidDisappear(_ animated: Bool) {
@@ -95,6 +108,6 @@ open class _ViewController: UIViewController, _TraitCollectionPublisherProviderI
 
     open override func setEditing(_ value: Bool, animated: Bool) {
         super.setEditing(value, animated: animated)
-        isEditingSubject.send(value)
+        editMode = EditMode(value: value)
     }
 }
