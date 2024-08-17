@@ -24,6 +24,7 @@ public protocol _ViewBodyProvider: UIView { // Core functionality avoiding assoc
 
     static func initializeInstance(of view: _ViewBodyProvider)
     static func initializeBody(of view: _ViewBodyProvider)
+    func awake()
 }
 
 
@@ -73,7 +74,12 @@ public extension _ViewBodyProvider {
             detectPotentialRetainCycle(of: self) {
                 Self.initializeInstance(of: self)
                 Self.initializeBody(of: self)
+                self.awake()
             }
         }
+    }
+
+    func awake() {
+
     }
 }

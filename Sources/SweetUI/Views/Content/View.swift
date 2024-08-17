@@ -22,6 +22,7 @@ open class _View: UIView, _TraitCollectionPublisherProviderImplementation {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
         bodyProvider.initializeBodyHosting()
+        bodyProvider.awake()
     }
 
     @available(*, unavailable)
