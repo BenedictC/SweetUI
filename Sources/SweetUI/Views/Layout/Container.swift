@@ -3,10 +3,10 @@ import UIKit
 
 public class Container<Content>: UIView {
 
-    public let content: Content
+    public internal(set) var content: Content!
 
     
-    init(content: Content) {
+    init(content: Content!) {
         self.content = content
         super.init(frame: .zero)
     }
