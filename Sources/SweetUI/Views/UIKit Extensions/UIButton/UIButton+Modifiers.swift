@@ -69,6 +69,7 @@ public extension UIButton {
 
     func menu(_ value: UIMenu?) -> Self {
         self.menu = value
+        self.showsMenuAsPrimaryAction = true
         return self
     }
 }
