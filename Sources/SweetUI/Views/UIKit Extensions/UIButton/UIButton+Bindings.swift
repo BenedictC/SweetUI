@@ -2,7 +2,39 @@ import UIKit
 import Combine
 
 
-// MARK: - CancellablesStorageProvider
+// MARK: - Title
+
+public extension SomeView where Self: UIButton {
+
+    func title<P: Publisher>(
+        _ publisher: P,
+        for state: UIControl.State = .normal,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    )
+    -> Self where P.Output == String, P.Failure == Never {
+        let cancellable = publisher.sink { [weak self] title in
+            self?.setTitle(title, for: state)            
+        }
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        return self
+    }
+
+    func title<P: Publisher>(
+        _ publisher: P,
+        for state: UIControl.State = .normal,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    )
+    -> Self where P.Output == String?, P.Failure == Never {
+        let cancellable = publisher.sink { [weak self] title in
+            self?.setTitle(title, for: state)
+        }
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        return self
+    }
+}
+
+
+// MARK: - Selected
 
 public extension SomeView where Self: UIButton {
 
