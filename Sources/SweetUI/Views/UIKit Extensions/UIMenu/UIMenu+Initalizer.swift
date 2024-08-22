@@ -22,5 +22,3 @@ public extension UIMenu {
         self.init(title: title, subtitle: subtitle, image: image, identifier: identifier, options: options, preferredElementSize: preferredElementSize, children: children)
     }
 }
-
-
