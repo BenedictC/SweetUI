@@ -33,13 +33,20 @@ public final class Binding<Output>: OneWayBinding<Output>, Subject {
         super.init(publisher: subject, cancellable: nil, get: getter, options: options)
     }
 
-    public  init(wrappedValue: Output, setterGuard: @escaping (Output, (Output) -> Void) -> Void = { $1($0) }, options: Options = .default) {
+    public  init(
+        wrappedValue: Output,
+        willSet: @escaping (_ current:  Output, _ proposed: Output) -> Output = { $1 },
+        didSet:  @escaping (_ oldValue: Output, _ newValue: Output) -> Void = { _, _ in },
+        options: Options = .default) {
         let subject = CurrentValueSubject<Output, Never>(wrappedValue)
         self.subject = AnySubject(
             receiveHandler: { subject.receive(subscriber: $0) },
             sendValueHandler: { proposed in
-                let setter = { subject.send($0) }
-                setterGuard(proposed, setter)
+                let current = subject.value
+                let newValue = willSet(current, proposed)
+                subject.send(newValue)
+                let oldValue = current
+                didSet(oldValue, newValue)
             },
             sendCompletionHandler: { _ in /* Published can't complete */ },
             sendSubscriptionHandler: { _ in /* ??? */ }
