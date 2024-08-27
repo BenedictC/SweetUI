@@ -4,7 +4,7 @@ import Combine
 
 // MARK: - BindingOptions+PublisherDecorator
 
-public extension OneWayBinding.Options {
+internal extension OneWayBinding.Options {
 
     func decorate<P: Publisher>(_ publisher: P) -> AnyPublisher<Output, Never> where P.Output == Output, P.Failure == Never {
         var result = publisher.eraseToAnyPublisher()

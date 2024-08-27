@@ -1,8 +1,7 @@
 import Combine
 
 
-/// OneWayBinding is a readonly publisher that also provides a getter
-@propertyWrapper
+/// OneWayBinding is a readonly publisher that also provides a getter. It is the base class for the Bindings class cluster.
 @dynamicMemberLookup
 public class OneWayBinding<Output>: Publisher {
 
@@ -55,6 +54,13 @@ public class OneWayBinding<Output>: Publisher {
     }
 
 
+    // MARK: Publisher
+
+    public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Output == S.Input {
+        publisher.subscribe(subscriber)
+    }
+
+
     // MARK: Subscript
 
     public subscript<T>(dynamicMember keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
@@ -66,13 +72,6 @@ public class OneWayBinding<Output>: Publisher {
 
         let rootGetter = getter
         return OneWayBinding<T>(publisher: self.map { $0[keyPath: keyPath] }, cancellable: nil, get: { rootGetter()[keyPath: keyPath] })
-    }
-
-
-    // MARK: Publisher
-
-    public func receive<S>(subscriber: S) where S : Subscriber, Never == S.Failure, Output == S.Input {
-        publisher.subscribe(subscriber)
     }
 }
 
