@@ -23,8 +23,6 @@
     
 - ViewControllers
     - Search?
-    - BarItems
-        - Can we customise behaviour for specific properties? This would allow updates to be animated. 
     
 - Combine     
     - publisher for UIControl.state?
