@@ -614,12 +614,12 @@ public struct Cell <ItemValue: Hashable> {
     private let cellFactory: (UICollectionView, IndexPath, ItemValue) -> UICollectionViewCell
     private let cellRegistrar: (UICollectionView) -> Void
     // This only exists to support compositional layout. It's a mildly ugly hack
-    private let makeLayoutItemHandler: (NSCollectionLayoutSize) -> NSCollectionLayoutItem
+    private let makeLayoutItemHandler: (_ size: NSCollectionLayoutSize, _ environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem
 
     internal init(
         cellFactory: @escaping (UICollectionView, IndexPath, ItemValue) -> UICollectionViewCell,
         cellRegistrar: @escaping (UICollectionView) -> Void,
-        makeLayoutItemHandler: @escaping (NSCollectionLayoutSize) -> NSCollectionLayoutItem)
+        makeLayoutItemHandler: @escaping (NSCollectionLayoutSize, NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem)
     {
         self.cellFactory = cellFactory
         self.cellRegistrar = cellRegistrar
@@ -630,8 +630,8 @@ public struct Cell <ItemValue: Hashable> {
         cellRegistrar(collectionView)
     }
 
-    func makeLayoutItem(defaultSize: NSCollectionLayoutSize) -> NSCollectionLayoutItem {
-        makeLayoutItemHandler(defaultSize)
+    func makeLayoutItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
+        makeLayoutItemHandler(defaultSize, environment)
     }
 
     func makeCell(with value: ItemValue, for collectionView: UICollectionView, at indexPath: IndexPath) -> UICollectionViewCell {

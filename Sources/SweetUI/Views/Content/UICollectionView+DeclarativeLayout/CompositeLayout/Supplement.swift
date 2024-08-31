@@ -26,7 +26,7 @@ public struct SupplementedGroup<ItemValue: Hashable>: Group {
         self.supplements = supplements
     }
 
-    public func allCells() -> [Cell<ItemValue>] {
+    public func cellsForRegistration() -> [Cell<ItemValue>] {
         fatalError()
     }
 
@@ -60,8 +60,8 @@ public struct SupplementedGroupItem<ItemValue: Hashable>: GroupItem {
             .reduce([], +)
     }
 
-    public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize) -> NSCollectionLayoutItem {
-        let initial = cell.makeLayoutItem(defaultSize: defaultSize)
+    public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
+        let initial = cell.makeLayoutItem(defaultSize: defaultSize, environment: environment)
         let supplementaryItems = supplements.map { $0.makeLayoutSupplementaryItem(defaultSize: defaultSize) }
         let revised = NSCollectionLayoutItem(layoutSize: initial.layoutSize, supplementaryItems: supplementaryItems)
         revised.edgeSpacing = initial.edgeSpacing
@@ -69,8 +69,8 @@ public struct SupplementedGroupItem<ItemValue: Hashable>: GroupItem {
         return revised
     }
 
-    public func allCells() -> [Cell<ItemValue>] {
-        return cell.allCells()
+    public func cellsForRegistration() -> [Cell<ItemValue>] {
+        return cell.cellsForRegistration()
     }
 }
 

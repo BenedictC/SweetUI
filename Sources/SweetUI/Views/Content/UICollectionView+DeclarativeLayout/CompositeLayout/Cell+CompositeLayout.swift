@@ -12,7 +12,7 @@ extension Cell: GroupItem {
         cellRegistrar: @escaping (UICollectionView) -> Void,
         cellFactory: @escaping (UICollectionView, IndexPath, ItemValue) -> UICollectionViewCell)
     {
-        let makeLayoutItemHandler = { (defaultSize: NSCollectionLayoutSize) -> NSCollectionLayoutItem in
+        let makeLayoutItemHandler = { (defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem in
             let size = size ?? defaultSize
             let item = NSCollectionLayoutItem(layoutSize: size, supplementaryItems: [])
             if let edgeSpacing {
@@ -31,9 +31,9 @@ extension Cell: GroupItem {
         []
     }
 
-    public func allCells() -> [Cell<ItemValue>] { [self] }
+    public func cellsForRegistration() -> [Cell<ItemValue>] { [self] }
 
-    public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize) -> NSCollectionLayoutItem {
-        self.makeLayoutItem(defaultSize: defaultSize)
+    public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
+        self.makeLayoutItem(defaultSize: defaultSize, environment: environment)
     }
 }

@@ -51,9 +51,9 @@ public struct Section<SectionIdentifier: Hashable, ItemValue: Hashable> {
         }
     }
 
-    func registerCellsAndAllSupplementaryViews(in collectionView: UICollectionView) {
+    func registerCellsAndSupplementaryViews(in collectionView: UICollectionView) {
         // Register the cells
-        for cell in components.group.allCells() {
+        for cell in components.group.cellsForRegistration() {
             cell.registerCellClass(in: collectionView)
         }
         // Section supplementary

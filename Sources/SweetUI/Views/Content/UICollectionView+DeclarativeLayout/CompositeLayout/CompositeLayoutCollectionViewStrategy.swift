@@ -26,7 +26,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         // Sections
         for section in components.sections {
             section.registerDecorationViews(in: layout)
-            section.registerCellsAndAllSupplementaryViews(in: collectionView)
+            section.registerCellsAndSupplementaryViews(in: collectionView)
         }
     }
 
