@@ -4,7 +4,7 @@ import UIKit
 public extension UIViewController {
 
     func presentModal<Modal: UIViewController>(_ modal: Modal, animated: Bool) async throws {
-        let wrapper = AsyncPresentationWrapperViewController(wrapped: modal)
+        let wrapper = _AsyncPresentationContainerViewController(content: modal)
         wrapper.modalPresentationStyle = modal.modalPresentationStyle
         wrapper.modalTransitionStyle = modal.modalTransitionStyle
         _ = try await presentModal(wrapper, animated: animated)
@@ -16,33 +16,38 @@ public extension UIViewController {
         animated: Bool,
         configuration: @MainActor (UISheetPresentationController) -> Void = { UIViewController.defaultSheetPresentationConfiguration($0) })
     async throws {
-        let wrapper: any Presentable = AsyncPresentationWrapperViewController(wrapped: modal)
-        _ = try await presentSheet(wrapper, animated: animated, configuration: configuration)
+        let modal: any Presentable = _AsyncPresentationContainerViewController(content: modal)
+        _ = try await presentSheet(modal, animated: animated, configuration: configuration)
     }
 
     func presentPopover<Modal: UIViewController>(
-        _ modal: Modal,
+        _ content: Modal,
         animated: Bool,
         configuration: @MainActor (UIPopoverPresentationController) -> Void)
     async throws {
-        let wrapper = AsyncPresentationWrapperViewController(wrapped: modal)
-        _ = try await presentPopover(wrapper, animated: animated, configuration: configuration)
+        let modal = _AsyncPresentationContainerViewController(content: content)
+        _ = try await presentPopover(modal, animated: animated, configuration: configuration)
     }
 }
 
 
-private final class AsyncPresentationWrapperViewController<T: UIViewController>: ViewController, Presentable {
+public final class _AsyncPresentationContainerViewController<T: UIViewController>: ViewController, Presentable {
 
-    let wrapped: T
+    let content: T
 
-    init(wrapped: T) {
-        self.wrapped = wrapped
+    init(content: T) {
+        self.content = content
         super.init()
-        wrapped.willMove(toParent: self)
+        content.willMove(toParent: self)
         _ = self.view // Force load the view
-        addChild(wrapped)
+        addChild(content)
     }
 
-    private(set) lazy var rootView = wrapped.view!
+    public private(set) lazy var rootView = content.view!
         .ignoresSafeArea(edges: .all)
+}
+
+
+public extension _SomeViewController {
+    typealias ModalPresentationContainer = _AsyncPresentationContainerViewController<Self>
 }
