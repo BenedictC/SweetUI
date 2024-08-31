@@ -141,3 +141,98 @@ public extension UIBarButtonItem {
         self.init(customView: customView)
     }
 }
+
+
+// MARK: - isSelected
+
+@available(iOS 15, *)
+public extension UIBarButtonItem {
+
+    // MARK: Types
+
+    private class BarButtonItemIsSelectedToggler: NSObject {
+
+        static let shared = BarButtonItemIsSelectedToggler()
+
+        private let subjectsByItem = NSMapTable<UIBarButtonItem, AnySubject<Bool, Never>>.weakToStrongObjects()
+
+        func registerSubject<S: Subject>(_ subject: S, for item: UIBarButtonItem) where S.Output == Bool, S.Failure == Never {
+            item.target = self
+            item.action = #selector(BarButtonItemIsSelectedToggler.toggle(_:))
+            let anySubject = AnySubject(subject)
+            subjectsByItem.setObject(anySubject, forKey: item)
+        }
+
+        private func subject(for item: UIBarButtonItem) -> AnySubject<Bool, Never>? {
+            subjectsByItem.object(forKey: item)
+        }
+
+        @objc
+        func toggle(_ sender: AnyObject) {
+            guard let barButtonItem = sender as? UIBarButtonItem else { return }
+            let subject = subject(for: barButtonItem)
+            subject?.send(!barButtonItem.isSelected)
+        }
+    }
+
+    // # image:
+
+    convenience init<S: Subject>(
+        title: String? = nil,
+        image: UIImage,
+        style: UIBarButtonItem.Style = .plain,
+        selected subject: S,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    ) where S.Output == Bool, S.Failure == Never {
+        self.init(title: title, image: image, primaryAction: nil)
+        self.style = style
+
+        BarButtonItemIsSelectedToggler.shared.registerSubject(subject, for: self)
+        let cancellable = subject.sink { [weak self] newValue in
+            self?.isSelected = newValue
+        }
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+    }
+
+
+    // # imageName:
+
+    convenience init<S: Subject>(
+        title: String? = nil,
+        imageName: String,
+        style: UIBarButtonItem.Style = .plain,
+        selected subject: S,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    ) where S.Output == Bool, S.Failure == Never {
+        let image = UIImage(named: imageName)
+        self.init(title: title, image: image, primaryAction: nil)
+        self.style = style
+
+        BarButtonItemIsSelectedToggler.shared.registerSubject(subject, for: self)
+        let cancellable = subject.sink { [weak self] newValue in
+            self?.isSelected = newValue
+        }
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+    }
+
+
+    // # systemImageName:
+
+    convenience init<S: Subject>(
+        title: String? = nil,
+        systemImageName: String,
+        style: UIBarButtonItem.Style = .plain,
+        selected subject: S,
+        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    ) where S.Output == Bool, S.Failure == Never {
+        let image = UIImage(systemName: systemImageName)
+        self.init(title: title, image: image, primaryAction: nil)
+        self.style = style
+
+        BarButtonItemIsSelectedToggler.shared.registerSubject(subject, for: self)
+        let cancellable = subject.sink { [weak self] newValue in
+            self?.isSelected = newValue
+        }
+        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+    }
+}
