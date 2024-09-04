@@ -60,6 +60,10 @@ public extension ViewBodyProvider {
     static func initializeBody(of host: _ViewBodyProvider) {
         let body = host._body
         let container = host.bodyContainer
+        let isSelfHosted = body == container
+        if isSelfHosted {
+            return
+        }
         container.addAndFill(subview: body, overrideEdgesIgnoringSafeArea: nil)
     }
 }
