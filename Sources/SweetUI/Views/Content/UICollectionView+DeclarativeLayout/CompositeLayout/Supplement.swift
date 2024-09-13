@@ -198,7 +198,7 @@ public extension Supplement {
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
-        body bodyFactory: @escaping (AnyPublisher<ItemValue, Never>) -> UIView)
+        body bodyFactory: @escaping (OneWayBinding<ItemValue>) -> UIView)
     {
         let viewClass = ValuePublishingCell<ItemValue>.self
         let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value

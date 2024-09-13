@@ -208,7 +208,7 @@ public extension BoundarySupplementaryComponentFactory {
         absoluteOffset: CGPoint = .zero,
         extendsBoundary: Bool? = nil,
         pinToVisibleBounds: Bool? = nil,
-        body bodyFactory: @escaping (AnyPublisher<SectionIdentifier, Never>) -> UIView)
+        body bodyFactory: @escaping (OneWayBinding<SectionIdentifier>) -> UIView)
     {
         let viewClass = ValuePublishingCell<SectionIdentifier>.self
         let elementKind = Self.elementKind
@@ -673,7 +673,7 @@ public extension Cell {
 
 public extension Cell {
 
-    typealias BodyFactory = (AnyPublisher<ItemValue, Never>) -> UIView
+    typealias BodyFactory = (OneWayBinding<ItemValue>) -> UIView
 
     init(
         size: NSCollectionLayoutSize? = nil,
@@ -706,23 +706,22 @@ public extension Cell {
 
 internal final class ValuePublishingCell<ItemValue>: UICollectionViewCell, ReusableViewConfigurable {
 
-    var bodyFactory: ((AnyPublisher<ItemValue, Never>) -> UIView)?
+    var bodyFactory: ((OneWayBinding<ItemValue>) -> UIView)?
     
-    private var subject: CurrentValueSubject<ItemValue, Never>?
+    private var binding: Binding<ItemValue>?
 
     func configure(using value: ItemValue) {
-        if let subject {
+        if let binding {
             // Use already created
-            subject.send(value)
+            binding.send(value)
             return
         }
         // Create subject and body
-        self.subject = CurrentValueSubject(value)
-        guard let bodyFactory, let subject else {
+        self.binding = Binding(wrappedValue: value)
+        guard let bodyFactory, let binding else {
             preconditionFailure("Misconfigured cell")
         }
-        let publisher = subject.eraseToAnyPublisher()
-        let body = bodyFactory(publisher)
+        let body = bodyFactory(binding)
 
         self.contentView.addSubview(body)
         body.translatesAutoresizingMaskIntoConstraints = false
