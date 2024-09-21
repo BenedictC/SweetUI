@@ -9,7 +9,7 @@ import Combine
 public extension SomeView where Self: UITextField {
 
     func text<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption = [],
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == String?, S.Failure == Never {
@@ -19,7 +19,7 @@ public extension SomeView where Self: UITextField {
     }
 
     func attributedText<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption = [],
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
@@ -29,7 +29,7 @@ public extension SomeView where Self: UITextField {
     }
 
     func text<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption = [],
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == String, S.Failure == Never {
@@ -39,7 +39,7 @@ public extension SomeView where Self: UITextField {
     }
 
     func attributedText<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption = [],
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) -> Self where S.Output == NSAttributedString, S.Failure == Never {
@@ -60,7 +60,7 @@ public extension UITextField {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == String?, S.Failure == Never {
         self.init()
-        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.text(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
@@ -69,7 +69,7 @@ public extension UITextField {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == NSAttributedString?, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.attributedText(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
@@ -78,7 +78,7 @@ public extension UITextField {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == String, S.Failure == Never {
         self.init()
-        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.text(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
@@ -87,14 +87,14 @@ public extension UITextField {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == NSAttributedString, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.attributedText(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 }
 
 
 // MARK: - Core binding creation
 
-public extension SomeView where Self: UITextField {
+private extension SomeView where Self: UITextField {
 
     func bindText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == String?, S.Failure == Never {
         return makeBindings(for: subject, keyPath: \.text, options: options)

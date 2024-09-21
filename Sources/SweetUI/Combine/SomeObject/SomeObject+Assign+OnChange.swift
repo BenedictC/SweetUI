@@ -8,9 +8,9 @@ import Combine
 public extension SomeObject {
 
     @discardableResult
-    func bind<P: Publisher>(
-        _ destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>,
-        to publisher: P, 
+    func assign<P: Publisher>(
+        to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>,
+        from publisher: P,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         cancellableIdentifier: AnyHashable = UUID()
     ) -> Self where P.Failure == Never {
@@ -26,9 +26,9 @@ public extension SomeObject {
     // MARK: Promote non-optional publisher to optional
     
     @discardableResult
-    func bind<P: Publisher>(
-        _ destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>,
-        to publisher: P,
+    func assign<P: Publisher>(
+        to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>,
+        from publisher: P,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         cancellableIdentifier: AnyHashable = UUID()
     ) -> Self where P.Failure == Never {

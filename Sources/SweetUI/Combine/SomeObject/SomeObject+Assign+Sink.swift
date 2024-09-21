@@ -5,15 +5,21 @@ import Combine
 // MARK: - Assign
 
 /// Take a keyPath and return a AnyCancellable
-public extension SomeObject {
+private extension SomeObject {
 
-    func assign<V, P: Publisher>(to keyPath: ReferenceWritableKeyPath<Self, V>, from publisher: P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+    func assign<V, P: Publisher>(
+        to keyPath: ReferenceWritableKeyPath<Self, V>,
+        from publisher: P
+    ) -> AnyCancellable where P.Output == V, P.Failure == Never {
         publisher.sink { [weak self] value in
             self?[keyPath: keyPath] = value
         }
     }
 
-    func assign<V, P: Publisher>(to keyPath: ReferenceWritableKeyPath<Self, V>, from publisherBuilder: () -> P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+    func assign<V, P: Publisher>(
+        to keyPath: ReferenceWritableKeyPath<Self, V>,
+        from publisherBuilder: () -> P
+    ) -> AnyCancellable where P.Output == V, P.Failure == Never {
         let publisher = publisherBuilder()
         return publisher.sink { [weak self] value in
             self?[keyPath: keyPath] = value
@@ -23,13 +29,19 @@ public extension SomeObject {
 
     // MARK: Optional variants
 
-    func assign<V, P: Publisher>(to keyPath: ReferenceWritableKeyPath<Self, V?>, from publisher: P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+    func assign<V, P: Publisher>(
+        to keyPath: ReferenceWritableKeyPath<Self, V?>,
+        from publisher: P
+    ) -> AnyCancellable where P.Output == V, P.Failure == Never {
         publisher.sink { [weak self] value in
             self?[keyPath: keyPath] = value
         }
     }
 
-    func assign<V, P: Publisher>(to keyPath: ReferenceWritableKeyPath<Self, V?>, from publisherBuilder: () -> P) -> AnyCancellable where P.Output == V, P.Failure == Never {
+    func assign<V, P: Publisher>(
+        to keyPath: ReferenceWritableKeyPath<Self, V?>,
+        from publisherBuilder: () -> P
+    ) -> AnyCancellable where P.Output == V, P.Failure == Never {
         let publisher = publisherBuilder()
         return publisher.sink { [weak self] value in
             self?[keyPath: keyPath] = value

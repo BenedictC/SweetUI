@@ -74,14 +74,14 @@ open class AlertController<T>: UIAlertController, Presentable {
                 addTextField { textField in
                     textField.placeholder = subject.placeholder
                     configuration(textField)
-                    _ = textField.attributedText(subject)
+                    _ = textField.attributedText(bindsTo: subject)
                 }
 
             case .text(let subject, let configuration):
                 addTextField { textField in
                     textField.placeholder = subject.placeholder
                     configuration(textField)
-                    _ = textField.text(subject)
+                    _ = textField.text(bindsTo: subject)
                 }
             }
         }

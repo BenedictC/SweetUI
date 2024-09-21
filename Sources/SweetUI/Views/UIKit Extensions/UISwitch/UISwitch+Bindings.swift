@@ -11,7 +11,7 @@ public extension UISwitch {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == Bool, S.Failure == Never {
         self.init()
-        _ = self.isOn(subject, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.isOn(bindsTo: subject, cancellableStorageProvider: cancellableStorageProvider)
     }
 }
 
@@ -19,7 +19,7 @@ public extension UISwitch {
 public extension SomeView where Self: UISwitch {
 
     func isOn<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared)
     -> Self where S.Output == Bool, S.Failure == Never {
         let cancellable = subscribeAndSendIsOn(to: subject)

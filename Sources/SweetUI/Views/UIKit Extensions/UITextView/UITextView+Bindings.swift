@@ -7,7 +7,7 @@ import Combine
 public extension SomeView where Self: UITextView {
 
     func text<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     )
@@ -18,7 +18,7 @@ public extension SomeView where Self: UITextView {
     }
 
     func attributedText<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     )
@@ -29,7 +29,7 @@ public extension SomeView where Self: UITextView {
     }
 
     func text<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     )
@@ -40,7 +40,7 @@ public extension SomeView where Self: UITextView {
     }
 
     func attributedText<S: Subject>(
-        _ subject: S,
+        bindsTo subject: S,
         options: UITextInputBindingOption,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     )
@@ -62,7 +62,7 @@ public extension UITextView {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == String?, S.Failure == Never {
         self.init()
-        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.text(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
@@ -71,7 +71,7 @@ public extension UITextView {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == NSAttributedString?, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.attributedText(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
@@ -80,7 +80,7 @@ public extension UITextView {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == String, S.Failure == Never {
         self.init()
-        _ = self.text(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.text(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 
     convenience init<S: Subject>(
@@ -89,7 +89,7 @@ public extension UITextView {
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     ) where S.Output == NSAttributedString, S.Failure == Never {
         self.init()
-        _ = self.attributedText(subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.attributedText(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
     }
 }
 

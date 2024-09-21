@@ -39,7 +39,7 @@ public extension SomeView where Self: UIButton {
 public extension SomeView where Self: UIButton {
 
     func selected<S: Subject>(
-        to subject: S,
+        bindsTo subject: S,
         cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
     )
     -> Self where S.Output == Bool, S.Failure == Never {
