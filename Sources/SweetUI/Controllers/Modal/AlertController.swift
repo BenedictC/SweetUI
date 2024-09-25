@@ -91,6 +91,15 @@ open class AlertController<T>: UIAlertController, Presentable {
 
     // MARK: View life cycle
 
+    open override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        // Fix for incorrect tint color
+        if let tintColor = view.tintColor {
+            view.tintColor = tintColor.withAlphaComponent(0.9)
+            view.tintColor = tintColor
+        }
+    }
+
     open override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         didDisappear()
