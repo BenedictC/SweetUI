@@ -9,6 +9,7 @@ public enum PresentableError: Error {
 }
 
 
+@MainActor
 public protocol Presentable: UIViewController {
 
     associatedtype Success = Void
@@ -89,7 +90,6 @@ internal extension UIViewController {
 
 // MARK: - Presentable default
 
-@MainActor
 public extension Presentable {
 
     func resultForCancelledPresentation() -> Result<Success, Error> {
