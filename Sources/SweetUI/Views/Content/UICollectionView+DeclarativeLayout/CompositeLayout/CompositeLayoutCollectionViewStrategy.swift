@@ -7,14 +7,12 @@ import UIKit
 @available(iOS 14, *)
 public typealias CompositeLayout = CompositeLayoutCollectionViewStrategy
 
+
 @available(iOS 14, *)
-public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewStrategy {
+public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewLayoutStrategy {
 
     let components: CompositeLayoutComponents<SectionIdentifier, ItemValue>
 
-    public init(@CompositeLayoutComponentsBuilder<SectionIdentifier, ItemValue> components: () -> CompositeLayoutComponents<SectionIdentifier, ItemValue>) {
-        self.components = components()
-    }
 
     public func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout) {
         // Layout
@@ -54,7 +52,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
             configuration: configuration)
     }
 
-    private func section(for sectionIdentifier: SectionIdentifier) -> Section<SectionIdentifier, ItemValue> {
+    private func section(for sectionIdentifier: SectionIdentifier) -> CompositeSection<SectionIdentifier, ItemValue> {
         // Check sections with predicates for a match
         if let section = components.sections.first(where: { $0.predicate?(sectionIdentifier) ?? false }) {
             return section
@@ -101,76 +99,33 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
     }
 }
 
+
 @available(iOS 14, *)
 public struct CompositeLayoutComponents<SectionIdentifier: Hashable, ItemValue: Hashable> {
 
     let header: LayoutHeader?
-    let sections: [Section<SectionIdentifier, ItemValue>]
+    let sections: [CompositeSection<SectionIdentifier, ItemValue>]
     let footer: LayoutFooter?
     let background: LayoutBackground?
 }
 
+
+// MARK: - Take 2
+
 @available(iOS 14, *)
-@resultBuilder
-public struct CompositeLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
+public extension CompositeLayoutCollectionViewStrategy {
 
-    public static func buildBlock(
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: nil, sections: sections, footer: nil, background: nil)
-    }
-
-    public static func buildBlock(
-        _ header: LayoutHeader,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: header, sections: sections, footer: nil, background: nil)
-    }
-
-    public static func buildBlock(
-        _ footer: LayoutFooter,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: nil, sections: sections, footer: footer, background: nil)
-    }
-
-    public static func buildBlock(
-        _ header: LayoutHeader,
-        _ footer: LayoutFooter,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: header, sections: sections, footer: footer, background: nil)
-    }
-
-    public static func buildBlock(
-        _ background: LayoutBackground,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: nil, sections: sections, footer: nil, background: background)
-    }
-
-    public static func buildBlock(
-        _ header: LayoutHeader,
-        _ background: LayoutBackground,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: header, sections: sections, footer: nil, background: background)
-    }
-
-    public static func buildBlock(
-        _ footer: LayoutFooter,
-        _ background: LayoutBackground,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: nil, sections: sections, footer: footer, background: background)
-    }
-
-    public static func buildBlock(
-        _ header: LayoutHeader,
-        _ footer: LayoutFooter,
-        _ background: LayoutBackground,
-        _ sections: Section<SectionIdentifier, ItemValue>...)
-    -> CompositeLayoutComponents<SectionIdentifier, ItemValue> {
-        return CompositeLayoutComponents(header: header, sections: sections, footer: footer, background: background)
+    init(
+        background: LayoutBackground? = nil,
+        header: LayoutHeader? = nil,
+        footer: LayoutFooter? = nil,
+        @ArrayBuilder<Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>> sections: () -> [Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>]
+    ) {
+        self.components = CompositeLayoutComponents(
+            header: header,
+            sections: sections().map { $0.content },
+            footer: footer,
+            background: background
+        )
     }
 }

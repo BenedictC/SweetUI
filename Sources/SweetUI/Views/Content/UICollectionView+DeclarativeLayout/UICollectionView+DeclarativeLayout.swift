@@ -24,7 +24,7 @@ extension UICollectionView {
 
 public extension UICollectionView {
 
-    convenience init<SectionIdentifier: Hashable, ItemValue: Hashable, Strategy: CollectionViewStrategy>(
+    convenience init<SectionIdentifier: Hashable, ItemValue: Hashable, Strategy: CollectionViewLayoutStrategy>(
         dataSource dataSourceStorage:  CollectionViewDataSource<SectionIdentifier, ItemValue>.Storage,
         delegate: UICollectionViewDelegate? = nil,
         layout strategyBuilder: () -> Strategy

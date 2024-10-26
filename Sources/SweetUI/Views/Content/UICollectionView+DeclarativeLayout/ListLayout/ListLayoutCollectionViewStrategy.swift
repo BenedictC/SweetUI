@@ -8,7 +8,7 @@ import UIKit
 public typealias ListLayout = ListLayoutCollectionViewStrategy
 
 @available(iOS 14, *)
-public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewStrategy {
+public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewLayoutStrategy {
 
     let appearance: UICollectionLayoutListConfiguration.Appearance
     let components: ListLayoutComponents<SectionIdentifier, ItemValue>
@@ -17,12 +17,12 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
             .frame(height: 0)
     }
 
-    public init(
+    internal init(
         appearance: UICollectionLayoutListConfiguration.Appearance,
-        @ListLayoutComponentsBuilder<SectionIdentifier, ItemValue> components: () -> ListLayoutComponents<SectionIdentifier, ItemValue>)
-    {
+        components: ListLayoutComponents<SectionIdentifier, ItemValue>
+    ) {
         self.appearance = appearance
-        self.components = components()
+        self.components = components
     }
 
     public func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout) {
@@ -36,13 +36,14 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 
     public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionViewLayout {
         var listConfiguration = UICollectionLayoutListConfiguration(appearance: appearance)
-        if let firstHeader = components.sections[0].components.header {
-            switch firstHeader {
-            case .collapsable:
-                listConfiguration.headerMode = .firstItemInSection
-            case .standard:
-                listConfiguration.headerMode = .supplementary
-            }
+        let firstHeader = components.sections[0].components.header
+        switch firstHeader {
+        case .collapsable:
+            listConfiguration.headerMode = .firstItemInSection
+        case .standard:
+            listConfiguration.headerMode = .supplementary
+        case .none:
+            break
         }
         let hasFooter = components.sections.contains { $0.components.footer != nil }
         if hasFooter {
@@ -117,97 +118,7 @@ public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemValue: Hasha
     let configuration: LayoutConfiguration?
     let header: LayoutHeader?
     let footer: LayoutFooter?
-    let sections: [AnyListSection<SectionIdentifier, ItemValue>]
-}
-
-
-@available(iOS 14, *)
-@resultBuilder
-public struct ListLayoutComponentsBuilder<SectionIdentifier: Hashable, ItemValue: Hashable> {
-
-    public static func buildBlock<Section: ListSection>(
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: nil, header: nil, footer: nil, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ header: LayoutHeader,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: nil, header: header, footer: nil, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ footer: LayoutFooter,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: nil, header: nil, footer: footer, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ header: LayoutHeader,
-        _ footer: LayoutFooter,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: nil, header: header, footer: footer, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ configuration: LayoutConfiguration,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: configuration, header: nil, footer: nil, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ configuration: LayoutConfiguration,
-        _ header: LayoutHeader,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: configuration, header: header, footer: nil, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ configuration: LayoutConfiguration,
-        _ footer: LayoutFooter,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: configuration, header: nil, footer: footer, sections: erasedSections)
-    }
-
-    public static func buildBlock<Section: ListSection>(
-        _ configuration: LayoutConfiguration,
-        _ header: LayoutHeader,
-        _ footer: LayoutFooter,
-        _ sections: Section...
-    ) -> ListLayoutComponents<SectionIdentifier, ItemValue>
-    where Section.SectionIdentifier == SectionIdentifier, Section.ItemValue == ItemValue
-    {
-        let erasedSections = sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.predicate, components: $0.components) }
-        return ListLayoutComponents(configuration: configuration, header: header, footer: footer, sections: erasedSections)
-    }
+    let sections: [AnyListSection<SectionIdentifier, ItemValue>]    
 }
 
 
@@ -264,7 +175,7 @@ public struct AnyListSection<SectionIdentifier: Hashable, ItemValue: Hashable>: 
             header.registerSupplementaryView(in: collectionView)
         case .collapsable(let cell):
             cell.registerCellClass(in: collectionView)
-        case nil:
+        case .none:
             break
         }
         components.footer?.registerSupplementaryView(in: collectionView)
@@ -288,12 +199,13 @@ public struct AnyListSection<SectionIdentifier: Hashable, ItemValue: Hashable>: 
 }
 
 public struct ListSectionComponents<SectionIdentifier: Hashable, ItemValue: Hashable> {
-    enum HeaderKind {
+    public enum HeaderKind {
+        case none
         case standard(Header<SectionIdentifier>)
         case collapsable(Cell<ItemValue>)
     }
     let cell: Cell<ItemValue>
-    let header: HeaderKind?
+    let header: HeaderKind
     let footer: Footer<SectionIdentifier>?
 }
 
@@ -302,44 +214,10 @@ public struct ListSectionComponents<SectionIdentifier: Hashable, ItemValue: Hash
 
 public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
 
-    // MARK: Types
-
-    @resultBuilder
-    public struct ComponentsBuilder {
-
-        public static func buildBlock(_ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
-            return ListSectionComponents(cell: cell, header: nil, footer: nil)
-        }
-
-        public static func buildBlock(_ cell: Cell<ItemValue>, _ footer: Footer<SectionIdentifier>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
-            return ListSectionComponents(cell: cell, header: nil, footer: footer)
-        }
-    }
-
-
     // MARK: Properties
 
     public let predicate: ((SectionIdentifier) -> Bool)?
     public let components: ListSectionComponents<SectionIdentifier, ItemValue>
-
-
-    // MARK: Instance life cycle
-
-    public init(
-        identifier: SectionIdentifier,
-        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
-    {
-        let predicate = { $0 == identifier }
-        self.init(predicate: predicate, components: components)
-    }
-
-    public init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
-        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
-    {
-        self.predicate = predicate
-        self.components = components()
-    }
 }
 
 
@@ -347,44 +225,10 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: H
 
 public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
 
-    // MARK: Types
-
-    @resultBuilder
-    public struct ComponentsBuilder {
-
-        public static func buildBlock(_ header: Header<SectionIdentifier>, _ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
-            return ListSectionComponents(cell: cell, header: .standard(header), footer: nil)
-        }
-
-        public static func buildBlock(_ header: Header<SectionIdentifier>, _ cell: Cell<ItemValue>, _ footer: Footer<SectionIdentifier>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
-            return ListSectionComponents(cell: cell, header: .standard(header), footer: footer)
-        }
-    }
-
-
     // MARK: Properties
 
     public let predicate: ((SectionIdentifier) -> Bool)?
     public let components: ListSectionComponents<SectionIdentifier, ItemValue>
-
-
-    // MARK: Instance life cycle
-
-    public init(
-        identifier: SectionIdentifier,
-        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
-    {
-        let predicate = { $0 == identifier }
-        self.init(predicate: predicate, components: components)
-    }
-
-    public init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
-        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
-    {
-        self.predicate = predicate
-        self.components = components()
-    }
 }
 
 
@@ -392,44 +236,10 @@ public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemVal
 
 public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
 
-    // MARK: Types
-
-    @resultBuilder
-    public struct ComponentsBuilder {
-
-        public static func buildBlock(_ header: Cell<ItemValue>, _ cell: Cell<ItemValue>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
-            return ListSectionComponents(cell: cell, header: .collapsable(header), footer: nil)
-        }
-
-        public static func buildBlock(_ header: Cell<ItemValue>, _ cell: Cell<ItemValue>, _ footer: Footer<SectionIdentifier>) -> ListSectionComponents<SectionIdentifier, ItemValue> {
-            return ListSectionComponents(cell: cell, header: .collapsable(header), footer: footer)
-        }
-    }
-
-
     // MARK: Properties
 
     public let predicate: ((SectionIdentifier) -> Bool)?
     public let components: ListSectionComponents<SectionIdentifier, ItemValue>
-
-
-    // MARK: Instance life cycle
-
-    public init(
-        identifier: SectionIdentifier,
-        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
-    {
-        let predicate = { $0 == identifier }
-        self.init(predicate: predicate, components: components)
-    }
-
-    public init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
-        @ComponentsBuilder components: () -> ListSectionComponents<SectionIdentifier, ItemValue>)
-    {
-        self.predicate = predicate
-        self.components = components()
-    }
 }
 
 

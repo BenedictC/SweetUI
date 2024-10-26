@@ -3,9 +3,9 @@ import UIKit
 import Combine
 
 
-// MARK: - CollectionViewStrategy
+// MARK: - CollectionViewLayoutStrategy
 
-public protocol CollectionViewStrategy {
+public protocol CollectionViewLayoutStrategy {
 
     associatedtype SectionIdentifier: Hashable
     associatedtype ItemValue: Hashable

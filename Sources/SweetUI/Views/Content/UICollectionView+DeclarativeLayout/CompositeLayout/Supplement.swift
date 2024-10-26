@@ -2,27 +2,17 @@ import UIKit
 import Combine
 
 
-// MARK: - SupplementaryComponent
-
-public extension Group {
-
-    func supplementaries(@SupplementaryComponentsBuilder<ItemValue> _ supplementsBuilder: () -> [Supplement<ItemValue>]) -> SupplementedGroup<ItemValue> {
-        let supplements = supplementsBuilder()
-        return SupplementedGroup(
-            group: self,
-            supplements: supplements
-        )
-    }
-}
-
-
 public struct SupplementedGroup<ItemValue: Hashable>: Group {
 
     let group: AnyGroup<ItemValue>
     let supplements: [Supplement<ItemValue>]
 
     init<G: Group>(group: G, supplements: [Supplement<ItemValue>]) where G.ItemValue == ItemValue {
-        self.group = AnyGroup(group: group)
+        self.group = AnyGroup(
+            allCellsHandler: group.cellsForRegistration,
+            itemSupplementaryTemplatesHandler: group.itemSupplementaryTemplates,
+            makeLayoutGroupHandler: group.makeLayoutGroup
+        )
         self.supplements = supplements
     }
 
@@ -36,15 +26,6 @@ public struct SupplementedGroup<ItemValue: Hashable>: Group {
 
     public func makeLayoutGroup(environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup {
         fatalError()
-    }
-}
-
-
-public extension Cell {
-
-    func supplementaries(@SupplementaryComponentsBuilder<ItemValue> _ componentsBuilder: () -> [Supplement<ItemValue>]) -> SupplementedGroupItem<ItemValue> {
-        let supplements = componentsBuilder()
-        return SupplementedGroupItem(cell: self, supplements: supplements)
     }
 }
 
@@ -71,16 +52,6 @@ public struct SupplementedGroupItem<ItemValue: Hashable>: GroupItem {
 
     public func cellsForRegistration() -> [Cell<ItemValue>] {
         return cell.cellsForRegistration()
-    }
-}
-
-
-
-@resultBuilder
-public struct SupplementaryComponentsBuilder<ItemValue: Hashable> {
-
-    public static func buildBlock(_ components: Supplement<ItemValue>...) -> [Supplement<ItemValue>] {
-     return components
     }
 }
 
