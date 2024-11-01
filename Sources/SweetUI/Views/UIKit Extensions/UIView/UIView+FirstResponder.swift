@@ -5,25 +5,23 @@ public typealias FirstResponderState<T: Hashable> = Binding<T>
 
 
 public extension UIView {
-
-    func firstResponder<F: Hashable>(
+    
+    func becomesFirstResponder<F: Hashable>(
         when publisher: FirstResponderState<F>,
-        isEqualTo targetValue: F,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        isEqualTo targetValue: F
     ) -> Self {
-        return firstResponder(when: publisher.map { $0 == targetValue })
+        return becomesFirstResponder(when: publisher.map { $0 == targetValue })
     }
-
-    func firstResponder<P: Publisher>(
-        when publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+    
+    func becomesFirstResponder<P: Publisher>(
+        when publisher: P
     ) -> Self where P.Output == Bool, P.Failure == Never {
-        let cancellable = publisher.sink { [weak self] isFirstResponder in
+        publisher.sink { [weak self] isFirstResponder in
             guard isFirstResponder,
-            let self else { return }
+                  let self else { return }
             self.becomeFirstResponder()
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)
         return self
     }
 }

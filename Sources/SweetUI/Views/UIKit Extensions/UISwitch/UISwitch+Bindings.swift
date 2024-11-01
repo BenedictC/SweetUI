@@ -5,25 +5,24 @@ import Combine
 // MARK: - CancellablesStorageProvider
 
 public extension UISwitch {
-
+    
     convenience init<S: Subject>(
-        isOn subject: S,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        isOn subject: S
     ) where S.Output == Bool, S.Failure == Never {
         self.init()
-        _ = self.isOn(bindsTo: subject, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.isOn(bindsTo: subject)
     }
 }
 
 
+@MainActor
 public extension SomeView where Self: UISwitch {
-
+    
     func isOn<S: Subject>(
-        bindsTo subject: S,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared)
+        bindsTo subject: S
+    )
     -> Self where S.Output == Bool, S.Failure == Never {
-        let cancellable = subscribeAndSendIsOn(to: subject)
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        subscribeAndSendIsOn(to: subject).store(in: .current)
         return self
     }
 }
@@ -32,7 +31,7 @@ public extension SomeView where Self: UISwitch {
 // MARK: - Core
 
 private extension UISwitch {
-
+    
     func subscribeAndSendIsOn<S: Subject>(to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
         return SwitchIsOnToggler.shared.bindIsOn(of: self, to: subject)
     }
@@ -43,11 +42,11 @@ private extension UISwitch {
 
 // This class could be generalised but it would get even more complicated.
 private class SwitchIsOnToggler: NSObject {
-
+    
     static let shared = SwitchIsOnToggler()
-
+    
     private var subjectsByButton = NSMapTable<UISwitch, NSMutableSet>.weakToStrongObjects()
-
+    
     private func subjects(for button: UISwitch) -> NSMutableSet {
         if let existing = subjectsByButton.object(forKey: button) {
             return existing
@@ -56,12 +55,12 @@ private class SwitchIsOnToggler: NSObject {
         subjectsByButton.setObject(subjects, forKey: button)
         return subjects
     }
-
+    
     func bindIsOn<S: Subject>(of button: UISwitch, to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
         let anySubject = subject.eraseToAnySubject()
         // Store the subject
         subjects(for: button).add(anySubject)
-
+        
         // Add the target
         button.addTarget(self, action: #selector(toggle(_:)), for: .primaryActionTriggered)
         let sendCancellable = AnyCancellable {
@@ -72,18 +71,18 @@ private class SwitchIsOnToggler: NSObject {
                 button.isOn = $0
             }
         }
-
+        
         return AnyCancellable {
             [sendCancellable, receiveCancellable].forEach { $0.cancel() }
         }
     }
-
+    
     @objc
     private func toggle(_ sender: Any?) {
         guard let button = sender as? UISwitch else {
             return
         }
-
+        
         let newValue = button.isOn
         subjects(for: button)
             .compactMap { $0 as? AnySubject<Bool, Never> }

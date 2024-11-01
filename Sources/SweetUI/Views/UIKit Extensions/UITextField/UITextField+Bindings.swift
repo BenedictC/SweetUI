@@ -6,45 +6,38 @@ import Combine
 
 // MARK: - Init
 
+@MainActor
 public extension SomeView where Self: UITextField {
-
+    
     func text<S: Subject>(
         bindsTo subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) -> Self where S.Output == String?, S.Failure == Never {
-        let cancellable = bindText(to: subject, options: options)
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        bindText(to: subject, options: options).store(in: .current)
         return self
     }
-
+    
     func attributedText<S: Subject>(
         bindsTo subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
-        let cancellable = bindAttributedText(to: subject, options: options)
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        bindAttributedText(to: subject, options: options).store(in: .current)
         return self
     }
-
+    
     func text<S: Subject>(
         bindsTo subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) -> Self where S.Output == String, S.Failure == Never {
-        let cancellable = bindText(to: subject, options: options)
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        bindText(to: subject, options: options).store(in: .current)
         return self
     }
-
+    
     func attributedText<S: Subject>(
         bindsTo subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) -> Self where S.Output == NSAttributedString, S.Failure == Never {
-        let cancellable = bindAttributedText(to: subject, options: options)
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        bindAttributedText(to: subject, options: options).store(in: .current)
         return self
     }
 }
@@ -53,41 +46,37 @@ public extension SomeView where Self: UITextField {
 // MARK: - Initializers
 
 public extension UITextField {
-
+    
     convenience init<S: Subject>(
         text subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) where S.Output == String?, S.Failure == Never {
         self.init()
-        _ = self.text(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.text(bindsTo: subject, options: options)
     }
-
+    
     convenience init<S: Subject>(
         text subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) where S.Output == NSAttributedString?, S.Failure == Never {
         self.init()
-        _ = self.attributedText(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.attributedText(bindsTo: subject, options: options)
     }
-
+    
     convenience init<S: Subject>(
         text subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) where S.Output == String, S.Failure == Never {
         self.init()
-        _ = self.text(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.text(bindsTo: subject, options: options)
     }
-
+    
     convenience init<S: Subject>(
         text subject: S,
-        options: UITextInputBindingOption = [],
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        options: UITextInputBindingOption = []
     ) where S.Output == NSAttributedString, S.Failure == Never {
         self.init()
-        _ = self.attributedText(bindsTo: subject, options: options, cancellableStorageProvider: cancellableStorageProvider)
+        _ = self.attributedText(bindsTo: subject, options: options)
     }
 }
 
@@ -95,19 +84,19 @@ public extension UITextField {
 // MARK: - Core binding creation
 
 private extension SomeView where Self: UITextField {
-
+    
     func bindText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == String?, S.Failure == Never {
         return makeBindings(for: subject, keyPath: \.text, options: options)
     }
-
+    
     func bindAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
         makeBindings(for: subject, keyPath: \.attributedText, options: options)
     }
-
+    
     func bindText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == String, S.Failure == Never {
         return makeBindings(for: subject, keyPath: \.text, defaultValue: "", options: options)
     }
-
+    
     func bindAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString, S.Failure == Never {
         makeBindings(for: subject, keyPath: \.attributedText, defaultValue: NSAttributedString(string: ""), options: options)
     }
@@ -115,7 +104,7 @@ private extension SomeView where Self: UITextField {
 
 
 private extension SomeView where Self: UITextField {
-
+    
     func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>, options: UITextInputBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
@@ -137,7 +126,7 @@ private extension SomeView where Self: UITextField {
             receive.cancel()
         }
     }
-
+    
     func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V?>, defaultValue: V, options: UITextInputBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath] ?? defaultValue)

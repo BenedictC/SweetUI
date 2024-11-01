@@ -7,33 +7,46 @@ public typealias View = _View & ViewBodyProvider
 
 // MARK: - Implementation
 
-open class _View: UIView, TraitCollectionChangesProvider {
-
+open class _View: UIView, TraitCollectionChangesProvider, CancellableStorageProvider {
+    
+    // MARK: Types
+    
+    public enum CancellableKey {
+        public static let awake = CancellableStorageKey.unique()
+        public static let loadBody = CancellableStorageKey.unique()
+    }
+    
+    
     // MARK: Properties
-
+    
     private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
-
-
+    public let cancellableStorage = CancellableStorage()
+    
+    
     // MARK: Instance life cycle
-
+    
     public init() {
         super.init(frame: .zero)
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.initializeBodyHosting()
-        bodyProvider.awake()
+        collectCancellables(with: CancellableKey.loadBody) {
+            bodyProvider.initializeBodyHosting()
+        }
+        collectCancellables(with: CancellableKey.awake) {
+            bodyProvider.awake()
+        }
     }
-
+    
     @available(*, unavailable)
     required public init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
-
-
+    
+    
     // MARK: View events
-
+    
     open override func traitCollectionDidChange(_ previous: UITraitCollection?) {
         super.traitCollectionDidChange(previous)
         traitCollectionChangesController.send(previous: previous, current: traitCollection)

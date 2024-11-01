@@ -7,35 +7,43 @@ internal extension NSNotification.Name {
 }
 
 
-public extension UIView {
+private struct UncheckedCompletionHandler: @unchecked Sendable {
+    let handler: (Notification) -> Void
+}
 
+
+@MainActor
+public extension SomeView {
+    
     func onDidAppear(
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
         handler: @escaping (Self) -> Void
     ) -> Self {
-        let observer = NotificationCenter.default.addObserver(
-            forName: .viewDidAppear,
-            object: nil,
-            queue: nil) { [weak self] notification in
-                guard
-                    let sendingViewController = notification.object as? UIViewController,
-                    let self else { return }
-
-                var next = self.next
-                while let current = next {
-                    guard let containingVC = current as? UIViewController else {
-                        next = current.next
-                        continue
-                    }
-                    let isMatch = containingVC == sendingViewController
-                    guard isMatch else { return }
-                    handler(self)
-                    return
+        
+        let completionHandler = UncheckedCompletionHandler { [weak self] notification in
+            guard
+                let sendingViewController = notification.object as? UIViewController,
+                let self else { return }
+            
+            var next = self.next
+            while let current = next {
+                guard let containingVC = current as? UIViewController else {
+                    next = current.next
+                    continue
                 }
+                let isMatch = containingVC == sendingViewController
+                guard isMatch else { return }
+                handler(self)
                 // No view controller found in the responder chain. Very strange.
+                return
             }
-        let cancellable = AnyCancellable { NotificationCenter.default.removeObserver(observer) }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        }
+        
+        let observer = NotificationCenter.default.addObserver(forName: .viewDidAppear, object: nil, queue: nil) {
+            completionHandler.handler($0)
+        }
+        
+        AnyCancellable { NotificationCenter.default.removeObserver(observer) }
+            .store(in: .current)
         return self
     }
 }

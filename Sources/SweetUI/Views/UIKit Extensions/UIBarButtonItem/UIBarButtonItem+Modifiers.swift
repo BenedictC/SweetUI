@@ -20,23 +20,22 @@ import Combine
 
 
 public extension UIBarButtonItem {
-
+    
     func width(_ value: CGFloat) -> Self {
         width = value
         return self
     }
-
+    
     func width<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == CGFloat, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.width = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)
         return self
     }
 }
@@ -44,25 +43,24 @@ public extension UIBarButtonItem {
 
 @available(iOS 14, *)
 public extension UIBarButtonItem {
-
+    
     func menu(_ value: UIMenu?) -> Self {
         menu = value
         title = menu?.title
         image = menu?.image
         return self
     }
-
+    
     func menu<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == UIMenu?, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             _ = self?.menu(value)
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)
         return self
     }
 }
@@ -70,23 +68,22 @@ public extension UIBarButtonItem {
 
 @available(iOS 15, *)
 public extension UIBarButtonItem {
-
+    
     func selected(_ value: Bool) -> Self {
         isSelected = value
         return self
     }
-
+    
     func selected<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == Bool, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.isSelected = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)        
         return self
     }
 }
@@ -94,23 +91,22 @@ public extension UIBarButtonItem {
 
 @available(iOS 16, *)
 public extension UIBarButtonItem {
-
+    
     func hidden(_ value: Bool) -> Self {
         isHidden = value
         return self
     }
-
+    
     func hidden<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == Bool, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.isHidden = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)        
         return self
     }
 }

@@ -5,60 +5,56 @@ import Combine
 // MARK: - Text
 
 public extension UILabel {
-
+    
     convenience init<P: Publisher>(
-        text publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        text publisher: P
     ) where P.Output == String, P.Failure == Never {
         self.init()
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.text, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.text = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
     }
-
+    
     convenience init<P: Publisher>(
-        text publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        text publisher: P
     ) where P.Output == String?, P.Failure == Never {
         self.init()
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.text, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.text = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
     }
-
+    
     func text<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == String, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.text, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.text = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
         return self
     }
-
+    
     func text<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == String?, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.text, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.text = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
         return self
     }
 }
@@ -67,60 +63,57 @@ public extension UILabel {
 // MARK: - AttributedText
 
 public extension UILabel {
-
+    
     convenience init<P: Publisher>(
-        attributedText publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        attributedText publisher: P
     ) where P.Output == NSAttributedString, P.Failure == Never {
         self.init()
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.attributedText, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.attributedText = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
     }
-
+    
     convenience init<P: Publisher>(
-        attributedText publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        attributedText publisher: P
     ) where P.Output == NSAttributedString?, P.Failure == Never {
         self.init()
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         //_ = self.assign(to: \.attributedText, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.attributedText = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
     }
-
+    
     func attributedText<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == NSAttributedString, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.attributedText, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.attributedText = value
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: CancellableStorage.current)
         return self
     }
-
+    
+    
     func attributedText<P: Publisher>(
-        _ publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared
+        _ publisher: P
     ) -> Self where P.Output == NSAttributedString?, P.Failure == Never {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // _ = self.assign(to: \.attributedText, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
-        let cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             self?.attributedText = value
-        }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        }        
+        .store(in: CancellableStorage.current)
         return self
     }
 }

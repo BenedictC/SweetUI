@@ -4,17 +4,17 @@ import Combine
 
 // MARK: - Constraints creation
 
+@MainActor
 public extension SomeView {
-
+    
     func constraints<P: Publisher>(
         for publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
-        animatorFactory: @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) },
+        animatorFactory: @MainActor @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) },
         constraintsFactory: @escaping (Self, P.Output, [NSLayoutConstraint]) -> [NSLayoutConstraint]
     ) -> Self where P.Failure == Never {
         var activeConstraints = [NSLayoutConstraint]()
-
-        let cancellable = publisher.sink { [weak self] value in
+        
+        publisher.sink { [weak self] value in
             guard let self else { return }
             let staleConstraints = activeConstraints
             let freshConstraints = constraintsFactory(self, value, staleConstraints)
@@ -28,8 +28,7 @@ public extension SomeView {
                 animator.startAnimation()
             }
         }
-
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)
         return self
     }
 }
@@ -37,50 +36,48 @@ public extension SomeView {
 
 // MARK: - Constraint updating
 
+@MainActor
 public extension SomeView {
-
+    
     func constraint<P: Publisher>(
         active publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
-        animatorFactory: @escaping () -> UIViewPropertyAnimator = UIViewPropertyAnimator.defaultAnimator,
+        animatorFactory: @MainActor @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator.makeDefaultAnimator() },
         constraint constraintBuilder: (Self) -> NSLayoutConstraint
     )
     -> Self where P.Output == Bool, P.Failure == Never {
         let constraint = constraintBuilder(self)
-
-        let cancellable = publisher.sink { isActive in
+        
+        publisher.sink { isActive in
             guard constraint.isActive != isActive else { return }
             constraint.isActive = isActive
-
+            
             let container = UIView.viewToLayout(for: constraint)
             guard let container, container.window != nil else { return }
             let animator = animatorFactory()
             animator.addAnimations { container.layoutIfNeeded() }
             animator.startAnimation()
         }
-
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)
         return self
     }
-
+    
     func constraint<P: Publisher>(
         constant publisher: P,
-        cancellableStorageProvider: CancellableStorageProvider = DefaultCancellableStorageProvider.shared,
-        animatorFactory: @escaping () -> UIViewPropertyAnimator = UIViewPropertyAnimator.defaultAnimator,
+        animatorFactory: @MainActor @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator.makeDefaultAnimator() },
         constraint constraintBuilder: (Self) -> NSLayoutConstraint
     ) -> Self where P.Output == CGFloat, P.Failure == Never {
         let constraint = constraintBuilder(self)
-        let cancellable = publisher.sink { constant in
+        publisher.sink { constant in
             guard constraint.constant != constant else { return }
             constraint.constant = constant
-
+            
             let container = UIView.viewToLayout(for: constraint)
             guard let container, container.window != nil else { return }
             let animator = animatorFactory()
             animator.addAnimations { container.layoutIfNeeded() }
             animator.startAnimation()
         }
-        cancellableStorageProvider.storeCancellable(cancellable, forKey: .unique(for: self))
+        .store(in: .current)
         return self
     }
 }
@@ -89,7 +86,7 @@ public extension SomeView {
 // MARK: - Helpers
 
 private extension UIView {
-
+    
     var ancestors: [UIView] {
         var ancestors = [UIView]()
         var ancestor = superview
@@ -99,11 +96,11 @@ private extension UIView {
         }
         return ancestors
     }
-
+    
     static func viewToLayout(for constraints: [NSLayoutConstraint]) -> UIView? {
         var candidates = Set(constraints.compactMap { viewToLayout(for: $0) })
         guard !candidates.isEmpty else { return nil }
-
+        
         var bestFit = candidates.removeFirst()
         var ancestorsOfBestFit = bestFit.ancestors
         while let contender = candidates.first{
@@ -138,7 +135,7 @@ private extension UIView {
         }
         return bestFit
     }
-
+    
     static func viewToLayout(for constraint: NSLayoutConstraint) -> UIView? {
         let firstView = constraint.firstItem as? UIView
         let secondView = constraint.secondItem as? UIView
@@ -146,11 +143,11 @@ private extension UIView {
         let result = primary?.nearestCommonAncestor(with: secondView)
         return result
     }
-
+    
     func nearestCommonAncestor(with other: UIView?) -> UIView? {
         guard let other = other else { return superview }
         if self == other { return superview }
-
+        
         let ancestors = self.ancestors
         let otherAncestors = other.ancestors
         let viewDepth = min(ancestors.count, otherAncestors.count)
@@ -176,8 +173,9 @@ private extension UIView {
 
 
 public extension UIViewPropertyAnimator {
-
-    static func defaultAnimator() -> UIViewPropertyAnimator {
+    
+    @MainActor
+    static func makeDefaultAnimator() -> UIViewPropertyAnimator {
         UIViewPropertyAnimator(duration: 0.3, curve: .easeOut)
     }
 }
