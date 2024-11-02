@@ -8,3 +8,8 @@ public extension Publisher where Output == Bool {
             .eraseToAnyPublisher()
     }
 }
+
+
+public prefix func !<P: Publisher>(publisher: P) -> AnyPublisher<Bool, P.Failure> where P.Output == Bool {
+    publisher.inverted
+}
