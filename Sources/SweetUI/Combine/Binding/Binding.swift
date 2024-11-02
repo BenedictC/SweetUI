@@ -1,40 +1,42 @@
 import Combine
 
+public typealias BindingOneWay<T> = Binding<T>.OneWay
+
 
 @propertyWrapper
 @dynamicMemberLookup
 public final class Binding<Output>: _MutableBinding<Output>, Subject {
-
+    
     // MARK: Properties
-
+    
     public var projectedValue: Binding<Output> { self }
     
     override public var wrappedValue: Output {
         get { getter() }
         set { subject.send(newValue) }
     }
-
-
+    
+    
     // MARK: Subject
-
+    
     public func send(_ value: Output) {
         subject.send(value)
     }
-
+    
     public func send(completion: Subscribers.Completion<Never>) {
         subject.send(completion: completion)
     }
-
+    
     public func send(subscription: Subscription) {
         subject.send(subscription: subscription)
     }
-
-
+    
+    
     // MARK: Subscripts
-
+    
     public subscript<T>(binding keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
         if keyPath == \.self, let existing = self as? Binding<T> { return existing }
-
+        
         let rootSubject = subject
         let rootGetter = getter
         let setter = { (newValue: T) in
@@ -56,7 +58,7 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
         )
         return binding
     }
-
+    
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
         return self[binding: keyPath]
     }
