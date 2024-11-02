@@ -16,8 +16,8 @@ public protocol ViewControllerRequirements: _ViewControllerRequirements {
     var rootView: View { get }
 }
 
-
-public protocol _ViewControllerRequirements: _ViewController {
+@MainActor
+public protocol _ViewControllerRequirements: _ViewController, CancellableStorageProvider {
     var _rootView: UIView { get }
     func awake()
 }
@@ -31,7 +31,7 @@ public extension ViewControllerRequirements {
 }
 
 
-open class _ViewController: UIViewController, TraitCollectionChangesProvider, CancellableStorageProvider {
+open class _ViewController: UIViewController, TraitCollectionChangesProvider {
     
     // MARK: Types
     
@@ -51,18 +51,19 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider, Ca
     private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
     @Published public private(set) var editMode: EditMode = .inactive
-    public let cancellableStorage = CancellableStorage()
-    
+    fileprivate lazy var defaultCancellableStorage = CancellableStorage()
+
     
     // MARK: Instance life cycle
     
     public init() {
         super.init(nibName: nil, bundle: nil)
+
         guard let owner = self as? _ViewControllerRequirements else {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
         // Initialize a barItems
-        collectCancellables(with: CancellableKey.awake) {
+        owner.collectCancellables(with: CancellableKey.awake) {
             let advice = "Check that closures used to make the barItem that reference the view controller do so with weak references."
             detectPotentialRetainCycle(of: self, advice: advice) { owner.awake() }  // Force load barItems
         }
@@ -78,7 +79,10 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider, Ca
     
     @available(*, deprecated, message: "Use viewDidLoad to configure the view.")
     override public func loadView() {
-        collectCancellables(with: CancellableKey.loadView) {
+        guard let owner = self as? _ViewControllerRequirements else {
+            preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
+        }
+        owner.collectCancellables(with: CancellableKey.loadView) {
             guard let owner = self as? _ViewControllerRequirements else {
                 preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
             }
@@ -121,4 +125,11 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider, Ca
         super.setEditing(value, animated: animated)
         editMode = EditMode(value: value)
     }
+}
+
+
+// MARK: - CancellableStorageProvider default implementation
+
+extension CancellableStorageProvider where Self: ViewController {
+    public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
 }

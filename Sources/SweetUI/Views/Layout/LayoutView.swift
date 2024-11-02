@@ -39,6 +39,7 @@ open class _LayoutView: UIView {
 
     public fileprivate(set) var _content: Any!
     public fileprivate(set) var _configuration: Any!
+    fileprivate lazy var defaultCancellableStorage = CancellableStorage()
 
 
     // MARK: Instance life cycle
@@ -51,7 +52,12 @@ open class _LayoutView: UIView {
         guard let host = self as? _ViewBodyProvider else {
             preconditionFailure("_LayoutView subclasses must conform to _ViewBodyProvider")
         }
-        host.initializeBodyHosting() // TODO: This should be called in the designated init
+        host.collectCancellables(with: View.CancellableKey.awake) {
+            host.awake()
+        }
+        host.collectCancellables(with: View.CancellableKey.loadBody) {
+            host.initializeBodyHosting()
+        }
     }
 
     @available(*, unavailable)
@@ -59,6 +65,16 @@ open class _LayoutView: UIView {
         fatalError("init(coder:) has not been implemented")
     }
 }
+
+
+
+// MARK: - CancellableStorageProvider defaults
+
+extension CancellableStorageProvider where Self: _LayoutView {
+
+    public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
+}
+
 
 
 // MARK: - Typed init

@@ -1,31 +1,26 @@
 import Foundation
 
 
-// MARK: - CancellableStorageProvider
-
-@MainActor
-public protocol CancellableStorageProvider {
-    
-    var cancellableStorage: CancellableStorage { get }
-}
-
-
 // MARK: - CancellableStorage
 
 @MainActor
 public final class CancellableStorage {
-    
-    private static var storageStack: [CancellableStorage] = [CancellableStorage(isFallback: true)]
-    
+
+    // MARK: Properties
+
     private let isFallback: Bool
     private var cancellablesByKey = [CancellableStorageKey: AnyCancellable]()
+
     private var unionCancellable: AnyCancellable {
         let children = cancellablesByKey.values
         return AnyCancellable {
             for child in children { child.cancel() }
         }
     }
-    
+
+
+    // MARK: Instance life cycle
+
     public init() {
         self.isFallback = false
     }
@@ -33,7 +28,10 @@ public final class CancellableStorage {
     private init(isFallback: Bool) {
         self.isFallback = isFallback
     }
-    
+
+
+    // MARK: Core storage
+
     public func storeCancellable(_ cancellable: AnyCancellable, withKey key: CancellableStorageKey = .unique()) {
         if isFallback {
             runtimeWarn("Attempt to store cancellable with key '\(key.identifier)' while outside of a CancellableStorage scope. Cancellable will be stored but cannot be released.")
@@ -46,60 +44,44 @@ public final class CancellableStorage {
     public func removeCancellable(forKey key: CancellableStorageKey) -> AnyCancellable? {
         cancellablesByKey.removeValue(forKey: key)
     }
-}
 
-
-// MARK: - CancellableStorageKey
-
-public struct CancellableStorageKey: Equatable, Hashable {
-    
-    public let identifier: AnyHashable
-    
-    public init(identifier: AnyHashable) {
-        self.identifier = identifier
-    }
-}
-
-
-// MARK: - CancellableStorageKey factories
-
-public extension CancellableStorageKey {
-    
-    private static var propertyUUIDsByKeyPath = [AnyHashable: UUID]()
-    
-    static func property<R: AnyObject, P>(_ keyPath: KeyPath<R, P>, of object: R) -> Self {
-        let uuid: UUID
-        if let existing = propertyUUIDsByKeyPath[keyPath] {
-            uuid = existing
-        } else {
-            uuid = UUID()
-            propertyUUIDsByKeyPath[keyPath] = uuid
+    public func adoptCancellables(from other: CancellableStorage) {
+        if other === self { return }
+        for (key, value) in other.cancellablesByKey {
+            self.cancellablesByKey[key] = value
         }
-        return .named(uuid.uuidString, for: object)
-    }
-    
-    static func named(_ name: String, for object: AnyObject? = nil) -> Self {
-        let pointer = object.flatMap { "\(Unmanaged.passUnretained($0).toOpaque())" } ?? ""
-        let identifier = "\(pointer):\(name)"
-        return CancellableStorageKey(identifier: identifier)
-    }
-    
-    static func unique() -> Self {
-        return CancellableStorageKey(identifier: UUID())
+        other.cancellablesByKey = [:]
     }
 }
 
 
-// MARK: - Cancellable collection
+// MARK: - Global stack management
 
 public extension CancellableStorage {
-    
+
+    private static var storageStack: [CancellableStorage] = [CancellableStorage(isFallback: true)]
+
     @MainActor
     static var current: CancellableStorage {
         guard let top = storageStack.last else {
             preconditionFailure("providersStack should contain at least 1 element.")
         }
         return top
+    }
+
+    @discardableResult
+    static func push(_ cancellableStorage: CancellableStorage) -> CancellableStorage {
+        storageStack.append(cancellableStorage)
+        return cancellableStorage
+    }
+
+    @discardableResult
+    static func pop(expected: CancellableStorage? = nil) -> CancellableStorage {
+        let actual = storageStack.removeLast()
+        if let expected {
+            assert(actual === expected)
+        }
+        return actual
     }
 }
 
@@ -111,7 +93,7 @@ public extension CancellableStorage {
     @discardableResult
     static func collectCancellables<T>(in cancellable: inout AnyCancellable?, action: () -> T) -> T {
         let storage = CancellableStorage()
-        Self.storageStack.append(storage)
+        push(storage)
         let result = action()
         let last = Self.storageStack.removeLast()
         assert(last === storage)
@@ -120,7 +102,6 @@ public extension CancellableStorage {
         return result
     }
     
-    @discardableResult
     static func collectCancellables(action: () -> Void) -> AnyCancellable {
         var cancellable: AnyCancellable?
         collectCancellables(in: &cancellable, action: action)
@@ -146,32 +127,5 @@ public extension CancellableStorage {
             // Shouldn't happen!
         }
         return result
-    }
-}
-
-
-// MARK: - CancellableStorageProvider convenience
-
-public extension CancellableStorageProvider {
-    
-    func collectCancellables<T>(with key: CancellableStorageKey = .unique(), actions: () -> T) -> T {
-        cancellableStorage.collectCancellables(with: key, actions: actions)
-    }
-}
-
-
-// MARK: - Cancellable convenience
-
-public extension Cancellable {
-    
-    @MainActor
-    func store(in provider: CancellableStorageProvider, withKey key: CancellableStorageKey = .unique()) {
-        store(in: provider.cancellableStorage, withKey: key)
-    }
-    
-    @MainActor
-    func store(in storage: CancellableStorage, withKey key: CancellableStorageKey = .unique()) {
-        let anyCancellable = self as? AnyCancellable ?? AnyCancellable(self)
-        storage.storeCancellable(anyCancellable, withKey: key)
     }
 }

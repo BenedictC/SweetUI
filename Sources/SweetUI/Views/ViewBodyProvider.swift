@@ -17,7 +17,7 @@ public protocol ViewBodyProvider: _ViewBodyProvider {
 }
 
 
-public protocol _ViewBodyProvider: UIView { // Core functionality avoiding associated types
+public protocol _ViewBodyProvider: UIView, CancellableStorageProvider { // Core functionality avoiding associated types
 
     var _body: UIView { get }
     var bodyContainer: UIView { get }

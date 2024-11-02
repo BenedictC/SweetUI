@@ -7,7 +7,7 @@ public typealias View = _View & ViewBodyProvider
 
 // MARK: - Implementation
 
-open class _View: UIView, TraitCollectionChangesProvider, CancellableStorageProvider {
+open class _View: UIView, TraitCollectionChangesProvider {
     
     // MARK: Types
     
@@ -21,8 +21,8 @@ open class _View: UIView, TraitCollectionChangesProvider, CancellableStorageProv
     
     private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
-    public let cancellableStorage = CancellableStorage()
-    
+    fileprivate lazy var defaultCancellableStorage = CancellableStorage()
+
     
     // MARK: Instance life cycle
     
@@ -31,10 +31,10 @@ open class _View: UIView, TraitCollectionChangesProvider, CancellableStorageProv
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
-        collectCancellables(with: CancellableKey.loadBody) {
+        bodyProvider.collectCancellables(with: CancellableKey.loadBody) {
             bodyProvider.initializeBodyHosting()
         }
-        collectCancellables(with: CancellableKey.awake) {
+        bodyProvider.collectCancellables(with: CancellableKey.awake) {
             bodyProvider.awake()
         }
     }
@@ -51,4 +51,12 @@ open class _View: UIView, TraitCollectionChangesProvider, CancellableStorageProv
         super.traitCollectionDidChange(previous)
         traitCollectionChangesController.send(previous: previous, current: traitCollection)
     }
+}
+
+
+// MARK: - CancellableStorageProvider defaults
+
+extension CancellableStorageProvider where Self: View {
+
+    public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
 }

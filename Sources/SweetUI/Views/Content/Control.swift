@@ -18,6 +18,7 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
     private let stateSubject: CurrentValueSubject<UIControl.State, Never>
     public let stateChanges: AnyPublisher<UIControl.State, Never>
+    fileprivate lazy var defaultCancellableStorage = CancellableStorage()    
 
     override public var isEnabled: Bool {
         get { super.isEnabled }
@@ -48,8 +49,12 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_Control subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.initializeBodyHosting()
-
+        bodyProvider.collectCancellables(with: View.CancellableKey.awake) {
+            bodyProvider.awake()
+        }
+        bodyProvider.collectCancellables(with: View.CancellableKey.loadBody) {
+            bodyProvider.initializeBodyHosting()
+        }
     }
 
     @available(*, unavailable)
@@ -87,4 +92,13 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     private func notifyOfStateChange() {
         stateSubject.send(state)        
     }
+}
+
+
+
+// MARK: - CancellableStorageProvider defaults
+
+extension CancellableStorageProvider where Self: _Control {
+
+    public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
 }
