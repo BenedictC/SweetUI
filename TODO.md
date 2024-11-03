@@ -1,8 +1,13 @@
 # TODO
 
+- Rationalize ViewController init. 
+- Rationalize View init
+- Rationalize CollectionView factory
+
 - Bindings and inits for:
-    - UISlider.value // Copy and paste of textField.text binding
-    - UIStepper.value // Copy and paste of textField.text binding
+    - UISegmentedControl
+    - UISlider.value // Copy and paste of textField.text binding?
+    - UIStepper.value // Copy and paste of textField.text binding?
 
 - Remaining UIKit modifiers
     - GestureRecognizers
@@ -10,7 +15,6 @@
     - Any others?
     
 - Layout
-    - contentHuggingPriority & contentCompressionResistance
     - overlay & background modifiers
     - More constraint modifiers?
 
