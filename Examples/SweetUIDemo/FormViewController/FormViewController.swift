@@ -5,19 +5,20 @@ import Combine
 
 class FormViewController: ViewController {
 
+    
     // MARK: Types
-
+    
     enum Status {
         case invalid, ready, waiting
     }
-
+    
     typealias ValidationKeyPath = KeyPath<RegistrationForm, AnyPublisher<Bool, Never>>
-
-
+    
+    
     // MARK: Properties
-
+    
     private let form = RegistrationForm()
-
+    
     @Binding private var isSubmitInProgress = false
     @Binding private var validationKeyPaths = Set<ValidationKeyPath>()
     private lazy var status = Publishers
@@ -30,50 +31,46 @@ class FormViewController: ViewController {
     private lazy var nameValidationErrorLabelAlpha = makeValidationPublisher(for: \.isNameValid)
     private lazy var emailValidationErrorLabelAlpha = makeValidationPublisher(for: \.isEmailValid)
     private lazy var passwordValidationErrorLabelAlpha = makeValidationPublisher(for: \.isPasswordValid)
-
-
+    
+    
     // Content views
-
-    private(set) lazy var barItems = makeBarItems { builder in
-        builder.$navigationItem.title = form.$name.eraseToAnyPublisher()
-    }
-
+    
     private lazy var nameTextField = makeTextField(placeholder: "Name")
-        .text(#Binding(toPublishedAt: form.name))
-            .delegateWithReturnAction(next: emailTextField)
-            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
-
+        .text(bindsTo: Binding(forPropertyOf: form, at: \.$name, \.name))
+        .delegateWithReturnAction(next: emailTextField)
+        .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isNameValid) }
+    
     private lazy var nameValidationErrorLabel = makeValidationErrorLabel(text: "Name must be at least 1 character long")
-            .alpha(nameValidationErrorLabelAlpha)
-
+        .alpha(nameValidationErrorLabelAlpha)
+    
     private lazy var emailTextField = makeTextField(placeholder: "Email")
-            .keyboardType(.emailAddress)
-            .autocapitalizationType(.none)
-            .text(#Binding(toPublishedAt: form.email))
-            .delegateWithReturnAction(next: passwordTextField)
-            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
-
+        .keyboardType(.emailAddress)
+        .autocapitalizationType(.none)
+        .text(bindsTo: Binding(forPropertyOf: form, at: \.$email, \.email))
+        .delegateWithReturnAction(next: passwordTextField)
+        .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isEmailValid) }
+    
     private lazy var emailValidationErrorLabel = makeValidationErrorLabel(text: "Email must be a valid email address")
-            .alpha(emailValidationErrorLabelAlpha)
-
+        .alpha(emailValidationErrorLabelAlpha)
+    
     private lazy var passwordTextField = makeTextField(placeholder: "Password")
-            .isSecureTextEntry(true)
-            .text(#Binding(toPublishedAt: form.password))
-            .delegateWithReturnAction { [weak self] in self?.submit() }
-            .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
-
+        .isSecureTextEntry(true)
+        .text(bindsTo: Binding(forPropertyOf: form, at: \.$password, \.password))
+        .delegateWithReturnAction { [weak self] in self?.submit() }
+        .onEvent(.editingDidEnd) { [weak self] _ in self?.didEndEditing(for: \.isPasswordValid) }
+    
     private lazy var passwordValidationErrorLabel = makeValidationErrorLabel(text: "Password must be at least 8 characters long and contain a letter and a number")
-            .alpha(passwordValidationErrorLabelAlpha)
-
+        .alpha(passwordValidationErrorLabelAlpha)
+    
     private lazy var submitButton = UIButton(title: "Submit", action: { [weak self] in self?.submit() })
-            .enabled(status.isEqualTo(.ready))
-
+        .enabled(status.isEqualTo(.ready))
+    
     private lazy var activityIndicator = UIActivityIndicatorView(style: .large, isActive: status.isEqualTo(.waiting))
-            .backgroundColor(.secondarySystemFill.withAlphaComponent(0.5))
-
-
+        .backgroundColor(.secondarySystemFill.withAlphaComponent(0.5))
+    
+    
     // Layout views
-
+    
     lazy var rootView = ScrollingContentLayout(configuration: .init(paddingColor: .blue)) {
         ZStack(alignment: .fill) {
             VStack(spacing: 10) {
@@ -99,16 +96,23 @@ class FormViewController: ViewController {
                 .contentHugs(in: .vertical, at: .defaultLow)
         }
     }
+    
+    
+    // MARK: - Instance life cycle
+    
+    func awake() {
+        assign(to: \.navigationItem.title, from: form.$name)
+    }
 }
 
 
 // MARK: - View life cycle
 
 extension FormViewController {
-
+    
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-
+        
         nameTextField.becomeFirstResponder()
     }
 }
@@ -117,11 +121,11 @@ extension FormViewController {
 // MARK: - Actions
 
 private extension FormViewController {
-
+    
     func didEndEditing(for validationKeyPath: ValidationKeyPath) {
         validationKeyPaths.insert(validationKeyPath)
     }
-
+    
     func resetState() {
         form.reset()
         nameTextField.becomeFirstResponder()
@@ -129,7 +133,7 @@ private extension FormViewController {
         // resigning textField loses focus it is added to validationKeyPaths which would be incorrect
         validationKeyPaths.removeAll()
     }
-
+    
     func submit() {
         guard RegistrationForm.isValid(form) else {
             return
@@ -152,7 +156,7 @@ private extension FormViewController {
 // MARK: - Factories
 
 private extension FormViewController {
-
+    
     func makeValidationPublisher(for validationKeyPath: ValidationKeyPath) -> AnyPublisher<CGFloat, Never> {
         let validationPublisher = form[keyPath: validationKeyPath]
         return Publishers.CombineLatest(validationPublisher, $validationKeyPaths)
@@ -163,13 +167,13 @@ private extension FormViewController {
             }
             .eraseToAnyPublisher()
     }
-
+    
     func makeTextField(placeholder: String) -> UITextField {
         UITextField()
             .borderStyle(.roundedRect)
             .placeholder(placeholder)
     }
-
+    
     private func makeValidationErrorLabel(text: String) -> UILabel {
         UILabel()
             .text(text)
