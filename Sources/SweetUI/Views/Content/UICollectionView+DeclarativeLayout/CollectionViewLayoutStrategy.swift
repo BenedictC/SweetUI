@@ -704,13 +704,17 @@ public extension Cell {
 }
 
 
-internal final class ValuePublishingCell<ItemValue>: UICollectionViewCell, ReusableViewConfigurable {
+internal final class ValuePublishingCell<ItemValue>: UICollectionViewCell, ReusableViewConfigurable, CancellableStorageProvider {
 
     var bodyFactory: ((OneWayBinding<ItemValue>) -> UIView)?
     
     private var binding: Binding<ItemValue>?
+    let cancellableStorage = CancellableStorage()
 
     func configure(using value: ItemValue) {
+        CancellableStorage.push(cancellableStorage)
+        defer { CancellableStorage.pop(expected: cancellableStorage) }
+        
         if let binding {
             // Use already created
             binding.send(value)
