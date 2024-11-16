@@ -13,6 +13,7 @@ public protocol CancellableStorageProvider {
 
 public extension CancellableStorageProvider {
 
+    @discardableResult
     func collectCancellables<T>(with key: CancellableStorageKey = .unique(), actions: () -> T) -> T {
         cancellableStorage.collectCancellables(with: key, actions: actions)
     }
