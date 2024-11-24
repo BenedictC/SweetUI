@@ -4,29 +4,15 @@ import UIKit
 
 public final class ZStack: UIView {
 
-    // MARK: Types
-
-    public enum Alignment {
-        case fill
-        case topLeft, top, topRight
-        case left, center, right
-        case bottomLeft, bottom, bottomRight
-
-        case topLeading, topTrailing
-        case leading, trailing
-        case bottomLeading, bottomTrailing
-    }
-
-
     // MARK: Properties
 
-    public let alignment: Alignment
+    public let alignment: ZAxisAlignment
     public private(set) var arrangedSubviews = [UIView]()
 
 
     // MARK: Instance life cycle
 
-    public init(alignment: Alignment = .fill) {
+    public init(alignment: ZAxisAlignment = .fill) {
         self.alignment = alignment
         super.init(frame: .zero)
     }
@@ -198,7 +184,7 @@ private extension ZStack {
 
 public extension ZStack {
 
-    convenience init(alignment: Alignment = .fill,  @SubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
+    convenience init(alignment: ZAxisAlignment = .fill,  @SubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
         self.init(alignment: alignment)
 
         let arrangedSubviews = arrangedSubviewsBuilder()
