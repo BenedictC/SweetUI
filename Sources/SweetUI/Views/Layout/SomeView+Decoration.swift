@@ -44,10 +44,10 @@ public extension SomeView {
 public extension SomeView {
 
     func background<O: UIView>(alignment: DecorationAlignment = .fill, view: O) -> DecorationContainer<Self, O> {
-        overlay(alignment: alignment, view: { view })
+        background(alignment: alignment, view: { view })
     }
 
-    func background<O: UIView>(alignment: DecorationAlignment, view backgroundBuilder: () -> O) -> DecorationContainer<Self, O> {
+    func background<O: UIView>(alignment: DecorationAlignment = .fill, view backgroundBuilder: () -> O) -> DecorationContainer<Self, O> {
         let background = backgroundBuilder()
         let container = DecorationContainer(content: (self, background))
 
