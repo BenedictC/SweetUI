@@ -9,10 +9,10 @@ import Combine
 public extension SomeObject {
     
     @discardableResult
-    func assign<P: Publisher>(
-        to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output>,
-        from publisher: P
-    ) -> Self where P.Failure == Never {
+    func assign<Output>(
+        to destinationKeyPath: ReferenceWritableKeyPath<Self, Output>,
+        from publisher: some Publisher<Output, Never>
+    ) -> Self {
         publisher.sink { [weak self] value in
             self?[keyPath: destinationKeyPath] = value
         }
@@ -24,10 +24,10 @@ public extension SomeObject {
     // MARK: Promote non-optional publisher to optional
     
     @discardableResult
-    func assign<P: Publisher>(
-        to destinationKeyPath: ReferenceWritableKeyPath<Self, P.Output?>,
-        from publisher: P
-    ) -> Self where P.Failure == Never {
+    func assign<Output>(
+        to destinationKeyPath: ReferenceWritableKeyPath<Self, Output?>,
+        from publisher: some Publisher<Output, Never>
+    ) -> Self {
         publisher.sink { [weak self] value in
             self?[keyPath: destinationKeyPath] = value
         }
@@ -44,10 +44,10 @@ public extension SomeObject {
 public extension SomeObject {
     
     @discardableResult
-    func onChange<V, P: Publisher>(
-        of publisher: P,
-        perform action: @escaping (Self, P.Output) -> Void
-    ) -> Self where P.Output == V, P.Failure == Never {
+    func onChange<Output>(
+        of publisher: some Publisher<Output, Never>,
+        perform action: @escaping (Self, Output) -> Void
+    ) -> Self {
         // We don't need to store action because it's captured in a block is stored
         publisher.sink { [weak self] newValue in
             guard let self else { return }

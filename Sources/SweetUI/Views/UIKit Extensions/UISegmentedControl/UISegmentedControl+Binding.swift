@@ -6,9 +6,7 @@ import Combine
 public extension UISegmentedControl {
     
     // TODO: Should this take a subject instead of a publisher?
-    func selectedSegmentIndex<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Int, P.Failure == Never {
+    func selectedSegmentIndex(_ publisher: some Publisher<Int, Never>) -> Self {
         publisher.sink { [weak self] index in
             guard let self else { return }
             guard self.selectedSegmentIndex != index else { return }
@@ -23,17 +21,15 @@ public extension UISegmentedControl {
     }
     
     // TODO: Should this take a subject instead of a publisher?
-    func selectedSegmentIndex<P: Publisher>(
-        _ initialPublisher: P
-    ) -> Self where P.Output == Int?, P.Failure == Never {
+    func selectedSegmentIndex(_ initialPublisher: some Publisher<Int?, Never>) -> Self {
         let publisher = initialPublisher.map { $0 ?? UISegmentedControl.noSegment }
         return selectedSegmentIndex(publisher)
     }
     
-    //    func selectedSegmentIndex<S: Subject>(
-    //        _ subject: S,
+    //    func selectedSegmentIndex(
+    //        _ subject: some Subject<Int, Never>,
     //        cancellableStorageProvider optionalCancellableStorageProvider: CancellableStorageProvider? = nil
-    //    ) -> Self where S.Output == Int, S.Failure == Never {
+    //    ) -> Self {
     //        let cancellable = SelectedSegmentIndexReceiver.shared.bindIndexSelection(of: self, to: subject)
     //        let cancellableStorageProvider = CancellableStorage.current
     //        cancellableStorageProvider.storeCancellable(cancellable, self)
@@ -57,7 +53,7 @@ private class SelectedSegmentIndexReceiver {
         return subjects
     }
     
-    func bindIndexSelection<S: Subject>(of control: UISegmentedControl, to subject: S) -> AnyCancellable where S.Output == Int, S.Failure == Never {
+    func bindIndexSelection(of control: UISegmentedControl, to subject: some Subject<Int, Never>) -> AnyCancellable {
         let anySubject = subject.eraseToAnySubject()
         // Store the subject
         subjects(for: control).add(anySubject)

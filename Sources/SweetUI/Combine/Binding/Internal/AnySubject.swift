@@ -34,7 +34,7 @@ internal final class AnySubject<Output, Failure: Error>: Subject {
 
     // MARK: Subject
 
-    func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
+    func receive(subscriber: some Subscriber<Output, Failure>) {
         let anySubscriber = AnySubscriber(subscriber)
         receiveHandler(anySubscriber)
     }
@@ -58,7 +58,7 @@ internal final class AnySubject<Output, Failure: Error>: Subject {
 /// Transforms a @Published property into a Subject
 internal extension AnySubject {
 
-    convenience init<T: AnyObject, P: Publisher>(publishedBy object: T, get getPublisher: KeyPath<T, P>, set setKeyPath: ReferenceWritableKeyPath<T, Output>) where Failure == Never, P.Output == Output, P.Failure == Never {
+    convenience init<T: AnyObject>(publishedBy object: T, get getPublisher: KeyPath<T, some Publisher<Output, Never>>, set setKeyPath: ReferenceWritableKeyPath<T, Output>) where Failure == Never {
         let publisher = object[keyPath: getPublisher]
         self.init(
             receiveHandler: { publisher.receive(subscriber: $0) },
@@ -74,7 +74,10 @@ internal extension AnySubject {
 
 internal extension AnySubject {
 
-    convenience init<P: Publisher>(get publisher: P, set setHandler: @escaping (Output) -> Void) where P.Output == Output, P.Failure == Failure {
+    convenience init(
+        get publisher: some Publisher<Output, Failure>,
+        set setHandler: @escaping (Output) -> Void
+    ) {
         self.init(
             receiveHandler: { publisher.receive(subscriber: $0) },
             sendValueHandler: setHandler,
@@ -83,7 +86,7 @@ internal extension AnySubject {
         )
     }
 
-    convenience init<T: Subject>(_ wrapped: T) where T.Output == Output, T.Failure == Failure {
+    convenience init(_ wrapped: some Subject<Output, Failure>) {
         self.init(
             receiveHandler: { wrapped.receive(subscriber: $0) },
             sendValueHandler: { wrapped.send($0) },

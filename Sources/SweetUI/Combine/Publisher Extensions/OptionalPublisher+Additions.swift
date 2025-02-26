@@ -23,11 +23,11 @@ extension _Optionalable {
 
 public extension Publisher where Output: _Optionalable {
 
-    var isNil: AnyPublisher<Bool, Failure> {
-        map { $0.asOptional == nil }.eraseToAnyPublisher()
+    var isNil: some Publisher<Bool, Failure> {
+        map { $0.asOptional == nil }
     }
 
-    var isNotNil: AnyPublisher<Bool, Failure> {
-        map { $0.asOptional != nil }.eraseToAnyPublisher()
+    var isNotNil: some Publisher<Bool, Failure> {
+        map { $0.asOptional != nil }
     }
 }

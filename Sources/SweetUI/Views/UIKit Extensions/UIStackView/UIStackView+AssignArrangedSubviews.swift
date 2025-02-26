@@ -4,10 +4,7 @@ import Combine
 @MainActor
 public extension SomeView where Self: UIStackView {
 
-    func assignArrangedSubviews<P: Publisher, V: UIView>(
-        from publisher: P
-    )
-    -> Self where P.Failure == Never, P.Output == ([V]?) {
+    func assignArrangedSubviews<V: UIView>(from publisher: some Publisher<([V]?), Never>) -> Self {
         let stackView = self
         publisher.sink { [weak stackView] views in
             guard let stackView else { return }

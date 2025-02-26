@@ -7,9 +7,7 @@ public extension UIControl {
         self.enabled(!value)
     }
     
-    func disabled<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func disabled(_ publisher: some Publisher<Bool, Never>) -> Self {
         return enabled(publisher.inverted)
     }
 }

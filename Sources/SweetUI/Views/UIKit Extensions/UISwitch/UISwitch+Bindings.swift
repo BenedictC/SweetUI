@@ -6,9 +6,7 @@ import Combine
 
 public extension UISwitch {
     
-    convenience init<S: Subject>(
-        isOn subject: S
-    ) where S.Output == Bool, S.Failure == Never {
+    convenience init(isOn subject: some Subject<Bool, Never>) {
         self.init()
         _ = self.isOn(bindsTo: subject)
     }
@@ -18,10 +16,7 @@ public extension UISwitch {
 @MainActor
 public extension SomeView where Self: UISwitch {
     
-    func isOn<S: Subject>(
-        bindsTo subject: S
-    )
-    -> Self where S.Output == Bool, S.Failure == Never {
+    func isOn(bindsTo subject: some Subject<Bool, Never>) -> Self {
         subscribeAndSendIsOn(to: subject).store(in: .current)
         return self
     }
@@ -32,7 +27,7 @@ public extension SomeView where Self: UISwitch {
 
 private extension UISwitch {
     
-    func subscribeAndSendIsOn<S: Subject>(to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
+    func subscribeAndSendIsOn(to subject: some Subject<Bool, Never>) -> AnyCancellable {
         return SwitchIsOnToggler.shared.bindIsOn(of: self, to: subject)
     }
 }
@@ -56,7 +51,7 @@ private class SwitchIsOnToggler: NSObject {
         return subjects
     }
     
-    func bindIsOn<S: Subject>(of button: UISwitch, to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
+    func bindIsOn(of button: UISwitch, to subject: some Subject<Bool, Never>) -> AnyCancellable {
         let anySubject = subject.eraseToAnySubject()
         // Store the subject
         subjects(for: button).add(anySubject)

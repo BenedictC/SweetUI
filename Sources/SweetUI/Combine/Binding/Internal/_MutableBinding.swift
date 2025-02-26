@@ -50,12 +50,12 @@ public class _MutableBinding<Output>: OneWayBinding<Output> {
 public extension _MutableBinding {
 
     /// Allows a Binding to be created from a  @Published property
-    convenience init<Root: AnyObject, P: Publisher>(
+    convenience init<Root: AnyObject>(
         forPropertyOf object: Root,
-        at publisherKeyPath: KeyPath<Root, P>,
+        at publisherKeyPath: KeyPath<Root, some Publisher<Output, Never>>,
         _ accessorKeyPath: ReferenceWritableKeyPath<Root, Output>
-    ) where P.Output == Output, P.Failure == Never {
-        let subject = AnySubject(publishedBy: object, get: publisherKeyPath, set: accessorKeyPath)
+    ) {
+        let subject = AnySubject<Output, Never>(publishedBy: object, get: publisherKeyPath, set: accessorKeyPath)
         self.init(
             subject: subject,
             cancellable: nil,

@@ -5,32 +5,32 @@ import Combine
 
 public extension Publisher where Output: Equatable {
 
-    func isEqualTo(_ value: Output) -> AnyPublisher<Bool, Failure> {
-        map { $0 == value }.eraseToAnyPublisher()
+    func isEqualTo(_ value: Output) -> some Publisher<Bool, Failure> {
+        map { $0 == value }
     }
 
-    func isNotEqualTo(_ value: Output) -> AnyPublisher<Bool, Failure> {
-        map { $0 != value }.eraseToAnyPublisher()
+    func isNotEqualTo(_ value: Output) -> some Publisher<Bool, Failure> {
+        map { $0 != value }
     }
 }
 
 
 public extension Publisher where Output: Comparable {
 
-    func isLessThan(_ value: Output) -> AnyPublisher<Bool, Failure> {
-        map { $0 < value }.eraseToAnyPublisher()
+    func isLessThan(_ value: Output) -> some Publisher<Bool, Failure> {
+        map { $0 < value }
     }
 
-    func isGreaterThan(_ value: Output) -> AnyPublisher<Bool, Failure> {
-        map { $0 > value }.eraseToAnyPublisher()
+    func isGreaterThan(_ value: Output) -> some Publisher<Bool, Failure> {
+        map { $0 > value }
     }
 
-    func isLessThanOrEqualTo(_ value: Output) -> AnyPublisher<Bool, Failure> {
-        map { $0 <= value }.eraseToAnyPublisher()
+    func isLessThanOrEqualTo(_ value: Output) -> some Publisher<Bool, Failure> {
+        map { $0 <= value }
     }
 
-    func isGreaterThanOrEqualTo(_ value: Output) -> AnyPublisher<Bool, Failure> {
-        map { $0 >= value }.eraseToAnyPublisher()
+    func isGreaterThanOrEqualTo(_ value: Output) -> some Publisher<Bool, Failure> {
+        map { $0 >= value }
     }
 }
 
@@ -39,43 +39,37 @@ public extension Publisher where Output: Comparable {
 
 public extension Publisher where Output: Equatable {
 
-    func isEqualTo<P: Publisher>(_ other: P) -> AnyPublisher<Bool, Failure> where P.Output == Output, P.Failure == Failure {
+    func isEqualTo(_ other: some Publisher<Output, Failure>) -> some Publisher<Bool, Failure> {
         combineLatest(other)
             .map { $0.0 == $0.1 }
-            .eraseToAnyPublisher()
     }
 
-    func isNotEqualTo<P: Publisher>(_ other: P) -> AnyPublisher<Bool, Failure> where P.Output == Output, P.Failure == Failure {
+    func isNotEqualTo(_ other: some Publisher<Output, Failure>) -> some Publisher<Bool, Failure> {
         combineLatest(other)
             .map { $0.0 != $0.1 }
-            .eraseToAnyPublisher()
     }
 }
 
 
 public extension Publisher where Output: Comparable {
 
-    func isLessThan<P: Publisher>(_ other: P) -> AnyPublisher<Bool, Failure> where P.Output == Output, P.Failure == Failure {
+    func isLessThan(_ other: some Publisher<Output, Failure>) -> some Publisher<Bool, Failure> {
         combineLatest(other)
             .map { $0.0 < $0.1 }
-            .eraseToAnyPublisher()
     }
 
-    func isGreaterThan<P: Publisher>(_ other: P) -> AnyPublisher<Bool, Failure> where P.Output == Output, P.Failure == Failure {
+    func isGreaterThan(_ other: some Publisher<Output, Failure>) -> some Publisher<Bool, Failure> {
         combineLatest(other)
             .map { $0.0 > $0.1 }
-            .eraseToAnyPublisher()
     }
 
-    func isLessThanOrEqualTo<P: Publisher>(_ other: P) -> AnyPublisher<Bool, Failure> where P.Output == Output, P.Failure == Failure {
+    func isLessThanOrEqualTo(_ other: some Publisher<Output, Failure>) -> some Publisher<Bool, Failure> {
         combineLatest(other)
             .map { $0.0 <= $0.1 }
-            .eraseToAnyPublisher()
     }
 
-    func isGreaterThanOrEqualTo<P: Publisher>(_ other: P) -> AnyPublisher<Bool, Failure> where P.Output == Output, P.Failure == Failure {
+    func isGreaterThanOrEqualTo(_ other: some Publisher<Output, Failure>) -> some Publisher<Bool, Failure> {
         combineLatest(other)
             .map { $0.0 >= $0.1 }
-            .eraseToAnyPublisher()
     }
 }

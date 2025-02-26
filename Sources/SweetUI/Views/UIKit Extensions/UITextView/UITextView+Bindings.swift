@@ -7,39 +7,39 @@ import Combine
 @MainActor
 public extension SomeView where Self: UITextView {
     
-    func text<S: Subject>(
-        bindsTo subject: S,
+    func text(
+        bindsTo subject: some Subject<String?, Never>,
         options: UITextInputBindingOption
     )
-    -> Self where S.Output == String?, S.Failure == Never {
+    -> Self {
         subscribeAndSendText(to: subject, options: options).store(in: .current)
         return self
     }
     
-    func attributedText<S: Subject>(
-        bindsTo subject: S,
+    func attributedText(
+        bindsTo subject: some Subject<NSAttributedString?, Never>,
         options: UITextInputBindingOption
     )
-    -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+    -> Self {
         subscribeAndSendAttributedText(to: subject, options: options).store(in: .current)
         return self
     }
     
-    func text<S: Subject>(
-        bindsTo subject: S,
+    func text(
+        bindsTo subject: some Subject<String, Never>,
         options: UITextInputBindingOption
     )
-    -> Self where S.Output == String, S.Failure == Never {
+    -> Self {
         subscribeAndSendText(to: subject, options: options).store(in: .current)
         return self
     }
     
-    func attributedText<S: Subject>(
-        bindsTo subject: S,
+    func attributedText(
+        bindsTo subject: some Subject<NSAttributedString, Never>,
         options: UITextInputBindingOption
     )
-    -> Self where S.Output == NSAttributedString, S.Failure == Never {
-        subscribeAndSendAttributedText(to: subject, options: options).store(in: .current)        
+    -> Self {
+        subscribeAndSendAttributedText(to: subject, options: options).store(in: .current)
         return self
     }
 }
@@ -49,34 +49,34 @@ public extension SomeView where Self: UITextView {
 
 public extension UITextView {
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<String?, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == String?, S.Failure == Never {
+    ) {
         self.init()
         _ = self.text(bindsTo: subject, options: options)
     }
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<NSAttributedString?, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == NSAttributedString?, S.Failure == Never {
+    ) {
         self.init()
         _ = self.attributedText(bindsTo: subject, options: options)
     }
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<String, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == String, S.Failure == Never {
+    ) {
         self.init()
         _ = self.text(bindsTo: subject, options: options)
     }
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<NSAttributedString, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == NSAttributedString, S.Failure == Never {
+    ) {
         self.init()
         _ = self.attributedText(bindsTo: subject, options: options)
     }
@@ -87,23 +87,23 @@ public extension UITextView {
 
 private extension SomeView where Self: UITextView {
     
-    func subscribeAndSendText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == String?, S.Failure == Never {
+    func subscribeAndSendText(to subject: some Subject<String?, Never>, options: UITextInputBindingOption) -> AnyCancellable {
         return makeBindings(for: subject, options: options, keyPath: \.text)
     }
     
-    func subscribeAndSendAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
+    func subscribeAndSendAttributedText(to subject: some Subject<NSAttributedString?, Never>, options: UITextInputBindingOption) -> AnyCancellable {
         makeBindings(for: subject, options: options, keyPath: \.attributedText)
     }
     
-    func subscribeAndSendText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == String, S.Failure == Never {
+    func subscribeAndSendText(to subject: some Subject<String, Never>, options: UITextInputBindingOption) -> AnyCancellable {
         return makeBindings(for: subject, options: options, keyPath: \.text)
     }
     
-    func subscribeAndSendAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption) -> AnyCancellable where S.Output == NSAttributedString, S.Failure == Never {
+    func subscribeAndSendAttributedText(to subject: some Subject<NSAttributedString, Never>, options: UITextInputBindingOption) -> AnyCancellable {
         makeBindings(for: subject, options: options, keyPath: \.attributedText)
     }
     
-    func makeBindings<V, S: Subject>(for subject: S, options: UITextInputBindingOption, keyPath: ReferenceWritableKeyPath<Self, V>) -> AnyCancellable where S.Output == V, S.Failure == Never {
+    func makeBindings<V>(for subject: some Subject<V, Never>, options: UITextInputBindingOption, keyPath: ReferenceWritableKeyPath<Self, V>) -> AnyCancellable {
         // TODO: Add support for begin & end editing synchronization behaviour
         let send = NotificationCenter.default.addObserver(forName: UITextView.textDidChangeNotification, object: self, queue: nil) { notification in
             guard let textView = notification.object as? Self  else {

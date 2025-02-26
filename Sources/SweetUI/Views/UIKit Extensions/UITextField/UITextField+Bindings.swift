@@ -9,34 +9,34 @@ import Combine
 @MainActor
 public extension SomeView where Self: UITextField {
     
-    func text<S: Subject>(
-        bindsTo subject: S,
+    func text(
+        bindsTo subject: some Subject<String?, Never>,
         options: UITextInputBindingOption = []
-    ) -> Self where S.Output == String?, S.Failure == Never {
+    ) -> Self {
         bindText(to: subject, options: options).store(in: .current)
         return self
     }
     
-    func attributedText<S: Subject>(
-        bindsTo subject: S,
+    func attributedText(
+        bindsTo subject: some Subject<NSAttributedString?, Never>,
         options: UITextInputBindingOption = []
-    ) -> Self where S.Output == NSAttributedString?, S.Failure == Never {
+    ) -> Self {
         bindAttributedText(to: subject, options: options).store(in: .current)
         return self
     }
     
-    func text<S: Subject>(
-        bindsTo subject: S,
+    func text(
+        bindsTo subject: some Subject<String, Never>,
         options: UITextInputBindingOption = []
-    ) -> Self where S.Output == String, S.Failure == Never {
+    ) -> Self {
         bindText(to: subject, options: options).store(in: .current)
         return self
     }
     
-    func attributedText<S: Subject>(
-        bindsTo subject: S,
+    func attributedText(
+        bindsTo subject: some Subject<NSAttributedString, Never>,
         options: UITextInputBindingOption = []
-    ) -> Self where S.Output == NSAttributedString, S.Failure == Never {
+    ) -> Self {
         bindAttributedText(to: subject, options: options).store(in: .current)
         return self
     }
@@ -47,34 +47,34 @@ public extension SomeView where Self: UITextField {
 
 public extension UITextField {
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<String?, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == String?, S.Failure == Never {
+    ) {
         self.init()
         _ = self.text(bindsTo: subject, options: options)
     }
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<NSAttributedString?, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == NSAttributedString?, S.Failure == Never {
+    ) {
         self.init()
         _ = self.attributedText(bindsTo: subject, options: options)
     }
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<String, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == String, S.Failure == Never {
+    ) {
         self.init()
         _ = self.text(bindsTo: subject, options: options)
     }
     
-    convenience init<S: Subject>(
-        text subject: S,
+    convenience init(
+        text subject: some Subject<NSAttributedString, Never>,
         options: UITextInputBindingOption = []
-    ) where S.Output == NSAttributedString, S.Failure == Never {
+    ) {
         self.init()
         _ = self.attributedText(bindsTo: subject, options: options)
     }
@@ -85,19 +85,19 @@ public extension UITextField {
 
 private extension SomeView where Self: UITextField {
     
-    func bindText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == String?, S.Failure == Never {
+    func bindText(to subject: some Subject<String?, Never>, options: UITextInputBindingOption = []) -> AnyCancellable {
         return makeBindings(for: subject, keyPath: \.text, options: options)
     }
     
-    func bindAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString?, S.Failure == Never {
+    func bindAttributedText(to subject: some Subject<NSAttributedString?, Never>, options: UITextInputBindingOption = []) -> AnyCancellable {
         makeBindings(for: subject, keyPath: \.attributedText, options: options)
     }
     
-    func bindText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == String, S.Failure == Never {
+    func bindText(to subject: some Subject<String, Never>, options: UITextInputBindingOption = []) -> AnyCancellable {
         return makeBindings(for: subject, keyPath: \.text, defaultValue: "", options: options)
     }
     
-    func bindAttributedText<S: Subject>(to subject: S, options: UITextInputBindingOption = []) -> AnyCancellable where S.Output == NSAttributedString, S.Failure == Never {
+    func bindAttributedText(to subject: some Subject<NSAttributedString, Never>, options: UITextInputBindingOption = []) -> AnyCancellable {
         makeBindings(for: subject, keyPath: \.attributedText, defaultValue: NSAttributedString(string: ""), options: options)
     }
 }
@@ -105,7 +105,10 @@ private extension SomeView where Self: UITextField {
 
 private extension SomeView where Self: UITextField {
     
-    func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V>, options: UITextInputBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
+    func makeBindings<V>(
+        for subject: some Subject<V, Never>,
+        keyPath: ReferenceWritableKeyPath<Self, V>, options: UITextInputBindingOption
+    ) -> AnyCancellable {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath])
         }
@@ -127,7 +130,12 @@ private extension SomeView where Self: UITextField {
         }
     }
     
-    func makeBindings<V, S: Subject>(for subject: S, keyPath: ReferenceWritableKeyPath<Self, V?>, defaultValue: V, options: UITextInputBindingOption) -> AnyCancellable where S.Output == V, S.Failure == Never {
+    func makeBindings<V>(
+        for subject: some Subject<V, Never>,
+        keyPath: ReferenceWritableKeyPath<Self, V?>,
+        defaultValue: V,
+        options: UITextInputBindingOption
+    ) -> AnyCancellable {
         let send = self.addAction(for: .editingChanged) { textField, _ in
             subject.send(textField[keyPath: keyPath] ?? defaultValue)
         }

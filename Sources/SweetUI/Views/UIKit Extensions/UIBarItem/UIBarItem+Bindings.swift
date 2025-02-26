@@ -11,9 +11,7 @@ public extension UIBarItem {
         return self
     }
     
-    func enabled<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func enabled(_ publisher: some Publisher<Bool, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -29,9 +27,7 @@ public extension UIBarItem {
         return self
     }
     
-    func title<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == String?, P.Failure == Never {
+    func title(_ publisher: some Publisher<String?, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -47,9 +43,7 @@ public extension UIBarItem {
         return self
     }
     
-    func image<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == UIImage?, P.Failure == Never {
+    func image(_ publisher: some Publisher<UIImage?, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:

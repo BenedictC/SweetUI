@@ -15,19 +15,19 @@ open class AlertController<T>: UIAlertController, Presentable {
         case attributedText(AlertTextSubject<NSAttributedString?, Never>, configuration: (UITextField) -> Void = { _ in })
         case action(title: String, style: UIAlertAction.Style, result: Result<T, Error>, isPreferred: Bool, isEnabled: AnyPublisher<Bool, Never>)
 
-        public static func cancelAction<P: Publisher>(_ title: String, error: Error = PresentableError.cancelled, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+        public static func cancelAction(_ title: String, error: Error = PresentableError.cancelled, isEnabled: some Publisher<Bool, Never> = Just(true)) -> Self {
             .action(title: title, style: .cancel, result: .failure(error), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
-        public static func cancelAction<P: Publisher>(_ title: String, value: T, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+        public static func cancelAction(_ title: String, value: T, isEnabled: some Publisher<Bool, Never> = Just(true)) -> Self {
             .action(title: title, style: .cancel, result: .success(value), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
-        public static func destructiveAction<P: Publisher>(_ title: String, value: T, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+        public static func destructiveAction(_ title: String, value: T, isEnabled: some Publisher<Bool, Never> = Just(true)) -> Self {
             .action(title: title, style: .destructive, result: .success(value), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 
-        public static func standardAction<P: Publisher>(_ title: String, value: T, isEnabled: P = Just(true)) -> Self where P.Output == Bool, P.Failure == Never {
+        public static func standardAction(_ title: String, value: T, isEnabled: some Publisher<Bool, Never> = Just(true)) -> Self {
             .action(title: title, style: .default, result: .success(value), isPreferred: false, isEnabled: isEnabled.eraseToAnyPublisher())
         }
 

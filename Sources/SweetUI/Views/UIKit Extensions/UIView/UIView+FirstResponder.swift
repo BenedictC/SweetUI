@@ -13,9 +13,7 @@ public extension UIView {
         return becomesFirstResponder(when: publisher.map { $0 == targetValue })
     }
     
-    func becomesFirstResponder<P: Publisher>(
-        when publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func becomesFirstResponder(when publisher: some Publisher<Bool, Never>) -> Self{
         publisher.sink { [weak self] isFirstResponder in
             guard isFirstResponder,
                   let self else { return }

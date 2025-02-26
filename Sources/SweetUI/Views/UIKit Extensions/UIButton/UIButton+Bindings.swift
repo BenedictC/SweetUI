@@ -7,11 +7,7 @@ import Combine
 @MainActor
 public extension SomeView where Self: UIButton {
     
-    func title<P: Publisher>(
-        _ publisher: P,
-        for state: UIControl.State = .normal
-    )
-    -> Self where P.Output == String, P.Failure == Never {
+    func title(_ publisher: some Publisher<String, Never>, for state: UIControl.State = .normal) -> Self {
         publisher.sink { [weak self] title in
             self?.setTitle(title, for: state)            
         }
@@ -19,11 +15,7 @@ public extension SomeView where Self: UIButton {
         return self
     }
     
-    func title<P: Publisher>(
-        _ publisher: P,
-        for state: UIControl.State = .normal
-    )
-    -> Self where P.Output == String?, P.Failure == Never {
+    func title(_ publisher: some Publisher<String?, Never>, for state: UIControl.State = .normal) -> Self {
         publisher.sink { [weak self] title in
             self?.setTitle(title, for: state)
         }
@@ -38,10 +30,7 @@ public extension SomeView where Self: UIButton {
 @MainActor
 public extension SomeView where Self: UIButton {
     
-    func selected<S: Subject>(
-        bindsTo subject: S
-    )
-    -> Self where S.Output == Bool, S.Failure == Never {
+    func selected(bindsTo subject: some Subject<Bool, Never>) -> Self {
         subscribeAndSendIsSelected(to: subject)
             .store(in: CancellableStorage.current)
         return self
@@ -53,7 +42,7 @@ public extension SomeView where Self: UIButton {
 
 private extension UIButton {
     
-    func subscribeAndSendIsSelected<S: Subject>(to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
+    func subscribeAndSendIsSelected(to subject: some Subject<Bool, Never>) -> AnyCancellable {
         return ButtonIsSelectedToggler.shared.bindIsSelected(of: self, to: subject)
     }
 }
@@ -77,7 +66,7 @@ private class ButtonIsSelectedToggler: NSObject {
         return subjects
     }
     
-    func bindIsSelected<S: Subject>(of button: UIButton, to subject: S) -> AnyCancellable where S.Output == Bool, S.Failure == Never {
+    func bindIsSelected(of button: UIButton, to subject: some Subject<Bool, Never>) -> AnyCancellable {
         let anySubject = subject.eraseToAnySubject()
         // Store the subject
         subjects(for: button).add(anySubject)

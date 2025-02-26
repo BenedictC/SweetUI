@@ -26,9 +26,7 @@ public extension UIBarButtonItem {
         return self
     }
     
-    func width<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == CGFloat, P.Failure == Never {
+    func width(_ publisher: some Publisher<CGFloat, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -51,9 +49,7 @@ public extension UIBarButtonItem {
         return self
     }
     
-    func menu<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == UIMenu?, P.Failure == Never {
+    func menu(_ publisher: some Publisher<UIMenu?, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -74,9 +70,7 @@ public extension UIBarButtonItem {
         return self
     }
     
-    func selected<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func selected(_ publisher: some Publisher<Bool, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -97,9 +91,7 @@ public extension UIBarButtonItem {
         return self
     }
     
-    func hidden<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func hidden(_ publisher: some Publisher<Bool, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:

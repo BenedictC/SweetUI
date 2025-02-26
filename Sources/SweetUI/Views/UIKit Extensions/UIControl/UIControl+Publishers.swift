@@ -6,9 +6,7 @@ import Combine
 
 public extension UIControl {
     
-    func enabled<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func enabled(_ publisher: some Publisher<Bool, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isEnabled, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -19,9 +17,7 @@ public extension UIControl {
         return self
     }
     
-    func selected<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func selected(_ publisher: some Publisher<Bool, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isSelected, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:
@@ -32,9 +28,7 @@ public extension UIControl {
         return self
     }
     
-    func highlighted<P: Publisher>(
-        _ publisher: P
-    ) -> Self where P.Output == Bool, P.Failure == Never {
+    func highlighted(_ publisher: some Publisher<Bool, Never>) -> Self {
         // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
         // assign(to: \.isHighlighted, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
         // So we have to do it the long way:

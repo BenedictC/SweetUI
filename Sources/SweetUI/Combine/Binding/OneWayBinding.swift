@@ -34,21 +34,21 @@ public class OneWayBinding<Output>: Publisher {
 
     // MARK: Instance life cycle
 
-    internal init<P: Publisher>(publisher: P, cancellable: AnyCancellable?, get getter: @escaping () -> Output, options: Options = .default) where P.Output == Output, P.Failure == Never {
-        self.publisher = options.decorate(publisher)
+    internal init(publisher: some Publisher<Output, Never>, cancellable: AnyCancellable?, get getter: @escaping () -> Output, options: Options = .default) {
+        self.publisher = options.decorate(publisher).eraseToAnyPublisher()
         self.getter = getter
         self.cancellable = cancellable
     }
 
     public init(wrappedValue: Output, options: Options = .default) {
         let just = Just(wrappedValue)
-        self.publisher = options.decorate(just)
+        self.publisher = options.decorate(just).eraseToAnyPublisher()
         self.cancellable = nil
         self.getter = { just.output }
     }
 
     public init(currentValueSubject: CurrentValueSubject<Output, Never>, options: Options = .default) {
-        self.publisher = options.decorate(currentValueSubject)
+        self.publisher = options.decorate(currentValueSubject).eraseToAnyPublisher()
         self.cancellable = nil
         self.getter = { currentValueSubject.value }
     }

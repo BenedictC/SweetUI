@@ -7,13 +7,13 @@ final class RegistrationForm {
     // MARK: Publishers
 
     @Published var name: String? // = "Test Name"
-    var isNameValid: AnyPublisher<Bool, Never> { $name.map(Self.isValidName).eraseToAnyPublisher() }
+    var isNameValid: some Publisher<Bool, Never> { $name.map(Self.isValidName) }
 
     @Published var email: String? // = "test@example.com"
-    var isEmailValid: AnyPublisher<Bool, Never> { $email.map(Self.isValidEmail).eraseToAnyPublisher() }
+    var isEmailValid: some Publisher<Bool, Never> { $email.map(Self.isValidEmail) }
 
     @Published var password: String? // = "qwerty12345"
-    var isPasswordValid: AnyPublisher<Bool, Never> { $password.map(Self.isValidPassword).eraseToAnyPublisher() }
+    var isPasswordValid: some Publisher<Bool, Never> { $password.map(Self.isValidPassword) }
 
     private(set) lazy var isValid = Publishers
         .CombineLatest3(isNameValid, isEmailValid, isPasswordValid)

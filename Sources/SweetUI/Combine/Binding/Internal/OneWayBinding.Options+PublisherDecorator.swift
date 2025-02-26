@@ -6,7 +6,7 @@ import Combine
 
 internal extension OneWayBinding.Options {
 
-    func decorate<P: Publisher>(_ publisher: P) -> AnyPublisher<Output, Never> where P.Output == Output, P.Failure == Never {
+    func decorate(_ publisher: some Publisher<Output, Never>) -> some Publisher<Output, Never> {
         var result = publisher.eraseToAnyPublisher()
         if self.contains(.removesDuplicates) {
             result = result
@@ -27,18 +27,19 @@ internal extension OneWayBinding.Options {
 
 internal extension Publisher {
 
-    func unconstrainedRemoveDuplicates() -> AnyPublisher<Output, Failure> {
+    func unconstrainedRemoveDuplicates() -> some Publisher<Output, Failure> {
         guard Output.self is any Equatable.Type else {
-            return (self as? AnyPublisher<Output, Failure>) ?? self.eraseToAnyPublisher()
+            return self.eraseToAnyPublisher()
         }
-        return self.removeDuplicates { stale, fresh in
-            guard let staleEq = stale as? any Equatable,
-                  let freshEq = fresh as? any Equatable else {
-                return false
+        return self
+            .removeDuplicates { stale, fresh in
+                guard let staleEq = stale as? any Equatable,
+                      let freshEq = fresh as? any Equatable else {
+                    return false
+                }
+                return staleEq.isEqual(freshEq)
             }
-            return staleEq.isEqual(freshEq)
-        }
-        .eraseToAnyPublisher()
+            .eraseToAnyPublisher()
     }
 }
 
@@ -127,7 +128,7 @@ internal struct SwitchToMainQueueIfNeededPublisher<Upstream: Publisher>: Publish
 
     // MARK: Publisher
 
-    func receive<S>(subscriber: S) where S : Subscriber, Failure == S.Failure, Output == S.Input {
+    func receive(subscriber: some Subscriber<Output, Failure>) {
         let subscription = Subscription(subscriber: subscriber, upstream: upstream)
         subscriber.receive(subscription: subscription)
     }

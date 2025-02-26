@@ -156,10 +156,10 @@ public extension UIBarButtonItem {
         
         private let subjectsByItem = NSMapTable<UIBarButtonItem, AnySubject<Bool, Never>>.weakToStrongObjects()
         
-        func registerSubject<S: Subject>(_ subject: S, for item: UIBarButtonItem) where S.Output == Bool, S.Failure == Never {
+        func registerSubject(_ subject: some Subject<Bool, Never>, for item: UIBarButtonItem) {
             item.target = self
             item.action = #selector(BarButtonItemIsSelectedToggler.toggle(_:))
-            let anySubject = AnySubject(subject)
+            let anySubject = subject.eraseToAnySubject()
             subjectsByItem.setObject(anySubject, forKey: item)
         }
         
@@ -177,12 +177,12 @@ public extension UIBarButtonItem {
     
     // # image:
     
-    convenience init<S: Subject>(
+    convenience init(
         title: String? = nil,
         image: UIImage,
         style: UIBarButtonItem.Style = .plain,
-        selected subject: S
-    ) where S.Output == Bool, S.Failure == Never {
+        selected subject: some Subject<Bool, Never>
+    ) {
         self.init(title: title, image: image, primaryAction: nil)
         self.style = style
         
@@ -196,12 +196,12 @@ public extension UIBarButtonItem {
     
     // # imageName:
     
-    convenience init<S: Subject>(
+    convenience init(
         title: String? = nil,
         imageName: String,
         style: UIBarButtonItem.Style = .plain,
-        selected subject: S
-    ) where S.Output == Bool, S.Failure == Never {
+        selected subject: some Subject<Bool, Never>
+    ) {
         let image = UIImage(named: imageName)
         self.init(title: title, image: image, primaryAction: nil)
         self.style = style
@@ -217,12 +217,12 @@ public extension UIBarButtonItem {
     
     // # systemImageName:
     
-    convenience init<S: Subject>(
+    convenience init(
         title: String? = nil,
         systemImageName: String,
         style: UIBarButtonItem.Style = .plain,
-        selected subject: S
-    ) where S.Output == Bool, S.Failure == Never {
+        selected subject: some Subject<Bool, Never>
+    ) {
         let image = UIImage(systemName: systemImageName)
         self.init(title: title, image: image, primaryAction: nil)
         self.style = style

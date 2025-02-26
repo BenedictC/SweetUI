@@ -157,7 +157,7 @@ private extension FormViewController {
 
 private extension FormViewController {
     
-    func makeValidationPublisher(for validationKeyPath: ValidationKeyPath) -> AnyPublisher<CGFloat, Never> {
+    func makeValidationPublisher(for validationKeyPath: ValidationKeyPath) -> some Publisher<CGFloat, Never> {
         let validationPublisher = form[keyPath: validationKeyPath]
         return Publishers.CombineLatest(validationPublisher, $validationKeyPaths)
             .map { pair in
@@ -165,7 +165,6 @@ private extension FormViewController {
                 let shouldShowValidation = validationKeyPaths.contains(validationKeyPath)
                 return shouldShowValidation && !isValid ? CGFloat(1) : CGFloat(0)
             }
-            .eraseToAnyPublisher()
     }
     
     func makeTextField(placeholder: String) -> UITextField {

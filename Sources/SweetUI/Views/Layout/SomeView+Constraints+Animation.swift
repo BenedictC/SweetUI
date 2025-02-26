@@ -7,11 +7,11 @@ import Combine
 @MainActor
 public extension SomeView {
     
-    func constraints<P: Publisher>(
-        for publisher: P,
+    func constraints<V>(
+        for publisher: some Publisher<V, Never>,
         animatorFactory: @MainActor @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator(duration: 0.3, curve: .easeOut) },
-        constraintsFactory: @escaping (Self, P.Output, [NSLayoutConstraint]) -> [NSLayoutConstraint]
-    ) -> Self where P.Failure == Never {
+        constraintsFactory: @escaping (Self, V, [NSLayoutConstraint]) -> [NSLayoutConstraint]
+    ) -> Self {
         var activeConstraints = [NSLayoutConstraint]()
         
         publisher.sink { [weak self] value in
@@ -39,12 +39,12 @@ public extension SomeView {
 @MainActor
 public extension SomeView {
     
-    func constraint<P: Publisher>(
-        active publisher: P,
+    func constraint(
+        active publisher: some Publisher<Bool, Never>,
         animatorFactory: @MainActor @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator.makeDefaultAnimator() },
         constraint constraintBuilder: (Self) -> NSLayoutConstraint
     )
-    -> Self where P.Output == Bool, P.Failure == Never {
+    -> Self {
         let constraint = constraintBuilder(self)
         
         publisher.sink { isActive in
@@ -61,11 +61,11 @@ public extension SomeView {
         return self
     }
     
-    func constraint<P: Publisher>(
-        constant publisher: P,
+    func constraint(
+        constant publisher: some Publisher<CGFloat, Never>,
         animatorFactory: @MainActor @escaping () -> UIViewPropertyAnimator = { UIViewPropertyAnimator.makeDefaultAnimator() },
         constraint constraintBuilder: (Self) -> NSLayoutConstraint
-    ) -> Self where P.Output == CGFloat, P.Failure == Never {
+    ) -> Self {
         let constraint = constraintBuilder(self)
         publisher.sink { constant in
             guard constraint.constant != constant else { return }

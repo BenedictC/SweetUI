@@ -25,7 +25,7 @@ public final class OneOf: UIView {
 
     // MARK: Instance life cycle
 
-    public init<P: Publisher>(publisher: P, components: [Component<P.Output>]) where P.Failure == Never {
+    public init<Output>(publisher: some Publisher<Output, Never>, components: [Component<Output>]) {
         super.init(frame: .zero)
         NSLayoutConstraint.activate([
             // Default to no size
@@ -68,11 +68,11 @@ public final class OneOf: UIView {
 
 public extension OneOf {
 
-    convenience init<P: Publisher>(
-        for publisher: P,
-        @OneOfComponentsBuilder builder contentBuilder: () -> [Component<P.Output>]
-    ) where P.Failure == Never {
-        let components = OneOfComponentsBuilder.with(publisher.eraseToAnyPublisher()) {
+    convenience init<Output>(
+        for publisher: some Publisher<Output, Never>,
+        @OneOfComponentsBuilder builder contentBuilder: () -> [Component<Output>]
+    ) {
+        let components = OneOfComponentsBuilder.with(publisher) {
             contentBuilder()
         }
         self.init(publisher: publisher, components: components)
@@ -142,7 +142,7 @@ private extension OneOfComponentsBuilder {
         return publisher
     }
 
-    static func with<Output, T>(_ publisher: AnyPublisher<Output, Never>, work: () -> T) -> T {
+    static func with<Output, T>(_ publisher: some Publisher<Output, Never>, work: () -> T) -> T {
         publisherStack.append(publisher)
         let result = work()
         _ = publisherStack.removeLast()
