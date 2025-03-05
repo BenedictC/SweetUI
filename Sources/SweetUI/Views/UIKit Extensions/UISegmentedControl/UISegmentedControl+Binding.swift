@@ -11,7 +11,7 @@ public extension UISegmentedControl {
             guard let self else { return }
             guard self.selectedSegmentIndex != index else { return }
             guard (-1..<(self.numberOfSegments)).contains(index) else {
-                print("Published value '\(index)' is out of range for selectedSegmentIndex of '\(self)'.")
+                log.error("Published value '\(index)' is out of range for selectedSegmentIndex of '\(self)'.")
                 return
             }
             self.selectedSegmentIndex = index
@@ -68,7 +68,7 @@ private class SelectedSegmentIndexReceiver {
             guard let control else { return }
             guard control.selectedSegmentIndex != index else { return }
             guard (-1..<(control.numberOfSegments)).contains(index) else {
-                print("Published value '\(index)' is out of range for selectedSegmentIndex of '\(control)'.")
+                log.error("Published value '\(index)' is out of range for selectedSegmentIndex of '\(control)'.")
                 return
             }
             control.selectedSegmentIndex = index

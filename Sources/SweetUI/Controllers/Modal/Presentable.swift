@@ -35,12 +35,12 @@ public extension Presentable where Self: UIViewController {
             coordinator.endPresentation(with: result, animated: animated)
             return
         }
-        print("Attempted to end presentation from a child of the presented view controller with mismatched Success types. Result will be discarded and replaced with `PresentableError.presentationEndedFromNestedViewController`.")
+        log.error("Attempted to end presentation from a child of the presented view controller with mismatched Success types. Result will be discarded and replaced with `PresentableError.presentationEndedFromNestedViewController`.")
         if let coordinator = AsyncPresentationCoordinators.erasedCoordinator(for: self) {
             coordinator.endPresentation(with: PresentableError.cancelled, animated: animated)
             return
         }
-        print("Attempted to end presentation from a view controller that is not currently involved in an asynchronous presentation. No presentations will be ended.")
+        log.error("Attempted to end presentation from a view controller that is not currently involved in an asynchronous presentation. No presentations will be ended.")
     }
  
     func didDisappear() {

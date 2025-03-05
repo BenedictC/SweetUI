@@ -34,7 +34,7 @@ open class AlertController<T>: UIAlertController, Presentable {
         public static func preferred(_ action: Self) -> Self {
             switch action {
             case .text, .attributedText:
-                print("Attempted to erroneously set a textField as a preferred action.")
+                log.fault("Attempted to erroneously set a textField as a preferred action.")
                 return action
                 
             case .action(let title, let style, let result, _, let isEnabledPublisher):
