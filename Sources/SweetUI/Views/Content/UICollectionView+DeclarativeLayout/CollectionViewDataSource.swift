@@ -9,24 +9,41 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
 
     // MARK: Type
 
+    public typealias Snapshot = NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>
+
     public final class Storage {
 
-        fileprivate var initialSnapshot: NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>?
+        fileprivate var initialSnapshot: Snapshot?
 
-        public private(set) var dataSource: CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>!
-        public var snapshotPublisher: AnyPublisher<NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>, Never> { dataSource.snapshotPublisher }
+        public var dataSource: CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>! {
+            if _dataSource == nil {
+                log.fault("Accessed dataSource of CollectionViewDataSource before the dataSource has been initialized.")
+            }
+            return _dataSource
+        }
+        private var _dataSource: CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>!
+        public var snapshotPublisher: AnyPublisher<Snapshot, Never> { _dataSource.snapshotPublisher }
 
         internal func initialize(collectionView: UICollectionView, cellProvider: @escaping CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider) -> UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue> {
-            assert(dataSource == nil)
-            self.dataSource = CollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
+            assert(_dataSource == nil)
+            self._dataSource = CollectionViewDiffableDataSource(collectionView: collectionView, cellProvider: cellProvider)
             if let initialSnapshot {
-                dataSource.apply(initialSnapshot)
+                _dataSource.apply(initialSnapshot)
             }
             initialSnapshot = nil
-            return dataSource
+            return _dataSource
         }
 
-        public func newSnapshot() -> NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue> {
+        public func initialize(for collectionView: UICollectionView) {
+            // This method is a weird hack for lazy loaded collectionViews.
+            // It's only needs to be called when the dataSource is accessed before the collectionView is loaded.
+            //
+            // It doesn't actually perform initialize, the initialization occurs in the init of collectionView, this
+            // method is just allows that to occur in an explicit manner.
+            assert(self._dataSource != nil)
+        }
+
+        public func newSnapshot() -> Snapshot {
             NSDiffableDataSourceSnapshot()
         }
     }
@@ -35,6 +52,7 @@ public struct CollectionViewDataSource<SectionIdentifier: Hashable, ItemValue: H
     // MARK: Properties
 
     public let projectedValue = Storage()
+
     public var wrappedValue: NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue> {
         get {
             guard let dataSource = projectedValue.dataSource else {
