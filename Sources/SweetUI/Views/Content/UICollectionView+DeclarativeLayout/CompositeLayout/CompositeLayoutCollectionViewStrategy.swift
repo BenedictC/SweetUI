@@ -12,7 +12,7 @@ public typealias CompositeLayout = CompositeLayoutCollectionViewStrategy
 public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewLayoutStrategy {
 
     let components: CompositeLayoutComponents<SectionIdentifier, ItemValue>
-
+    public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
 
     public func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout) {
         // Layout
@@ -119,13 +119,21 @@ public extension CompositeLayoutCollectionViewStrategy {
         background: LayoutBackground? = nil,
         header: LayoutHeader? = nil,
         footer: LayoutFooter? = nil,
-        @ArrayBuilder<Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>> sections: () -> [Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>]
+        @ArrayBuilder<Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>> sections: () -> [Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>],
+        indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
+        reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>? = nil
     ) {
         self.components = CompositeLayoutComponents(
             header: header,
             sections: sections().map { $0.content },
             footer: footer,
             background: background
+        )
+        self.behaviors = .init(
+            indexElementsProvider: indexElementsProvider,
+            reorderHandlers: reorderHandlers,
+            sectionSnapshotHandlers: sectionSnapshotHandlers
         )
     }
 }

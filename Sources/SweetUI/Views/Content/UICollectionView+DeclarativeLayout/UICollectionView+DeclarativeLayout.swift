@@ -3,29 +3,11 @@ import UIKit
 import Combine
 
 
-extension UICollectionView {
-
-    convenience init<SectionIdentifier: Hashable, ItemValue: Hashable>(
-        dataSource dataSourceStorage:  CollectionViewDataSource<SectionIdentifier, ItemValue>.Storage,
-        delegate: UICollectionViewDelegate? = nil,
-        layout: UICollectionViewLayout,
-        cellProvider: @escaping UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>.CellProvider,
-        supplementaryViewProvider: @escaping UICollectionViewDiffableDataSourceReferenceSupplementaryViewProvider
-    ) {
-        self.init(frame: .zero, collectionViewLayout: layout)
-
-        // Attached data & delegate
-        let dataSource = dataSourceStorage.initialize(collectionView: self, cellProvider: cellProvider)
-        dataSource.supplementaryViewProvider = supplementaryViewProvider
-        self.delegate = delegate
-    }
-}
-
-
+@available(iOS 14, *)
 public extension UICollectionView {
 
     convenience init<SectionIdentifier: Hashable, ItemValue: Hashable, Strategy: CollectionViewLayoutStrategy>(
-        dataSource dataSourceStorage:  CollectionViewDataSource<SectionIdentifier, ItemValue>.Storage,
+        snapshot snapshotCoordinator:  CollectionViewSnapshot<SectionIdentifier, ItemValue>.Coordinator,
         delegate: UICollectionViewDelegate? = nil,
         layout strategyBuilder: () -> Strategy
     ) where Strategy.SectionIdentifier == SectionIdentifier,
@@ -33,18 +15,25 @@ public extension UICollectionView {
     {
         // Init with placeholder layout
         self.init(frame: .zero, collectionViewLayout: UICollectionViewLayout())
-        //Create strategy and dataSource
+
         let strategy = strategyBuilder()
 
-        // Attached data & delegate
-        let dataSource = dataSourceStorage.initialize(collectionView: self, cellProvider: { collectionView, indexPath, itemValue in
-            let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
-            guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
-                preconditionFailure("Invalid section index")
+        // Configure dataSource (the dataSource is stored by the snapshotCoordinator)
+        let dataSource = snapshotCoordinator.register(
+            collectionView: self,
+            cellProvider: { collectionView, indexPath, itemValue in
+                let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
+                guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
+                    preconditionFailure("Invalid section index")
+                }
+                let cell = strategy.cell(for: collectionView, itemValue: itemValue, in: sectionIdentifier, at: indexPath)
+                return cell
             }
-            let cell = strategy.cell(for: collectionView, itemValue: itemValue, in: sectionIdentifier, at: indexPath)
-            return cell
-        })
+        )
+        guard let dataSource else {
+            log.error("Failed to register collectionView with snapshot coordinator. CollectionView will not function.")
+            return
+        }
         dataSource.supplementaryViewProvider = { [weak dataSource] collectionView, elementKind, indexPath in
             guard let dataSource else {
                 fatalError()
@@ -52,11 +41,20 @@ public extension UICollectionView {
             let view = strategy.supplementaryView(for: collectionView, elementKind: elementKind, at: indexPath, dataSource: dataSource)
             return view
         }
-        self.delegate = delegate
+        dataSource.indexElementsProvider = strategy.behaviors.indexElementsProvider
+        if let reorderHandlers = strategy.behaviors.reorderHandlers {
+            dataSource.reorderingHandlers = reorderHandlers
+        }
+        if let sectionSnapshotHandlers = strategy.behaviors.sectionSnapshotHandlers {
+            dataSource.sectionSnapshotHandlers = sectionSnapshotHandlers
+        }
 
-        // Set the final layout
+        // Configure and store the final layout
         let layout = strategy.makeLayout(dataSource: dataSource)
         strategy.registerReusableViews(in: self, layout: layout)
         self.collectionViewLayout = layout
+
+        // Configure delegate
+        self.delegate = delegate
     }
 }

@@ -7,9 +7,10 @@ public extension ListLayoutCollectionViewStrategy {
     private init(
         appearance: UICollectionLayoutListConfiguration.Appearance,
         configuration: LayoutConfiguration,
-        header: LayoutHeader? = nil,
+        header: LayoutHeader?,
         sections: [AnyListSection<SectionIdentifier, ItemValue>],
-        footer: LayoutFooter? = nil
+        footer: LayoutFooter?,
+        behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
     ) {
         let components = ListLayoutComponents(
             configuration: configuration,
@@ -17,7 +18,7 @@ public extension ListLayoutCollectionViewStrategy {
             footer: footer,
             sections: sections
         )
-        self.init(appearance: appearance, components: components)
+        self.init(appearance: appearance, components: components, behaviors: behaviors)
     }
 }
 
@@ -30,7 +31,10 @@ public extension ListLayoutCollectionViewStrategy {
         configuration: LayoutConfiguration = LayoutConfiguration(builder: { _ in }),
         header: LayoutHeader? = nil,
         sectionsWithoutHeader sections: [Section<ListSectionWithoutHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>],
-        footer: LayoutFooter? = nil
+        footer: LayoutFooter? = nil,
+        indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
+        reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>? = nil
     ) {
         let components = ListLayoutComponents(
             configuration: configuration,
@@ -38,7 +42,12 @@ public extension ListLayoutCollectionViewStrategy {
             footer: footer,
             sections: sections.map { AnyListSection<SectionIdentifier, ItemValue>(predicate: nil, components: $0.content.components) }
         )
-        self.init(appearance: appearance, components: components)
+        let behaviors = CollectionViewLayoutBehaviors(
+            indexElementsProvider: indexElementsProvider,
+            reorderHandlers: reorderHandlers,
+            sectionSnapshotHandlers: sectionSnapshotHandlers
+        )
+        self.init(appearance: appearance, components: components, behaviors: behaviors)
     }
 }
 
@@ -52,7 +61,10 @@ public extension ListLayoutCollectionViewStrategy {
         header: LayoutHeader? = nil,
         @ArrayBuilder<Section<ListSectionWithStandardHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, LayoutHeader>>
         sectionsWithStandardHeader sections: () -> [Section<ListSectionWithStandardHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, LayoutHeader>],
-        footer: LayoutFooter? = nil
+        footer: LayoutFooter? = nil,
+        indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
+        reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>? = nil
     ) {
         let anySections = sections().map {
             AnyListSection<SectionIdentifier, ItemValue>(predicate: $0.content.predicate, components: $0.content.components)
@@ -63,7 +75,13 @@ public extension ListLayoutCollectionViewStrategy {
             footer: footer,
             sections: anySections
         )
-        self.init(appearance: appearance, components: components)
+        let behaviors = CollectionViewLayoutBehaviors(
+            indexElementsProvider: indexElementsProvider,
+            reorderHandlers: reorderHandlers,
+            sectionSnapshotHandlers: sectionSnapshotHandlers
+        )
+
+        self.init(appearance: appearance, components: components, behaviors: behaviors)
     }
 }
 
@@ -77,7 +95,10 @@ public extension ListLayoutCollectionViewStrategy {
         header: LayoutHeader? = nil,
         @ArrayBuilder<Section<ListSectionWithCollapsableHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, LayoutHeader>>
         sectionsWithCollapsableHeader sections: () -> [Section<ListSectionWithCollapsableHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, LayoutHeader>],
-        footer: LayoutFooter? = nil
+        footer: LayoutFooter? = nil,
+        indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
+        reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>? = nil
     ) {
         let components = ListLayoutComponents(
             configuration: configuration,
@@ -85,7 +106,13 @@ public extension ListLayoutCollectionViewStrategy {
             footer: footer,
             sections: sections().map { AnyListSection<SectionIdentifier, ItemValue>(predicate: nil, components: $0.content.components) }
         )
-        self.init(appearance: appearance, components: components)
+        let behaviors = CollectionViewLayoutBehaviors(
+            indexElementsProvider: indexElementsProvider,
+            reorderHandlers: reorderHandlers,
+            sectionSnapshotHandlers: sectionSnapshotHandlers
+        )
+
+        self.init(appearance: appearance, components: components, behaviors: behaviors)
     }
 }
 

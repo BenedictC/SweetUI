@@ -5,15 +5,45 @@ import Combine
 
 // MARK: - CollectionViewLayoutStrategy
 
+@available(iOS 14, *)
 public protocol CollectionViewLayoutStrategy {
 
     associatedtype SectionIdentifier: Hashable
     associatedtype ItemValue: Hashable
+    typealias DiffableDataSource = CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
+
+    var behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue> { get }
 
     func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout)
     func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionViewLayout
     func cell(for collectionView: UICollectionView, itemValue: ItemValue, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell
     func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionReusableView
+}
+
+
+// MARK: - CollectionViewLayoutBehaviors
+
+@available(iOS 14, *)
+public struct CollectionViewLayoutBehaviors<SectionIdentifier: Hashable, ItemValue: Hashable> {
+
+    public typealias Snapshot = NSDiffableDataSourceSnapshot<SectionIdentifier, ItemValue>
+    public typealias DiffableDataSource = CollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
+    public typealias IndexElement = DiffableDataSource.IndexElement
+    public typealias IndexElementsProvider = DiffableDataSource.IndexElementsProvider
+
+    public let indexElementsProvider: IndexElementsProvider?
+    public let reorderHandlers: DiffableDataSource.ReorderingHandlers?
+    public let sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>?
+
+    public init(
+        indexElementsProvider: IndexElementsProvider?,
+        reorderHandlers: DiffableDataSource.ReorderingHandlers?,
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>?
+    ) {
+        self.indexElementsProvider = indexElementsProvider
+        self.reorderHandlers = reorderHandlers
+        self.sectionSnapshotHandlers = sectionSnapshotHandlers
+    }
 }
 
 

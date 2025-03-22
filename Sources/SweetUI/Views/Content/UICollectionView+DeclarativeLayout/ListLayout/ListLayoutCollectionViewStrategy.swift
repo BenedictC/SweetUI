@@ -12,6 +12,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 
     let appearance: UICollectionLayoutListConfiguration.Appearance
     let components: ListLayoutComponents<SectionIdentifier, ItemValue>
+    public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
     private let emptyFooter = Footer<SectionIdentifier> { _ in
         UIView()
             .frame(height: 0)
@@ -19,10 +20,12 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 
     internal init(
         appearance: UICollectionLayoutListConfiguration.Appearance,
-        components: ListLayoutComponents<SectionIdentifier, ItemValue>
+        components: ListLayoutComponents<SectionIdentifier, ItemValue>,
+        behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
     ) {
         self.appearance = appearance
         self.components = components
+        self.behaviors = behaviors
     }
 
     public func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout) {
