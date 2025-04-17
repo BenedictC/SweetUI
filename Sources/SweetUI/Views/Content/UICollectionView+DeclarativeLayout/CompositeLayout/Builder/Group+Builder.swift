@@ -1,5 +1,4 @@
-
-// MARK: - AnyGroup
+// MARK: AnyGroup
 
 public struct AnyGroupItem<ItemValue: Hashable>: GroupItem {
 
@@ -37,7 +36,7 @@ public struct AnyGroupItem<ItemValue: Hashable>: GroupItem {
 }
 
 
-// MARK: - Builder
+// MARK: - Group Builder
 
 @resultBuilder
 public struct GroupItemsBuilder<ItemValue: Hashable> {
@@ -240,15 +239,6 @@ public extension AxisGroup {
 
 // MARK: - Supplementaries
 
-@resultBuilder
-public struct SupplementaryComponentsBuilder<ItemValue: Hashable> {
-
-    public static func buildBlock(_ components: Supplement<ItemValue>...) -> [Supplement<ItemValue>] {
-        return components
-    }
-}
-
-
 public extension Group {
 
     func supplementaries(
@@ -259,60 +249,6 @@ public extension Group {
         return SupplementedGroup(
             group: self,
             supplements: supplements
-        )
-    }
-}
-
-
-public extension Cell {
-
-    func supplementaries(
-        @SupplementaryComponentsBuilder<ItemValue>
-        _ componentsBuilder: () -> [Supplement<ItemValue>]
-    ) -> SupplementedGroupItem<ItemValue> {
-        let supplements = componentsBuilder()
-        return SupplementedGroupItem(cell: self, supplements: supplements)
-    }
-}
-
-
-// MARK: - CompositeSection
-
-@available(iOS 14, *)
-public extension Section where Content == CompositeSection<SectionIdentifier, ItemValue>, HeaderType == Void {
-
-    init<G: Group>(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
-        orthogonalScrollingBehavior: UICollectionLayoutSectionOrthogonalScrollingBehavior? = nil,
-        interGroupSpacing: CGFloat? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil,
-        contentInsetsReference: UIContentInsetsReference? = nil,
-        supplementaryContentInsetsReference: UIContentInsetsReference? = nil,
-        visibleItemsInvalidationHandler: NSCollectionLayoutSectionVisibleItemsInvalidationHandler?? = nil,
-        group: G,
-        background: Background? = nil,
-        sectionSupplementariesByElementKind: [String: AnyBoundarySupplementaryComponent<SectionIdentifier>] = [:],
-        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemValue>] = [:]
-    ) where G.ItemValue == ItemValue
-    {
-        self.content = CompositeSection(
-            predicate: predicate,
-            components: SectionComponents<SectionIdentifier, ItemValue>(
-                group: AnyGroup(
-                    allCellsHandler: group.cellsForRegistration,
-                    itemSupplementaryTemplatesHandler: group.itemSupplementaryTemplates,
-                    makeLayoutGroupHandler: group.makeLayoutGroup
-                ),
-                background: background,
-                sectionSupplementariesByElementKind: sectionSupplementariesByElementKind,
-                itemSupplementaryTemplateByElementKind: itemSupplementaryTemplateByElementKind
-            ),
-            orthogonalScrollingBehavior: orthogonalScrollingBehavior,
-            interGroupSpacing: interGroupSpacing,
-            contentInsets: contentInsets,
-            contentInsetsReference: contentInsetsReference,
-            supplementaryContentInsetsReference: supplementaryContentInsetsReference,
-            visibleItemsInvalidationHandler: visibleItemsInvalidationHandler
         )
     }
 }

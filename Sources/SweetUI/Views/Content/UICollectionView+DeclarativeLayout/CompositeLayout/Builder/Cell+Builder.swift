@@ -1,8 +1,6 @@
 import UIKit
 
 
-// MARK: - Cell
-
 extension Cell: GroupItem {
 
     public init(
@@ -35,5 +33,19 @@ extension Cell: GroupItem {
 
     public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
         self.makeLayoutItem(defaultSize: defaultSize, environment: environment)
+    }
+}
+
+
+// MARK: - Supplementaries
+
+public extension Cell {
+
+    func supplementaries(
+        @SupplementaryComponentsBuilder<ItemValue>
+        _ componentsBuilder: () -> [Supplement<ItemValue>]
+    ) -> SupplementedGroupItem<ItemValue> {
+        let supplements = componentsBuilder()
+        return SupplementedGroupItem(cell: self, supplements: supplements)
     }
 }
