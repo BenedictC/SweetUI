@@ -12,13 +12,13 @@ public final class ScrollingContentLayout<Content: UIView>: LayoutView {
         var backgroundColor: UIColor? = nil
         var paddingColor: UIColor? = nil
         var avoidsKeyboard: Bool = true
-        var alignment: ZAxisAlignment = .center
+        var alignment: ContentAlignment = .center
 
         public init(edgePadding: CGFloat = 20,
              backgroundColor: UIColor? = nil,
              paddingColor: UIColor? = nil,
              avoidsKeyboard: Bool = true,
-             alignment: ZAxisAlignment)
+             alignment: ContentAlignment)
         {
             self.edgePadding = edgePadding
             self.backgroundColor = backgroundColor

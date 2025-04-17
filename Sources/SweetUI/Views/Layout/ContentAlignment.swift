@@ -1,5 +1,8 @@
 
-public enum ZAxisAlignment {
+@available(*, deprecated, message: "Use ContentAlignment instead of ZAxisAlignment")
+public typealias ZAxisAlignment = ContentAlignment
+
+public enum ContentAlignment {
     case fill
     case topLeft, top, topRight
     case left, center, right

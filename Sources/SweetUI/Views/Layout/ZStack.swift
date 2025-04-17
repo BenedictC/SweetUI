@@ -6,13 +6,13 @@ public final class ZStack: UIView {
 
     // MARK: Properties
 
-    public let alignment: ZAxisAlignment
+    public let alignment: ContentAlignment
     public private(set) var arrangedSubviews = [UIView]()
 
 
     // MARK: Instance life cycle
 
-    public init(alignment: ZAxisAlignment = .fill) {
+    public init(alignment: ContentAlignment = .fill) {
         self.alignment = alignment
         super.init(frame: .zero)
     }
@@ -184,7 +184,7 @@ private extension ZStack {
 
 public extension ZStack {
 
-    convenience init(alignment: ZAxisAlignment = .fill,  @SubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
+    convenience init(alignment: ContentAlignment = .fill,  @SubviewsBuilder arrangedSubviewsBuilder: () -> [UIView]) {
         self.init(alignment: alignment)
 
         let arrangedSubviews = arrangedSubviewsBuilder()
