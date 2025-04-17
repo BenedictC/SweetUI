@@ -2,7 +2,7 @@ import Foundation
 import UIKit
 
 
-public final class ScrollView<T: UIView>: UIScrollView {
+public class ScrollView<T: UIView>: UIScrollView {
 
     // MARK: - Properties
 
