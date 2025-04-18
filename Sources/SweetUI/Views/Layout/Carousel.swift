@@ -35,7 +35,7 @@ public final class Carousel: UIView {
 
     // MARK: Instance life cycle
 
-    init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int?, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    public init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int?, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
         let items = itemsBuilder()
         self.items = items
         self.spacing = spacing
@@ -70,7 +70,7 @@ public final class Carousel: UIView {
         }
     }
 
-    convenience init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int?, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    public convenience init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int?, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
         let publisher = selectedItemIndex.eraseToAnyPublisher()
         self.init(spacing: spacing, inset: inset, alignment: alignment, selectedItemIndex: publisher, items: itemsBuilder)
 
@@ -89,7 +89,7 @@ public final class Carousel: UIView {
 
     // MARK: View life cycle
 
-    override func layoutSubviews() {
+    public override func layoutSubviews() {
         super.layoutSubviews()
         setContentOffsetToShowItem(at: selectedItemIndex, animated: false)
     }
@@ -97,7 +97,7 @@ public final class Carousel: UIView {
 
     // MARK: Event handling
 
-    override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
+    public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         scrollView
     }
 }
@@ -147,11 +147,11 @@ private extension Carousel {
 
 extension Carousel: UIScrollViewDelegate {
 
-    func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         setSelectedItemIndexFromCurrentItem()
     }
 
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
+    public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         setSelectedItemIndexFromCurrentItem()
     }
 }
