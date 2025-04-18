@@ -52,10 +52,10 @@ open class _LayoutView: UIView {
         guard let host = self as? _ViewBodyProvider else {
             preconditionFailure("_LayoutView subclasses must conform to _ViewBodyProvider")
         }
-        host.collectCancellables(with: View.CancellableKey.awake) {
+        host.storeCancellables(with: View.CancellableKey.awake) {
             host.awake()
         }
-        host.collectCancellables(with: View.CancellableKey.loadBody) {
+        host.storeCancellables(with: View.CancellableKey.loadBody) {
             host.initializeBodyHosting()
         }
     }

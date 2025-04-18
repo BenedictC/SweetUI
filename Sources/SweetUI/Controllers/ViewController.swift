@@ -63,7 +63,7 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
         // Initialize a barItems
-        owner.collectCancellables(with: CancellableKey.awake) {
+        owner.storeCancellables(with: CancellableKey.awake) {
             let advice = "Check that closures used to make the barItem that reference the view controller do so with weak references."
             detectPotentialRetainCycle(of: self, advice: advice) { owner.awake() }  // Force load barItems
         }
@@ -82,7 +82,7 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider {
         guard let owner = self as? _ViewControllerRequirements else {
             preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
         }
-        owner.collectCancellables(with: CancellableKey.loadView) {
+        owner.storeCancellables(with: CancellableKey.loadView) {
             guard let owner = self as? _ViewControllerRequirements else {
                 preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
             }

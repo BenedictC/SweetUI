@@ -13,10 +13,10 @@ open class _CollectionReusableView: UICollectionReusableView, ReuseIdentifiable 
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_CollectionViewCell subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.collectCancellables(with: View.CancellableKey.awake) {
+        bodyProvider.storeCancellables(with: View.CancellableKey.awake) {
             bodyProvider.awake()
         }
-        bodyProvider.collectCancellables(with: View.CancellableKey.loadBody) {
+        bodyProvider.storeCancellables(with: View.CancellableKey.loadBody) {
             bodyProvider.initializeBodyHosting()
         }
     }

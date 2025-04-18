@@ -91,7 +91,7 @@ public extension CancellableStorage {
 public extension CancellableStorage {
     
     @discardableResult
-    static func collectCancellables<T>(in cancellable: inout AnyCancellable?, action: () -> T) -> T {
+    static func storeCancellables<T>(in cancellable: inout AnyCancellable?, action: () -> T) -> T {
         let storage = CancellableStorage()
         push(storage)
         let result = action()
@@ -102,9 +102,9 @@ public extension CancellableStorage {
         return result
     }
     
-    static func collectCancellables(action: () -> Void) -> AnyCancellable {
+    static func storeCancellables(action: () -> Void) -> AnyCancellable {
         var cancellable: AnyCancellable?
-        collectCancellables(in: &cancellable, action: action)
+        storeCancellables(in: &cancellable, action: action)
         guard let cancellable else {
             return AnyCancellable { } // Shouldn't happen!
         }
@@ -118,9 +118,9 @@ public extension CancellableStorage {
 public extension CancellableStorage {
     
     @discardableResult
-    func collectCancellables<T>(with key: CancellableStorageKey = .unique(), actions: () -> T) -> T {
+    func storeCancellables<T>(with key: CancellableStorageKey = .unique(), actions: () -> T) -> T {
         var cancellable: AnyCancellable?
-        let result = Self.collectCancellables(in: &cancellable, action: actions)
+        let result = Self.storeCancellables(in: &cancellable, action: actions)
         if let cancellable {
             storeCancellable(cancellable, withKey: key)
         } else {

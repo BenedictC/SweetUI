@@ -31,10 +31,10 @@ open class _View: UIView, TraitCollectionChangesProvider {
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.collectCancellables(with: CancellableKey.loadBody) {
+        bodyProvider.storeCancellables(with: CancellableKey.loadBody) {
             bodyProvider.initializeBodyHosting()
         }
-        bodyProvider.collectCancellables(with: CancellableKey.awake) {
+        bodyProvider.storeCancellables(with: CancellableKey.awake) {
             bodyProvider.awake()
         }
     }
