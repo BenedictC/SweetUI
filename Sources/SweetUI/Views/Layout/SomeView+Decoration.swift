@@ -31,7 +31,7 @@ public extension SomeView {
 
         overlay.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(overlay)
-        let overlayConstraints = alignment.constraintsFactory(self, overlay)
+        let overlayConstraints = alignment.makeConstraints(base: self, decoration: overlay)
         NSLayoutConstraint.activate(overlayConstraints)
 
         return container
@@ -63,7 +63,7 @@ public extension SomeView {
         background.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(background)
         container.sendSubviewToBack(background)
-        let overlayConstraints = alignment.constraintsFactory(self, background)
+        let overlayConstraints = alignment.makeConstraints(base: self, decoration: background)
         NSLayoutConstraint.activate(overlayConstraints)
 
         return container

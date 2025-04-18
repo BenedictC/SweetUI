@@ -3,86 +3,106 @@ import UIKit
 
 public struct DecorationAlignment {
 
-    public let constraintsFactory: (_ base: UIView, _ overlay: UIView) -> [NSLayoutConstraint]
+    // MARK: Types
 
-    public init(constraints: @escaping (_ base: UIView, _ decoration: UIView) -> [NSLayoutConstraint]) {
-        self.constraintsFactory = constraints
+    public typealias ConstraintsBuilder = ((_ template: ConstraintsTemplate, _ base: UIView, _ decoration: UIView) -> [NSLayoutConstraint])
+
+    public struct ConstraintsTemplate {
+        let baseX: XPosition
+        let baseY: YPosition
+        var decorationX: XPosition?
+        var decorationY: YPosition?
+        var offset = CGSize.zero // Positive y moves top to bottom, positive x moves from left to right
+    }
+
+
+    // MARK: Properties
+
+    var template: ConstraintsTemplate
+    let builder: ConstraintsBuilder
+
+
+    // MARK: Instance life cycle
+
+    public init(x: XPosition, y: YPosition, builder: @escaping ConstraintsBuilder = Self.defaultConstraintsBuilder) {
+        self.template = ConstraintsTemplate(baseX: x, baseY: y)
+        self.builder = builder
+    }
+
+    public init(builder: @escaping (_ base: UIView, _ decoration: UIView) -> [NSLayoutConstraint]) {
+        self.template = ConstraintsTemplate(baseX: .center, baseY: .center)
+        self.builder = { _, base, decoration in
+            builder(base, decoration)
+        }
+    }
+
+
+    // MARK: Constraints factory
+
+    public static func defaultConstraintsBuilder(template: ConstraintsTemplate, base: UIView, decoration: UIView) -> [NSLayoutConstraint] {
+        func xAnchor(of view: UIView, for position: XPosition) -> NSLayoutXAxisAnchor {
+            switch position {
+            case .left: view.leftAnchor
+            case .center: view.centerXAnchor
+            case .right: view.rightAnchor
+            case .leading: view.leadingAnchor
+            case .trailing: view.trailingAnchor
+            }
+        }
+        func yAnchor(of view: UIView, for position: YPosition) -> NSLayoutYAxisAnchor {
+            switch position {
+            case .top: view.topAnchor
+            case .center: view.centerYAnchor
+            case .bottom: view.bottomAnchor
+            }
+        }
+
+        let baseXAnchor = xAnchor(of: base, for: template.baseX)
+        let decorationXAnchor = xAnchor(of: decoration, for: template.decorationX ?? template.baseX)
+        let baseYAnchor = yAnchor(of: base, for: template.baseY)
+        let decorationYAnchor = yAnchor(of: decoration, for: template.decorationY ?? template.baseY)
+        let constraints = [
+            baseXAnchor.constraint(equalTo: decorationXAnchor, constant: -template.offset.width),
+            baseYAnchor.constraint(equalTo: decorationYAnchor, constant: -template.offset.height),
+        ]
+
+        return constraints
+    }
+
+    public func makeConstraints(base: UIView, decoration: UIView) -> [NSLayoutConstraint] {
+        builder(template, base, decoration)
     }
 }
 
 
+// MARK: - Factories
+
 public extension DecorationAlignment {
 
-    static var topLeading: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.leadingAnchor.constraint(equalTo: decoration.leadingAnchor),
-            base.topAnchor.constraint(equalTo: decoration.topAnchor)]
-        }
-    }
+    static let topLeading = DecorationAlignment(x: .leading, y: .top)
+    static let top = DecorationAlignment(x: .center, y: .top)
+    static let topTrailing = DecorationAlignment(x: .trailing, y: .top)
+    static let leading = DecorationAlignment(x: .leading, y: .center)
+    static let center = DecorationAlignment(x: .center, y: .center)
+    static let trailing = DecorationAlignment(x: .trailing, y: .center)
+    static let bottomLeading = DecorationAlignment(x: .leading, y: .bottom)
+    static let bottom = DecorationAlignment(x: .center, y: .bottom)
+    static let bottomTrailing = DecorationAlignment(x: .trailing, y: .bottom)
 
-    static var top: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.centerXAnchor.constraint(equalTo: decoration.centerXAnchor),
-            base.topAnchor.constraint(equalTo: decoration.topAnchor)]
-        }
-    }
+    static let topLeft = DecorationAlignment(x: .left, y: .top)
+    static let topRight = DecorationAlignment(x: .right, y: .top)
+    static let left = DecorationAlignment(x: .left, y: .center)
+    static let right = DecorationAlignment(x: .right, y: .center)
+    static let bottomLeft = DecorationAlignment(x: .left, y: .bottom)
+    static let bottomRight = DecorationAlignment(x: .right, y: .bottom)
 
-    static var topTrailing: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.trailingAnchor.constraint(equalTo: decoration.trailingAnchor),
-            base.topAnchor.constraint(equalTo: decoration.topAnchor)]
-        }
-    }
-
-    static var leading: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.leadingAnchor.constraint(equalTo: decoration.leadingAnchor),
-            base.centerYAnchor.constraint(equalTo: decoration.centerYAnchor)]
-        }
-    }
-
-    static var center: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.centerXAnchor.constraint(equalTo: decoration.centerXAnchor),
-            base.centerYAnchor.constraint(equalTo: decoration.centerYAnchor)]
-        }
-    }
-
-    static var trailing: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.trailingAnchor.constraint(equalTo: decoration.trailingAnchor),
-            base.centerYAnchor.constraint(equalTo: decoration.centerYAnchor)]
-        }
-    }
-
-    static var bottomLeading: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.leadingAnchor.constraint(equalTo: decoration.leadingAnchor),
-            base.bottomAnchor.constraint(equalTo: decoration.bottomAnchor)]
-        }
-    }
-
-    static var bottom: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.centerXAnchor.constraint(equalTo: decoration.centerXAnchor),
-            base.bottomAnchor.constraint(equalTo: decoration.bottomAnchor)]
-        }
-    }
-
-    static var bottomTrailing: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [base.trailingAnchor.constraint(equalTo: decoration.trailingAnchor),
-            base.bottomAnchor.constraint(equalTo: decoration.bottomAnchor)]
-        }
-    }
-
-    static var fill: DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            [decoration.centerXAnchor.constraint(equalTo: base.centerXAnchor),
-            decoration.centerYAnchor.constraint(equalTo: base.centerYAnchor),
-            decoration.widthAnchor.constraint(equalTo: base.widthAnchor),
-            decoration.heightAnchor.constraint(equalTo: base.heightAnchor)]
-        }
+    static let fill = DecorationAlignment(x: .center, y: .center) { template, base, decoration in
+        [
+            base.centerXAnchor.constraint(equalTo: decoration.centerXAnchor, constant: -template.offset.width),
+            base.centerYAnchor.constraint(equalTo: decoration.centerYAnchor, constant: -template.offset.height),
+            base.widthAnchor.constraint(equalTo: decoration.widthAnchor),
+            base.heightAnchor.constraint(equalTo: decoration.heightAnchor),
+        ]
     }
 }
 
@@ -115,18 +135,38 @@ public extension DecorationAlignment {
             }
         }
     }
+}
 
 
-    static func align(decorationX: XPosition, decorationY: YPosition, toBaseX baseX: XPosition? = nil, baseY: YPosition? = nil, offset: CGSize = .zero) -> DecorationAlignment {
-        DecorationAlignment { base, decoration in
-            let decorationXAnchor = decoration[keyPath: decorationX.keyPath]
-            let decorationYAnchor = decoration[keyPath: decorationY.keyPath]
-            let baseXAnchor = base[keyPath: (baseX ?? decorationX).keyPath]
-            let baseYAnchor = base[keyPath: (baseY ?? decorationY).keyPath]
-            return [
-                decorationXAnchor.constraint(equalTo: baseXAnchor, constant: offset.width),
-                decorationYAnchor.constraint(equalTo: baseYAnchor, constant: offset.height),
-            ]
+// MARK: - Fluent builder
+
+public extension DecorationAlignment {
+
+    static func align(x baseX: XPosition, y baseY: YPosition) -> DecorationAlignment {
+        DecorationAlignment(x: baseX, y: baseY)
+    }
+
+    func toDecoration(x: XPosition? = nil, y: YPosition? = nil) -> DecorationAlignment {
+        var result = self
+        if let x {
+            result.template.decorationX = x
         }
+        if let y {
+            result.template.decorationY = y
+        }
+        return result
+    }
+
+    func offsetBy(x: CGFloat = 0, y: CGFloat = 0) -> DecorationAlignment {
+        var result = self
+        result.template.offset.width = x
+        result.template.offset.height = y
+        return result
+    }
+
+    func offsetBy(_ size: CGSize) -> DecorationAlignment {
+        var result = self
+        result.template.offset = size
+        return result
     }
 }
