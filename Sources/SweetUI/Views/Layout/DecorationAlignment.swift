@@ -12,7 +12,9 @@ public struct DecorationAlignment {
         let baseY: YPosition
         var decorationX: XPosition?
         var decorationY: YPosition?
-        var offset = CGSize.zero // Positive y moves top to bottom, positive x moves from left to right
+        // Positive x moves from leading to trailing or left to right depending on the value of baseX.
+        // Positive y moves top to bottom.
+        var offset = CGSize.zero
     }
 
 
