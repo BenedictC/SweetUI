@@ -11,6 +11,10 @@ public extension UILayoutPriority {
 
 public extension NSLayoutConstraint {
 
+    static func aspectConstraint(view: UIView, relatedBy: NSLayoutConstraint.Relation = .equal, multiplier: CGFloat = 1, constant: CGFloat = 0) -> NSLayoutConstraint {
+        NSLayoutConstraint(item: view, attribute: .width, relatedBy: relatedBy, toItem: view, attribute: .height, multiplier: multiplier, constant: constant)
+    }
+
     func active(_ value: Bool) -> Self {
         self.isActive = value
         return self
