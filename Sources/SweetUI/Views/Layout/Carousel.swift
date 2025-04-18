@@ -98,7 +98,9 @@ public final class Carousel: UIView {
     // MARK: Event handling
 
     public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
-        scrollView
+        // Point can be outside of the self's bounds, which is surprising.
+        let isInBounds = bounds.contains(point)
+        return isInBounds ? scrollView : nil
     }
 }
 
