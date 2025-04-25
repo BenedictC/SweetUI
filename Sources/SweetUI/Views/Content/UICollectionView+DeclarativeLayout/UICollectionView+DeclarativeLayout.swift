@@ -7,7 +7,7 @@ import Combine
 public extension UICollectionView {
 
     convenience init<SectionIdentifier: Hashable, ItemValue: Hashable, Strategy: CollectionViewLayoutStrategy>(
-        snapshot snapshotCoordinator:  CollectionViewSnapshot<SectionIdentifier, ItemValue>.Coordinator,
+        snapshotCoordinator: CollectionViewSnapshotCoordinator<SectionIdentifier, ItemValue>,
         delegate: UICollectionViewDelegate? = nil,
         layout strategyBuilder: () -> Strategy
     ) where Strategy.SectionIdentifier == SectionIdentifier,
