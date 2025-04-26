@@ -5,8 +5,13 @@ import UIKit
 // MARK: - GradientStop
 
 public struct GradientStop {
-    let color: UIColor
-    let location: CGFloat
+    public let color: UIColor
+    public let location: CGFloat
+
+    public init(color: UIColor, location: CGFloat) {
+        self.color = color
+        self.location = location
+    }
 }
 
 
