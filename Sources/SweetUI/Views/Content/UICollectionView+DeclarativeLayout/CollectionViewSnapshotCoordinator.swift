@@ -184,6 +184,51 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
 }
 
 
+// MARK: - Async variants
+
+@available(iOS 14, *)
+public extension CollectionViewSnapshotCoordinator {
+
+    @discardableResult
+    func updateSnapshot(
+        withMode updateMode: UpdateMode = .animated,
+        changes: @escaping (Snapshot) -> Snapshot?
+    ) async -> (Bool, Snapshot) {
+        await withCheckedContinuation { continuation in
+            self.updateSnapshot(
+                withMode: updateMode,
+                changes: changes,
+                completion: { continuation.resume(returning: ($0, $1)) }
+            )
+        }
+    }
+
+    func updateSnapshot(_ snapshot: Snapshot, mode: UpdateMode = .animated) async {
+        await withCheckedContinuation { continuation in
+            self.updateSnapshot(
+                withMode: mode,
+                changes: { _ in snapshot },
+                completion: { _, _ in continuation.resume() }
+            )
+        }
+    }
+
+    @discardableResult
+    public func updateSectionSnapshot(
+        animatingDifferences animated: Bool = true,
+        changes: @escaping (Snapshot) -> (SectionIdentifier, SectionSnapshot)?
+    ) async -> (Bool, Snapshot) {
+        await withCheckedContinuation { continuation in
+            updateSectionSnapshot(
+                animatingDifferences: animated,
+                changes: changes,
+                completion: { continuation.resume(returning: ($0, $1)) }
+            )
+        }
+    }
+}
+
+
 // MARK: - NSDiffableDataSourceSnapshot
 
 public extension NSDiffableDataSourceSnapshot {
