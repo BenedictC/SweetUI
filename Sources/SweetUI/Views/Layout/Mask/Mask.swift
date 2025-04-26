@@ -25,7 +25,7 @@ public final class Mask<ContentView: UIView, MaskView: UIView>: UIView {
 
     // MARK: Instance life cycle
 
-    public init(sizingView: MaskSizingView, alignment: ContentAlignment, content: ContentView, mask: MaskView) {
+    public init(sizingView: MaskSizingView = .content, alignment: ContentAlignment = .fill, content: ContentView, mask: MaskView) {
         self.sizingView = sizingView
         self.alignment = alignment
         self.content = content
