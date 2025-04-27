@@ -214,7 +214,7 @@ public extension CollectionViewSnapshotCoordinator {
     }
 
     @discardableResult
-    public func updateSectionSnapshot(
+    func updateSectionSnapshot(
         animatingDifferences animated: Bool = true,
         changes: @escaping (Snapshot) -> (SectionIdentifier, SectionSnapshot)?
     ) async -> (Bool, Snapshot) {
