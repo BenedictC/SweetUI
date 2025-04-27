@@ -1,7 +1,7 @@
 @resultBuilder
-public struct SupplementaryComponentsBuilder<ItemValue: Hashable> {
+public struct SupplementaryComponentsBuilder<ItemIdentifier: Hashable> {
 
-    public static func buildBlock(_ components: Supplement<ItemValue>...) -> [Supplement<ItemValue>] {
+    public static func buildBlock(_ components: Supplement<ItemIdentifier>...) -> [Supplement<ItemIdentifier>] {
         return components
     }
 }

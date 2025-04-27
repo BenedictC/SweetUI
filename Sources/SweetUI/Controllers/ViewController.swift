@@ -53,7 +53,14 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider {
     @Published public private(set) var editMode: EditMode = .inactive
     fileprivate lazy var defaultCancellableStorage = CancellableStorage()
 
-    
+    private let retainCycleAdvice =
+    """
+    Check that closures within the view that reference the view controller are weak, e.g.:
+    - button.on(.primaryActionTriggered) { [weak self] _ in self?.submit() }
+    - lazy var rootView = UICollectionView(snapshotCoordinator: snapshotCoordinator) { [weak self] ... }
+    """
+
+
     // MARK: Instance life cycle
     
     public init() {
@@ -64,8 +71,7 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider {
         }
         // Initialize a barItems
         owner.storeCancellables(with: CancellableKey.awake) {
-            let advice = "Check that closures used to make the barItem that reference the view controller do so with weak references."
-            detectPotentialRetainCycle(of: self, advice: advice) { owner.awake() }  // Force load barItems
+            detectPotentialRetainCycle(of: self, advice: retainCycleAdvice) { owner.awake() }  // Force load barItems
         }
     }
     
@@ -87,8 +93,7 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider {
                 preconditionFailure("_ViewController must conform to _ViewControllerRequirements")
             }
             // If the view ignores all safe areas then it can be used as the self.view directly
-            let advice = "Check that closures within the view that reference the view controller are weak, e.g. `button.on(.primaryActionTriggered) { [weak self] _ in self?.submit() }`"
-            let rootView = detectPotentialRetainCycle(of: self, advice: advice) { owner._rootView }
+            let rootView = detectPotentialRetainCycle(of: self, advice: retainCycleAdvice) { owner._rootView }
             let edgesToIgnore = UIView.edgesIgnoringSafeArea(for: rootView)
             let requiresContainer = edgesToIgnore != .all
             if requiresContainer {

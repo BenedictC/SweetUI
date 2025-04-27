@@ -4,13 +4,13 @@ import Combine
 
 // MARK: - BindingOptions+PublisherDecorator
 
-internal extension OneWayBinding.Options {
+internal extension BindingOptions {
 
-    func decorate(_ publisher: some Publisher<Output, Never>) -> some Publisher<Output, Never> {
+    func decorate<Output>(_ publisher: some Publisher<Output, Never>) -> some Publisher<Output, Never> {
         var result = publisher.eraseToAnyPublisher()
-        if self.contains(.removesDuplicates) {
+        if self.contains(.dropDuplicates) {
             result = result
-                .unconstrainedRemoveDuplicates()
+                .unconstrainedDropDuplicates()
                 .eraseToAnyPublisher()
         }
         if self.contains(.bounceToMainThread) {
@@ -23,11 +23,11 @@ internal extension OneWayBinding.Options {
 }
 
 
-// MARK: - UnconstrainedRemoveDuplicates
+// MARK: - UnconstrainedDropDuplicates
 
-internal extension Publisher {
+private extension Publisher {
 
-    func unconstrainedRemoveDuplicates() -> some Publisher<Output, Failure> {
+    func unconstrainedDropDuplicates() -> some Publisher<Output, Failure> {
         guard Output.self is any Equatable.Type else {
             return self.eraseToAnyPublisher()
         }

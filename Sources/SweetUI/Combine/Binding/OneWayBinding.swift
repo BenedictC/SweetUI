@@ -1,6 +1,19 @@
 import Combine
 
 
+public struct BindingOptions: OptionSet {
+    public var rawValue: Int
+
+    public init(rawValue: Int) {
+        self.rawValue = rawValue
+    }
+
+    public static var dropDuplicates: Self { Self(rawValue: 1 << 0) }
+    public static var bounceToMainThread: Self { Self(rawValue: 1 << 1) }
+    public static var `default`: Self { [.dropDuplicates, .bounceToMainThread] }
+}
+
+
 /// OneWayBinding is a readonly publisher that also provides a getter. It is the base class for the Bindings class cluster.
 @dynamicMemberLookup
 public class OneWayBinding<Output>: Publisher {
@@ -9,18 +22,7 @@ public class OneWayBinding<Output>: Publisher {
 
     public typealias Output = Output
     public typealias Failure = Never
-
-    public struct Options: OptionSet {
-        public var rawValue: Int
-
-        public init(rawValue: Int) {
-            self.rawValue = rawValue
-        }
-
-        public static var removesDuplicates: Self { Self(rawValue: 1 << 0) }
-        public static var bounceToMainThread: Self { Self(rawValue: 1 << 1) }
-        public static var `default`: Self { [.removesDuplicates, .bounceToMainThread] }
-    }
+    public typealias Options = BindingOptions
 
 
     // MARK: Properties

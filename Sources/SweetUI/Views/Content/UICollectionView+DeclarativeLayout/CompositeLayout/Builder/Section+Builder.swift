@@ -1,7 +1,7 @@
 // MARK: - Section/CompositeSection
 
 @available(iOS 14, *)
-public extension Section where Content == CompositeSection<SectionIdentifier, ItemValue>, HeaderType == Void {
+public extension Section where Content == CompositeSection<SectionIdentifier, ItemIdentifier>, HeaderType == Void {
 
     // with non-trailing closure (core)
     init<G: Group>(
@@ -14,13 +14,13 @@ public extension Section where Content == CompositeSection<SectionIdentifier, It
         visibleItemsInvalidationHandler: NSCollectionLayoutSectionVisibleItemsInvalidationHandler?? = nil,
         background: Background? = nil,
         sectionSupplementariesByElementKind: [String: AnyBoundarySupplementaryComponent<SectionIdentifier>] = [:],
-        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemValue>] = [:],
+        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemIdentifier>] = [:],
         group: G
-    ) where G.ItemValue == ItemValue
+    ) where G.ItemIdentifier == ItemIdentifier
     {
         let content = CompositeSection(
             predicate: predicate,
-            components: SectionComponents<SectionIdentifier, ItemValue>(
+            components: SectionComponents<SectionIdentifier, ItemIdentifier>(
                 group: AnyGroup(
                     allCellsHandler: group.cellsForRegistration,
                     itemSupplementaryTemplatesHandler: group.itemSupplementaryTemplates,
@@ -51,9 +51,9 @@ public extension Section where Content == CompositeSection<SectionIdentifier, It
         visibleItemsInvalidationHandler: NSCollectionLayoutSectionVisibleItemsInvalidationHandler?? = nil,
         background: Background? = nil,
         sectionSupplementariesByElementKind: [String: AnyBoundarySupplementaryComponent<SectionIdentifier>] = [:],
-        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemValue>] = [:],
+        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemIdentifier>] = [:],
         group groupBuilder: () -> G
-    ) where G.ItemValue == ItemValue
+    ) where G.ItemIdentifier == ItemIdentifier
     {
         self.init(
             predicate: predicate,
@@ -75,7 +75,7 @@ public extension Section where Content == CompositeSection<SectionIdentifier, It
 // MARK: with identifier
 
 @available(iOS 14, *)
-public extension Section where Content == CompositeSection<SectionIdentifier, ItemValue>, HeaderType == Void {
+public extension Section where Content == CompositeSection<SectionIdentifier, ItemIdentifier>, HeaderType == Void {
 
     // with non-trailing closure
     init<G: Group>(
@@ -88,9 +88,9 @@ public extension Section where Content == CompositeSection<SectionIdentifier, It
         visibleItemsInvalidationHandler: NSCollectionLayoutSectionVisibleItemsInvalidationHandler?? = nil,
         background: Background? = nil,
         sectionSupplementariesByElementKind: [String: AnyBoundarySupplementaryComponent<SectionIdentifier>] = [:],
-        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemValue>] = [:],
+        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemIdentifier>] = [:],
         group: G
-    ) where G.ItemValue == ItemValue
+    ) where G.ItemIdentifier == ItemIdentifier
     {
         self.init(
             predicate: { $0 == identifier },
@@ -118,9 +118,9 @@ public extension Section where Content == CompositeSection<SectionIdentifier, It
         visibleItemsInvalidationHandler: NSCollectionLayoutSectionVisibleItemsInvalidationHandler?? = nil,
         background: Background? = nil,
         sectionSupplementariesByElementKind: [String: AnyBoundarySupplementaryComponent<SectionIdentifier>] = [:],
-        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemValue>] = [:],
+        itemSupplementaryTemplateByElementKind: [String: ItemSupplementaryTemplate<ItemIdentifier>] = [:],
         group groupBuilder: () -> G
-    ) where G.ItemValue == ItemValue
+    ) where G.ItemIdentifier == ItemIdentifier
     {
         self.init(
             predicate: { $0 == identifier },

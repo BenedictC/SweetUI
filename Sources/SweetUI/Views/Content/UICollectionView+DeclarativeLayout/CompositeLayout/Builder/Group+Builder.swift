@@ -1,32 +1,32 @@
 // MARK: AnyGroup
 
-public struct AnyGroupItem<ItemValue: Hashable>: GroupItem {
+public struct AnyGroupItem<ItemIdentifier: Hashable>: GroupItem {
 
-    private let allCellsHandler: () -> [Cell<ItemValue>]
+    private let allCellsHandler: () -> [Cell<ItemIdentifier>]
     private let makeLayoutGroupItemHandler: (_ defaultSize: NSCollectionLayoutSize, _ environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem
-    private let itemSupplementaryTemplatesHandler: () -> [ItemSupplementaryTemplate<ItemValue>]
+    private let itemSupplementaryTemplatesHandler: () -> [ItemSupplementaryTemplate<ItemIdentifier>]
 
     init(
-        allCellsHandler: @escaping () -> [Cell<ItemValue>],
+        allCellsHandler: @escaping () -> [Cell<ItemIdentifier>],
         makeLayoutGroupItemHandler: @escaping (_ defaultSize: NSCollectionLayoutSize, _ environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem,
-        itemSupplementaryTemplatesHandler: @escaping () -> [ItemSupplementaryTemplate<ItemValue>])
+        itemSupplementaryTemplatesHandler: @escaping () -> [ItemSupplementaryTemplate<ItemIdentifier>])
     {
         self.allCellsHandler = allCellsHandler
         self.makeLayoutGroupItemHandler = makeLayoutGroupItemHandler
         self.itemSupplementaryTemplatesHandler = itemSupplementaryTemplatesHandler
     }
 
-    init<Item: GroupItem>(item: Item) where Item.ItemValue == ItemValue {
+    init<Item: GroupItem>(item: Item) where Item.ItemIdentifier == ItemIdentifier {
         self.allCellsHandler = item.cellsForRegistration
         self.makeLayoutGroupItemHandler = item.makeLayoutGroupItem(defaultSize:environment:)
         self.itemSupplementaryTemplatesHandler = item.itemSupplementaryTemplates
     }
 
-    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemValue>] {
+    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
         itemSupplementaryTemplatesHandler()
     }
 
-    public func cellsForRegistration() -> [Cell<ItemValue>] {
+    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
         allCellsHandler()
     }
 
@@ -39,9 +39,9 @@ public struct AnyGroupItem<ItemValue: Hashable>: GroupItem {
 // MARK: - Group Builder
 
 @resultBuilder
-public struct GroupItemsBuilder<ItemValue: Hashable> {
+public struct GroupItemsBuilder<ItemIdentifier: Hashable> {
 
-    public static func buildBlock<Item0: GroupItem>(_ item0: Item0) -> [AnyGroupItem<ItemValue>] where Item0.ItemValue == ItemValue {
+    public static func buildBlock<Item0: GroupItem>(_ item0: Item0) -> [AnyGroupItem<ItemIdentifier>] where Item0.ItemIdentifier == ItemIdentifier {
         let any0 = AnyGroupItem(item: item0)
         return [any0]
     }
@@ -49,8 +49,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem>
     (_ item0: Item0, _ item1: Item1)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -60,8 +60,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -72,8 +72,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -85,8 +85,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem, Item4: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3, _ item4: Item4)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue, Item4.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier, Item4.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -99,8 +99,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem, Item4: GroupItem, Item5: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3, _ item4: Item4, _ item5: Item5)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue, Item4.ItemValue == ItemValue, Item5.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier, Item4.ItemIdentifier == ItemIdentifier, Item5.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -114,8 +114,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem, Item4: GroupItem, Item5: GroupItem, Item6: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3, _ item4: Item4, _ item5: Item5, _ item6: Item6)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue, Item4.ItemValue == ItemValue, Item5.ItemValue == ItemValue, Item6.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier, Item4.ItemIdentifier == ItemIdentifier, Item5.ItemIdentifier == ItemIdentifier, Item6.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -130,8 +130,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem, Item4: GroupItem, Item5: GroupItem, Item6: GroupItem, Item7: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3, _ item4: Item4, _ item5: Item5, _ item6: Item6, _ item7: Item7)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue, Item4.ItemValue == ItemValue, Item5.ItemValue == ItemValue, Item6.ItemValue == ItemValue, Item7.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier, Item4.ItemIdentifier == ItemIdentifier, Item5.ItemIdentifier == ItemIdentifier, Item6.ItemIdentifier == ItemIdentifier, Item7.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -147,8 +147,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem, Item4: GroupItem, Item5: GroupItem, Item6: GroupItem, Item7: GroupItem, Item8: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3, _ item4: Item4, _ item5: Item5, _ item6: Item6, _ item7: Item7, _ item8: Item8)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue, Item4.ItemValue == ItemValue, Item5.ItemValue == ItemValue, Item6.ItemValue == ItemValue, Item7.ItemValue == ItemValue, Item8.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier, Item4.ItemIdentifier == ItemIdentifier, Item5.ItemIdentifier == ItemIdentifier, Item6.ItemIdentifier == ItemIdentifier, Item7.ItemIdentifier == ItemIdentifier, Item8.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -165,8 +165,8 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
     public static func buildBlock
     <Item0: GroupItem, Item1: GroupItem, Item2: GroupItem, Item3: GroupItem, Item4: GroupItem, Item5: GroupItem, Item6: GroupItem, Item7: GroupItem, Item8: GroupItem, Item9: GroupItem>
     (_ item0: Item0, _ item1: Item1, _ item2: Item2, _ item3: Item3, _ item4: Item4, _ item5: Item5, _ item6: Item6, _ item7: Item7, _ item8: Item8, _ item9: Item9)
-    -> [AnyGroupItem<ItemValue>]
-    where Item0.ItemValue == ItemValue, Item1.ItemValue == ItemValue, Item2.ItemValue == ItemValue, Item3.ItemValue == ItemValue, Item4.ItemValue == ItemValue, Item5.ItemValue == ItemValue, Item6.ItemValue == ItemValue, Item7.ItemValue == ItemValue, Item8.ItemValue == ItemValue, Item9.ItemValue == ItemValue
+    -> [AnyGroupItem<ItemIdentifier>]
+    where Item0.ItemIdentifier == ItemIdentifier, Item1.ItemIdentifier == ItemIdentifier, Item2.ItemIdentifier == ItemIdentifier, Item3.ItemIdentifier == ItemIdentifier, Item4.ItemIdentifier == ItemIdentifier, Item5.ItemIdentifier == ItemIdentifier, Item6.ItemIdentifier == ItemIdentifier, Item7.ItemIdentifier == ItemIdentifier, Item8.ItemIdentifier == ItemIdentifier, Item9.ItemIdentifier == ItemIdentifier
     {
         let any0 = AnyGroupItem(item: item0)
         let any1 = AnyGroupItem(item: item1)
@@ -184,9 +184,9 @@ public struct GroupItemsBuilder<ItemValue: Hashable> {
 
 
 @resultBuilder
-public struct GroupItemBuilder<ItemValue: Hashable> {
+public struct GroupItemBuilder<ItemIdentifier: Hashable> {
 
-    public static func buildBlock<Item: GroupItem>(_ item: Item) -> AnyGroupItem<ItemValue> where Item.ItemValue == ItemValue {
+    public static func buildBlock<Item: GroupItem>(_ item: Item) -> AnyGroupItem<ItemIdentifier> where Item.ItemIdentifier == ItemIdentifier {
         AnyGroupItem(item: item)
     }
 }
@@ -198,7 +198,7 @@ public extension AxisGroup {
 
     init(
         size groupSize: NSCollectionLayoutSize? = nil,
-        @GroupItemsBuilder<ItemValue> items itemsBuilder: () -> [AnyGroupItem<ItemValue>]
+        @GroupItemsBuilder<ItemIdentifier> items itemsBuilder: () -> [AnyGroupItem<ItemIdentifier>]
     ) {
         let items = itemsBuilder()
         let axis = Self.axis
@@ -210,7 +210,7 @@ public extension AxisGroup {
 
     init(
         repetitions: Int,
-        @GroupItemBuilder<ItemValue> items itemBuilder: () -> AnyGroupItem<ItemValue>
+        @GroupItemBuilder<ItemIdentifier> items itemBuilder: () -> AnyGroupItem<ItemIdentifier>
     ) {
         let item = itemBuilder()
         let axis = Self.axis
@@ -223,7 +223,7 @@ public extension AxisGroup {
 
     init(
         minimumColumnWidth: CGFloat,
-        @GroupItemBuilder<ItemValue> item itemBuilder: () -> AnyGroupItem<ItemValue>
+        @GroupItemBuilder<ItemIdentifier> item itemBuilder: () -> AnyGroupItem<ItemIdentifier>
     ) {
         let item = itemBuilder()
         let axis = Self.axis
@@ -242,9 +242,9 @@ public extension AxisGroup {
 public extension Group {
 
     func supplementaries(
-        @SupplementaryComponentsBuilder<ItemValue>
-        _ supplementsBuilder: () -> [Supplement<ItemValue>]
-    ) -> SupplementedGroup<ItemValue> {
+        @SupplementaryComponentsBuilder<ItemIdentifier>
+        _ supplementsBuilder: () -> [Supplement<ItemIdentifier>]
+    ) -> SupplementedGroup<ItemIdentifier> {
         let supplements = supplementsBuilder()
         return SupplementedGroup(
             group: self,

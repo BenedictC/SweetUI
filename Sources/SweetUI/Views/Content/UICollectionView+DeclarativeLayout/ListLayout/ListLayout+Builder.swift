@@ -8,9 +8,9 @@ extension ListLayoutCollectionViewStrategy {
         appearance: UICollectionLayoutListConfiguration.Appearance,
         configuration: LayoutConfiguration,
         header: LayoutHeader?,
-        sections: [AnyListSection<SectionIdentifier, ItemValue>],
+        sections: [AnyListSection<SectionIdentifier, ItemIdentifier>],
         footer: LayoutFooter?,
-        behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
+        behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemIdentifier>
     ) {
         let components = ListLayoutComponents(
             configuration: configuration,

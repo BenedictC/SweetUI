@@ -6,12 +6,12 @@ import Combine
 @available(iOS 14, *)
 public extension UICollectionView {
 
-    convenience init<SectionIdentifier: Hashable, ItemValue: Hashable, Strategy: CollectionViewLayoutStrategy>(
-        snapshotCoordinator: CollectionViewSnapshotCoordinator<SectionIdentifier, ItemValue>,
+    convenience init<SectionIdentifier: Hashable, ItemIdentifier: Hashable, Strategy: CollectionViewLayoutStrategy>(
+        snapshotCoordinator: CollectionViewSnapshotCoordinator<SectionIdentifier, ItemIdentifier>,
         delegate: UICollectionViewDelegate? = nil,
         layout strategyBuilder: () -> Strategy
     ) where Strategy.SectionIdentifier == SectionIdentifier,
-            Strategy.ItemValue == ItemValue
+            Strategy.ItemIdentifier == ItemIdentifier
     {
         // Init with placeholder layout
         self.init(frame: .zero, collectionViewLayout: UICollectionViewLayout())
@@ -21,12 +21,12 @@ public extension UICollectionView {
         // Configure dataSource (the dataSource is stored by the snapshotCoordinator)
         let dataSource = snapshotCoordinator.register(
             collectionView: self,
-            cellProvider: { collectionView, indexPath, itemValue in
-                let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>
+            cellProvider: { collectionView, indexPath, ItemIdentifier in
+                let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>
                 guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
                     preconditionFailure("Invalid section index")
                 }
-                let cell = strategy.cell(for: collectionView, itemValue: itemValue, in: sectionIdentifier, at: indexPath)
+                let cell = strategy.cell(for: collectionView, ItemIdentifier: ItemIdentifier, in: sectionIdentifier, at: indexPath)
                 return cell
             }
         )

@@ -8,11 +8,11 @@ import UIKit
 public typealias ListLayout = ListLayoutCollectionViewStrategy
 
 @available(iOS 14, *)
-public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewLayoutStrategy {
+public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: CollectionViewLayoutStrategy {
 
     let appearance: UICollectionLayoutListConfiguration.Appearance
-    let components: ListLayoutComponents<SectionIdentifier, ItemValue>
-    public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
+    let components: ListLayoutComponents<SectionIdentifier, ItemIdentifier>
+    public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemIdentifier>
     private let emptyFooter = Footer<SectionIdentifier> { _ in
         UIView()
             .frame(height: 0)
@@ -20,8 +20,8 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 
     internal init(
         appearance: UICollectionLayoutListConfiguration.Appearance,
-        components: ListLayoutComponents<SectionIdentifier, ItemValue>,
-        behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
+        components: ListLayoutComponents<SectionIdentifier, ItemIdentifier>,
+        behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemIdentifier>
     ) {
         self.appearance = appearance
         self.components = components
@@ -37,7 +37,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
         emptyFooter.registerSupplementaryView(in: collectionView)
     }
 
-    public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionViewLayout {
+    public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionViewLayout {
         var listConfiguration = UICollectionLayoutListConfiguration(appearance: appearance)
         let firstHeader = components.sections[0].components.header
         switch firstHeader {
@@ -71,7 +71,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
         return layout
     }
 
-    private func section(for sectionIdentifier: SectionIdentifier) -> AnyListSection<SectionIdentifier, ItemValue> {
+    private func section(for sectionIdentifier: SectionIdentifier) -> AnyListSection<SectionIdentifier, ItemIdentifier> {
         // Check sections with predicates for a match
         if let section = components.sections.first(where: { $0.predicate?(sectionIdentifier) ?? false }) {
             return section
@@ -83,17 +83,24 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
         preconditionFailure("No sections to represent sectionIdentifier '\(sectionIdentifier)'.")
     }
 
-    public func cell(for collectionView: UICollectionView, itemValue: ItemValue, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
+    public func cell(for collectionView: UICollectionView, ItemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
         let section = self.section(for: sectionIdentifier)
         let shouldUseHeaderCell = indexPath.item == 0
         if shouldUseHeaderCell,
            case .collapsable(let headerCell) = section.components.header {
-            return headerCell.makeCell(with: itemValue, for: collectionView, at: indexPath)
+            return headerCell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath)!
         }
-        return section.components.cell.makeCell(with: itemValue, for: collectionView, at: indexPath)
+        let cells = section.components.cells
+        for cell in cells {
+            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+                return cellView
+            }
+        }
+        "TODO: Figure out what to do if no cells create a view"
+        fatalError()
     }
 
-    public func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionReusableView {
+    public func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionReusableView {
         if  let header = components.header,
             elementKind == header.elementKind {
             return header.makeSupplementaryView(for: collectionView, indexPath: indexPath, sectionIdentifier: ())
@@ -116,12 +123,12 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 }
 
 @available(iOS 14, *)
-public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemValue: Hashable> {
+public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
 
     let configuration: LayoutConfiguration?
     let header: LayoutHeader?
     let footer: LayoutFooter?
-    let sections: [AnyListSection<SectionIdentifier, ItemValue>]    
+    let sections: [AnyListSection<SectionIdentifier, ItemIdentifier>]    
 }
 
 
@@ -160,19 +167,21 @@ public struct LayoutConfiguration {
 
 public protocol ListSection {
     associatedtype SectionIdentifier: Hashable
-    associatedtype ItemValue: Hashable
+    associatedtype ItemIdentifier: Hashable
 
     var predicate: ((SectionIdentifier) -> Bool)? { get }
-    var components: ListSectionComponents<SectionIdentifier, ItemValue> { get }
+    var components: ListSectionComponents<SectionIdentifier, ItemIdentifier> { get }
 }
 
-public struct AnyListSection<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
+public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
 
     public let predicate: ((SectionIdentifier) -> Bool)?
-    public let components: ListSectionComponents<SectionIdentifier, ItemValue>
+    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 
     func registerViews(in collectionView: UICollectionView) {
-        components.cell.registerCellClass(in: collectionView)
+        for cell in components.cells {
+            cell.registerCellClass(in: collectionView)
+        }
         switch components.header {
         case .standard(let header):
             header.registerSupplementaryView(in: collectionView)
@@ -201,13 +210,13 @@ public struct AnyListSection<SectionIdentifier: Hashable, ItemValue: Hashable>: 
     }
 }
 
-public struct ListSectionComponents<SectionIdentifier: Hashable, ItemValue: Hashable> {
+public struct ListSectionComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
     public enum HeaderKind {
         case none
         case standard(Header<SectionIdentifier>)
-        case collapsable(Cell<ItemValue>)
+        case collapsable(Cell<ItemIdentifier>)
     }
-    let cell: Cell<ItemValue>
+    let cells: [Cell<ItemIdentifier>]
     let header: HeaderKind
     let footer: Footer<SectionIdentifier>?
 }
@@ -215,34 +224,34 @@ public struct ListSectionComponents<SectionIdentifier: Hashable, ItemValue: Hash
 
 // MARK: - ListSectionWithoutHeader
 
-public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
+public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
 
     // MARK: Properties
 
     public let predicate: ((SectionIdentifier) -> Bool)?
-    public let components: ListSectionComponents<SectionIdentifier, ItemValue>
+    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 }
 
 
 // MARK: - ListSectionWithStandardHeader
 
-public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
+public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
 
     // MARK: Properties
 
     public let predicate: ((SectionIdentifier) -> Bool)?
-    public let components: ListSectionComponents<SectionIdentifier, ItemValue>
+    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 }
 
 
 // MARK: - ListSectionWithCollapsableHeader
 
-public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, ItemValue: Hashable>: ListSection {
+public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
 
     // MARK: Properties
 
     public let predicate: ((SectionIdentifier) -> Bool)?
-    public let components: ListSectionComponents<SectionIdentifier, ItemValue>
+    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 }
 
 
@@ -251,12 +260,13 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
 @available(iOS 14, *)
 public extension Cell {
 
-    init(
+    init<Value>(
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
-        configuration: @escaping (UICollectionViewListCell, ItemValue) -> Void)
-    {
+        value valueTransform: @escaping ((ItemIdentifier) -> Value?),
+        configuration: @escaping (UICollectionViewListCell, Value) -> Void
+    ) {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
         self.init(
             size: size,
@@ -264,10 +274,35 @@ public extension Cell {
             contentInsets: nil,
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
-            }, cellFactory: { collectionView, indexPath, itemValue in
+            },
+            value: valueTransform,
+            cellFactory: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! UICollectionViewListCell
-                configuration(cell, itemValue)
+                configuration(cell, value)
                 return cell
-            })
+            }
+        )
+    }
+
+    init(
+        size: NSCollectionLayoutSize? = nil,
+        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
+        contentInsets: NSDirectionalEdgeInsets? = nil,
+        configuration: @escaping (UICollectionViewListCell, ItemIdentifier) -> Void
+    ) {
+        let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
+        self.init(
+            size: size,
+            edgeSpacing: nil,
+            contentInsets: nil,
+            cellRegistrar: { collectionView in
+                collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
+            },
+            cellFactory: { collectionView, indexPath, value in
+                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! UICollectionViewListCell
+                configuration(cell, value)
+                return cell
+            }
+        )
     }
 }

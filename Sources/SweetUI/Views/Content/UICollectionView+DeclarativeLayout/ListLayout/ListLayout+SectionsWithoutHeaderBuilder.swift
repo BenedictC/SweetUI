@@ -10,18 +10,18 @@ public extension ListLayoutCollectionViewStrategy {
         appearance: UICollectionLayoutListConfiguration.Appearance,
         configuration: LayoutConfiguration = LayoutConfiguration(builder: { _ in }),
         header: LayoutHeader? = nil,
-        @ArrayBuilder<Section<ListSectionWithoutHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>>
-        sectionsWithoutHeader sections: () -> [Section<ListSectionWithoutHeader<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>],
+        @ArrayBuilder<Section<ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier>, SectionIdentifier, ItemIdentifier, Void>>
+        sectionsWithoutHeader sections: () -> [Section<ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier>, SectionIdentifier, ItemIdentifier, Void>],
         footer: LayoutFooter? = nil,
         indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
         reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
-        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>? = nil
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil
     ) {
         let components = ListLayoutComponents(
             configuration: configuration,
             header: header,
             footer: footer,
-            sections: sections().map { AnyListSection<SectionIdentifier, ItemValue>(predicate: nil, components: $0.content.components) }
+            sections: sections().map { AnyListSection<SectionIdentifier, ItemIdentifier>(predicate: nil, components: $0.content.components) }
         )
         let behaviors = CollectionViewLayoutBehaviors(
             indexElementsProvider: indexElementsProvider,
@@ -36,17 +36,17 @@ public extension ListLayoutCollectionViewStrategy {
 // MARK: - Section
 
 @available(iOS 14, *)
-public extension Section where Content == ListSectionWithoutHeader<SectionIdentifier, ItemValue> {
+public extension Section where Content == ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
-        cell: Cell<ItemValue>,
+        cells: [Cell<ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
-        self.content = ListSectionWithoutHeader<SectionIdentifier, ItemValue>(
+        self.content = ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier>(
             predicate: predicate,
             components: ListSectionComponents(
-                cell: cell,
+                cells: cells,
                 header: .none,
                 footer: footer
             )
@@ -55,62 +55,62 @@ public extension Section where Content == ListSectionWithoutHeader<SectionIdenti
 
     init(
         identifier: SectionIdentifier,
-        cell: Cell<ItemValue>,
+        cells: [Cell<ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
         self.init(
             predicate: { $0 == identifier },
-            cell: cell,
+            cells: cells,
             footer: footer
         )
     }
 }
 
 @available(iOS 14, *)
-public extension Section where Content == ListSectionWithoutHeader<SectionIdentifier, ItemValue> {
+public extension Section where Content == ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
-        cell: () -> Cell<ItemValue>,
+        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
         self.init(
             predicate: predicate,
-            cell: cell(),
+            cells: cells(),
             footer: footer()
         )
     }
 
     init(
         identifier: SectionIdentifier,
-        cell: () -> Cell<ItemValue>,
+        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
         self.init(
             predicate: { $0 == identifier },
-            cell: cell(),
+            cells: cells(),
             footer: footer()
         )
     }
 
     init(
         predicate: ((SectionIdentifier) -> Bool)? = nil,
-        cell: () -> Cell<ItemValue>
+        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
     ) {
         self.init(
             predicate: predicate,
-            cell: cell(),
+            cells: cells(),
             footer: nil
         )
     }
 
     init(
         identifier: SectionIdentifier,
-        cell: () -> Cell<ItemValue>
+        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
     ) {
         self.init(
             predicate: { $0 == identifier },
-            cell: cell(),
+            cells: cells(),
             footer: nil
         )
     }

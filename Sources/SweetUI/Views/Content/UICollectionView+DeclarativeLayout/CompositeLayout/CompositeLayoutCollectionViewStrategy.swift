@@ -9,10 +9,10 @@ public typealias CompositeLayout = CompositeLayoutCollectionViewStrategy
 
 
 @available(iOS 14, *)
-public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemValue: Hashable>: CollectionViewLayoutStrategy {
+public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: CollectionViewLayoutStrategy {
 
-    let components: CompositeLayoutComponents<SectionIdentifier, ItemValue>
-    public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemValue>
+    let components: CompositeLayoutComponents<SectionIdentifier, ItemIdentifier>
+    public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemIdentifier>
 
     public func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout) {
         // Layout
@@ -28,7 +28,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         }
     }
 
-    public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionViewLayout {
+    public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionViewLayout {
         let configuration = UICollectionViewCompositionalLayoutConfiguration()
         if let header = components.header {
             let item = header.makeLayoutBoundarySupplementaryItem()
@@ -52,7 +52,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
             configuration: configuration)
     }
 
-    private func section(for sectionIdentifier: SectionIdentifier) -> CompositeSection<SectionIdentifier, ItemValue> {
+    private func section(for sectionIdentifier: SectionIdentifier) -> CompositeSection<SectionIdentifier, ItemIdentifier> {
         // Check sections with predicates for a match
         if let section = components.sections.first(where: { $0.predicate?(sectionIdentifier) ?? false }) {
             return section
@@ -64,13 +64,19 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         preconditionFailure("No sections to represent sectionIdentifier '\(sectionIdentifier)'.")
     }
 
-    public func cell(for collectionView: UICollectionView, itemValue: ItemValue, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
+    public func cell(for collectionView: UICollectionView, ItemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
         let section = self.section(for: sectionIdentifier)
-        let cell = section.cellTemplate(forItemIndex: indexPath.item)
-        return cell.makeCell(with: itemValue, for: collectionView, at: indexPath)
+        let cells = section.cellTemplates(forItemIndex: indexPath.item)
+        for cell in cells {
+            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+                return cellView
+            }
+        }
+        "TODO: Figure out what to do if no cells can create a cell for the value"
+        fatalError()
     }
 
-    public func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemValue>) -> UICollectionReusableView {
+    public func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionReusableView {
         // Is it a layout supplement?
         if let header = components.header,
             elementKind == header.elementKind {
@@ -92,19 +98,19 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         guard let template = section.itemSupplementaryTemplate(for: elementKind) else {
             preconditionFailure()
         }
-        guard let itemValue = dataSource.itemIdentifier(for: indexPath) else {
+        guard let itemIdentifier = dataSource.itemIdentifier(for: indexPath) else {
             preconditionFailure("Invalid indexPath")
         }
-        return template.makeItemSupplementaryView(in: collectionView, indexPath: indexPath, itemValue: itemValue)
+        return template.makeItemSupplementaryView(in: collectionView, indexPath: indexPath, itemIdentifier: itemIdentifier)
     }
 }
 
 
 @available(iOS 14, *)
-public struct CompositeLayoutComponents<SectionIdentifier: Hashable, ItemValue: Hashable> {
+public struct CompositeLayoutComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
 
     let header: LayoutHeader?
-    let sections: [CompositeSection<SectionIdentifier, ItemValue>]
+    let sections: [CompositeSection<SectionIdentifier, ItemIdentifier>]
     let footer: LayoutFooter?
     let background: LayoutBackground?
 }
@@ -119,10 +125,10 @@ public extension CompositeLayoutCollectionViewStrategy {
         background: LayoutBackground? = nil,
         header: LayoutHeader? = nil,
         footer: LayoutFooter? = nil,
-        @ArrayBuilder<Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>> sections: () -> [Section<CompositeSection<SectionIdentifier, ItemValue>, SectionIdentifier, ItemValue, Void>],
+        @ArrayBuilder<Section<CompositeSection<SectionIdentifier, ItemIdentifier>, SectionIdentifier, ItemIdentifier, Void>> sections: () -> [Section<CompositeSection<SectionIdentifier, ItemIdentifier>, SectionIdentifier, ItemIdentifier, Void>],
         indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
         reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
-        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemValue>? = nil
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil
     ) {
         self.components = CompositeLayoutComponents(
             header: header,

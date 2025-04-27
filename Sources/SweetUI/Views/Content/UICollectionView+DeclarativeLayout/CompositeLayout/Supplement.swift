@@ -2,12 +2,12 @@ import UIKit
 import Combine
 
 
-public struct SupplementedGroup<ItemValue: Hashable>: Group {
+public struct SupplementedGroup<ItemIdentifier: Hashable>: Group {
 
-    let group: AnyGroup<ItemValue>
-    let supplements: [Supplement<ItemValue>]
+    let group: AnyGroup<ItemIdentifier>
+    let supplements: [Supplement<ItemIdentifier>]
 
-    init<G: Group>(group: G, supplements: [Supplement<ItemValue>]) where G.ItemValue == ItemValue {
+    init<G: Group>(group: G, supplements: [Supplement<ItemIdentifier>]) where G.ItemIdentifier == ItemIdentifier {
         self.group = AnyGroup(
             allCellsHandler: group.cellsForRegistration,
             itemSupplementaryTemplatesHandler: group.itemSupplementaryTemplates,
@@ -16,11 +16,11 @@ public struct SupplementedGroup<ItemValue: Hashable>: Group {
         self.supplements = supplements
     }
 
-    public func cellsForRegistration() -> [Cell<ItemValue>] {
+    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
         fatalError()
     }
 
-    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemValue>] {
+    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
         fatalError()
     }
 
@@ -30,12 +30,12 @@ public struct SupplementedGroup<ItemValue: Hashable>: Group {
 }
 
 
-public struct SupplementedGroupItem<ItemValue: Hashable>: GroupItem {
+public struct SupplementedGroupItem<ItemIdentifier: Hashable>: GroupItem {
 
-    let cell: Cell<ItemValue>
-    let supplements: [Supplement<ItemValue>]
+    let cell: Cell<ItemIdentifier>
+    let supplements: [Supplement<ItemIdentifier>]
 
-    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemValue>] {
+    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
         cell.itemSupplementaryTemplates() + supplements
             .map { $0.itemSupplementaryTemplates() }
             .reduce([], +)
@@ -50,23 +50,23 @@ public struct SupplementedGroupItem<ItemValue: Hashable>: GroupItem {
         return revised
     }
 
-    public func cellsForRegistration() -> [Cell<ItemValue>] {
+    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
         return cell.cellsForRegistration()
     }
 }
 
 
-public struct Supplement<ItemValue: Hashable> {
+public struct Supplement<ItemIdentifier: Hashable> {
 
     let elementKind: String
     let viewRegistrar: (UICollectionView) -> Void
-    let viewFactory: (UICollectionView, IndexPath, ItemValue) -> UICollectionReusableView
+    let viewFactory: (UICollectionView, IndexPath, ItemIdentifier) -> UICollectionReusableView
     let layoutItemFactory: (NSCollectionLayoutSize) -> NSCollectionLayoutSupplementaryItem
 
     internal init(
         elementKind: String,
         viewRegistrar: @escaping (UICollectionView) -> Void,
-        viewFactory: @escaping (UICollectionView, IndexPath, ItemValue) -> UICollectionReusableView,
+        viewFactory: @escaping (UICollectionView, IndexPath, ItemIdentifier) -> UICollectionReusableView,
         layoutItemFactory: @escaping (NSCollectionLayoutSize) -> NSCollectionLayoutSupplementaryItem)
     {
         self.elementKind = elementKind
@@ -75,7 +75,7 @@ public struct Supplement<ItemValue: Hashable> {
         self.layoutItemFactory = layoutItemFactory
     }
 
-    func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemValue>] {
+    func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
         [
             ItemSupplementaryTemplate(
             elementKind: elementKind,
@@ -108,7 +108,7 @@ public extension Supplement {
         self.viewRegistrar = { collectionView in
             collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
-        self.viewFactory = { collectionView, indexPath, itemValue in
+        self.viewFactory = { collectionView, indexPath, ItemIdentifier in
             collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath)
         }
         self.layoutItemFactory = { defaultSize in
@@ -133,7 +133,7 @@ public extension Supplement {
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
-        configuration: @escaping (UICollectionViewListCell, ItemValue) -> Void)
+        configuration: @escaping (UICollectionViewListCell, ItemIdentifier) -> Void)
     {
         let viewClass = UICollectionViewListCell.self
         let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
@@ -143,9 +143,9 @@ public extension Supplement {
         self.viewRegistrar = { collectionView in
             collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
-        self.viewFactory = { collectionView, indexPath, itemValue in
+        self.viewFactory = { collectionView, indexPath, ItemIdentifier in
             let cell = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! UICollectionViewListCell
-            configuration(cell, itemValue)
+            configuration(cell, ItemIdentifier)
             return cell
         }
         self.layoutItemFactory = { defaultSize in
@@ -169,9 +169,9 @@ public extension Supplement {
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
-        body bodyFactory: @escaping (OneWayBinding<ItemValue>) -> UIView)
+        body bodyFactory: @escaping (OneWayBinding<ItemIdentifier>) -> UIView)
     {
-        let viewClass = ValuePublishingCell<ItemValue>.self
+        let viewClass = ValuePublishingCell<ItemIdentifier>.self
         let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
         let reuseIdentifier = UniqueIdentifier(elementKind).value
 
@@ -179,10 +179,10 @@ public extension Supplement {
         self.viewRegistrar = { collectionView in
             collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
-        self.viewFactory = { collectionView, indexPath, itemValue in
-            let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<ItemValue>
-            view.bodyFactory = bodyFactory
-            view.configure(using: itemValue)
+        self.viewFactory = { collectionView, indexPath, itemIdentifier in
+            let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<ItemIdentifier>
+            view.initialize(bindingOptions: .default, bodyFactory: bodyFactory)
+            view.configure(using: itemIdentifier)
             return view
         }
         self.layoutItemFactory = { defaultSize in
