@@ -7,7 +7,7 @@ public final class OneOf: UIView {
 
     // MARK: Properties
 
-    private var cancellable: AnyCancellable?
+    private lazy var cancellableStorage = CancellableStorage()
 
 
     // MARK: Instance life cycle
@@ -35,8 +35,10 @@ public final class OneOf: UIView {
         }
 
         // Configure when the views are shown
-        cancellable = publisher.sink { [weak self] value in
+        publisher.sink { [weak self] value in
             guard let self else { return }
+            CancellableStorage.push(self.cancellableStorage)
+            defer { CancellableStorage.pop(expected: self.cancellableStorage) }
 
             let subview = contentFactory(value)
             subview.translatesAutoresizingMaskIntoConstraints = false
@@ -48,6 +50,7 @@ public final class OneOf: UIView {
                 subview.bottomAnchor.constraint(equalTo: self.bottomAnchor),
             ])
         }
+        .store(in: cancellableStorage)
     }
 
     @available(*, unavailable)
