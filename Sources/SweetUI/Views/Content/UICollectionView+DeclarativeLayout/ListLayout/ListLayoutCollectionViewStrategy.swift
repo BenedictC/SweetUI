@@ -73,11 +73,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 
     private func section(for sectionIdentifier: SectionIdentifier) -> AnyListSection<SectionIdentifier, ItemIdentifier> {
         // Check sections with predicates for a match
-        if let section = components.sections.first(where: { $0.predicate?(sectionIdentifier) ?? false }) {
-            return section
-        }
-        // Default to first section that matches all sections
-        if let section = components.sections.first(where: { $0.predicate == nil }) {
+        if let section = components.sections.first(where: { $0.predicate(sectionIdentifier) }) {
             return section
         }
         preconditionFailure("No sections to represent sectionIdentifier '\(sectionIdentifier)'.")
@@ -169,13 +165,13 @@ public protocol ListSection {
     associatedtype SectionIdentifier: Hashable
     associatedtype ItemIdentifier: Hashable
 
-    var predicate: ((SectionIdentifier) -> Bool)? { get }
+    var predicate: ((SectionIdentifier) -> Bool) { get }
     var components: ListSectionComponents<SectionIdentifier, ItemIdentifier> { get }
 }
 
 public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
 
-    public let predicate: ((SectionIdentifier) -> Bool)?
+    public let predicate: ((SectionIdentifier) -> Bool)
     public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 
     func registerViews(in collectionView: UICollectionView) {
@@ -228,7 +224,7 @@ public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemIdentifi
 
     // MARK: Properties
 
-    public let predicate: ((SectionIdentifier) -> Bool)?
+    public let predicate: ((SectionIdentifier) -> Bool)
     public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 }
 
@@ -239,7 +235,7 @@ public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemIde
 
     // MARK: Properties
 
-    public let predicate: ((SectionIdentifier) -> Bool)?
+    public let predicate: ((SectionIdentifier) -> Bool)
     public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 }
 
@@ -250,7 +246,7 @@ public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, Item
 
     // MARK: Properties
 
-    public let predicate: ((SectionIdentifier) -> Bool)?
+    public let predicate: ((SectionIdentifier) -> Bool)
     public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
 }
 

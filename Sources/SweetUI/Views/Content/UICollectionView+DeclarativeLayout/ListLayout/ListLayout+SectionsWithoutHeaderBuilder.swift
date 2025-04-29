@@ -21,7 +21,7 @@ public extension ListLayoutCollectionViewStrategy {
             configuration: configuration,
             header: header,
             footer: footer,
-            sections: sections().map { AnyListSection<SectionIdentifier, ItemIdentifier>(predicate: nil, components: $0.content.components) }
+            sections: sections().map { AnyListSection<SectionIdentifier, ItemIdentifier>(predicate: $0.content.predicate, components: $0.content.components) }
         )
         let behaviors = CollectionViewLayoutBehaviors(
             indexElementsProvider: indexElementsProvider,
@@ -39,7 +39,7 @@ public extension ListLayoutCollectionViewStrategy {
 public extension Section where Content == ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         cells: [Cell<ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
@@ -70,7 +70,7 @@ public extension Section where Content == ListSectionWithoutHeader<SectionIdenti
 public extension Section where Content == ListSectionWithoutHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
@@ -94,7 +94,7 @@ public extension Section where Content == ListSectionWithoutHeader<SectionIdenti
     }
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
     ) {
         self.init(

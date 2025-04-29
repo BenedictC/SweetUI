@@ -43,7 +43,7 @@ public extension ListLayoutCollectionViewStrategy {
 public extension Section where Content == ListSectionWithStandardHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: Header<SectionIdentifier>,
         cells: [Cell<ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
@@ -78,7 +78,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
 public extension Section where Content == ListSectionWithStandardHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: () -> Header<SectionIdentifier>,
         @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
@@ -108,7 +108,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     }
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: () -> Header<SectionIdentifier>,
         @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
     ) {

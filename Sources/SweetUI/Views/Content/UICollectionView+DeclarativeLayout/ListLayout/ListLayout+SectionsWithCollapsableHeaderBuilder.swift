@@ -21,7 +21,7 @@ public extension ListLayoutCollectionViewStrategy {
             configuration: configuration,
             header: header,
             footer: footer,
-            sections: sections().map { AnyListSection<SectionIdentifier, ItemIdentifier>(predicate: nil, components: $0.content.components) }
+            sections: sections().map { AnyListSection<SectionIdentifier, ItemIdentifier>(predicate: $0.content.predicate, components: $0.content.components) }
         )
         let behaviors = CollectionViewLayoutBehaviors(
             indexElementsProvider: indexElementsProvider,
@@ -40,7 +40,7 @@ public extension ListLayoutCollectionViewStrategy {
 public extension Section where Content == ListSectionWithCollapsableHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: Cell<ItemIdentifier>,
         cells: [Cell<ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
@@ -75,7 +75,7 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 public extension Section where Content == ListSectionWithCollapsableHeader<SectionIdentifier, ItemIdentifier> {
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: () -> Cell<ItemIdentifier>,
         @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
@@ -105,7 +105,7 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
     }
 
     init(
-        predicate: ((SectionIdentifier) -> Bool)? = nil,
+        predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: () -> Cell<ItemIdentifier>,
         @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
     ) {
