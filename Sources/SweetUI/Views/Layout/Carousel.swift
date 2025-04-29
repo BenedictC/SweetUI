@@ -14,7 +14,7 @@ public final class Carousel: UIView {
     public var selectedItem: UIView? { selectedItemIndex.flatMap { items[$0] } }
 
     private var cancellable: AnyCancellable!
-    private var selectedItemIndexSubject: AnySubject<Int?, Never>?
+    private var selectedItemIndexSubject: AnySubject<Int, Never>?
 
 
     // MARK: Views
@@ -35,7 +35,7 @@ public final class Carousel: UIView {
 
     // MARK: Instance life cycle
 
-    public init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int?, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    public init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
         let items = itemsBuilder()
         self.items = items
         self.spacing = spacing
@@ -60,17 +60,18 @@ public final class Carousel: UIView {
         )
 
         // Subscribe after the view has been built otherwise the initial value won't configure the view
-        cancellable = selectedItemIndex.sink { [weak self] optionalIndex in
-            let index = optionalIndex ?? -1
+        cancellable = selectedItemIndex.sink { [weak self] index in
             let isIndexValid = index > -1 && index < items.count
-            self?.selectedItemIndex = isIndexValid ? index : nil
-            if let scrollView = self?.scrollView, !scrollView.isTracking {
-                self?.setContentOffsetToShowItem(at: index, animated: true)
+            if isIndexValid {
+                self?.selectedItemIndex = index
+                if let scrollView = self?.scrollView, !scrollView.isTracking {
+                    self?.setContentOffsetToShowItem(at: index, animated: true)
+                }
             }
         }
     }
 
-    public convenience init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int?, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    public convenience init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
         let publisher = selectedItemIndex.eraseToAnyPublisher()
         self.init(spacing: spacing, inset: inset, alignment: alignment, selectedItemIndex: publisher, items: itemsBuilder)
 
@@ -136,10 +137,11 @@ private extension Carousel {
         guard let selectedItemIndexSubject else {
             return
         }
-        let itemIndex = itemIndexOfCurrentItem()
-        let hasChanged = selectedItemIndex != itemIndex
-        if hasChanged || alwaysSend {
-            selectedItemIndexSubject.send(itemIndex)
+        if let itemIndex = itemIndexOfCurrentItem() {
+            let hasChanged = selectedItemIndex != itemIndex
+            if hasChanged || alwaysSend {
+                selectedItemIndexSubject.send(itemIndex)
+            }
         }
     }
 }
