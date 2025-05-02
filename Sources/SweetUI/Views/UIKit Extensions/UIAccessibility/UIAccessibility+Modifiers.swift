@@ -4,6 +4,11 @@ import UIKit
 
 public extension UIView {
 
+    func accessibilityIdentifier(_ value: String) -> Self {
+        self.accessibilityIdentifier = value
+        return self
+    }
+
     func isAccessibilityElement(_ value: Bool) -> Self {
         self.isAccessibilityElement = value
         return self
