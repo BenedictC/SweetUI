@@ -6,7 +6,9 @@ public final class Carousel: UIView {
 
     // MARK: Properties
 
-    public let items: [UIView]
+    public var items: [UIView] {
+        didSet { updateItemsStack() }
+    }
     public let spacing: CGFloat
     public let inset: CGFloat
     public let alignment: HStack.Alignment
@@ -19,10 +21,7 @@ public final class Carousel: UIView {
 
     // MARK: Views
 
-    private lazy var itemsStack = HStack(distribution: .fillEqually, alignment: alignment, spacing: 0) {
-        items
-            .map { $0.padding(leading: spacing) }
-    }
+    private lazy var itemsStack = HStack(distribution: .fillEqually, alignment: alignment, spacing: 0)
 
     private lazy var scrollView = CarouselScrollView(axes: .horizontal, delegate: self) {
         itemsStack
@@ -42,6 +41,7 @@ public final class Carousel: UIView {
         self.inset = inset
         self.alignment = alignment
         super.init(frame: .zero)
+        updateItemsStack()
 
         // Configure views
         clipsToBounds = true
@@ -53,11 +53,6 @@ public final class Carousel: UIView {
             scrollView.frameLayoutGuide.topAnchor.constraint(equalTo: topAnchor),
             scrollView.frameLayoutGuide.bottomAnchor.constraint(equalTo: bottomAnchor),
         ])
-        NSLayoutConstraint.activate(
-            items.map {
-                $0.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -spacing)
-            }
-        )
 
         // Subscribe after the view has been built otherwise the initial value won't configure the view
         cancellable = selectedItemIndex.sink { [weak self] index in
@@ -89,6 +84,20 @@ public final class Carousel: UIView {
 
 
     // MARK: View life cycle
+
+    private func updateItemsStack() {
+        for stale in itemsStack.arrangedSubviews { stale.removeFromSuperview() }
+
+        let paddedItems = items.map { $0.padding(leading: spacing) }
+        for item in paddedItems {
+            itemsStack.addArrangedSubview(item)
+        }
+        NSLayoutConstraint.activate(
+            items.map {
+                $0.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -spacing)
+            }
+        )
+    }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
