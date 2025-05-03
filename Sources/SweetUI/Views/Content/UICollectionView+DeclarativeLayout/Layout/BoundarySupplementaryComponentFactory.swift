@@ -118,7 +118,8 @@ public extension BoundarySupplementaryComponentFactory {
         absoluteOffset: CGPoint = .zero,
         extendsBoundary: Bool? = nil,
         pinToVisibleBounds: Bool? = nil,
-        body bodyFactory: @escaping (OneWayBinding<SectionIdentifier>) -> UIView)
+        bindingOptions: BindingOptions = .default,
+        body bodyProvider: @escaping (OneWayBinding<SectionIdentifier>) -> UIView)
     {
         let viewClass = ValuePublishingCell<SectionIdentifier>.self
         let elementKind = Self.elementKind
@@ -128,7 +129,7 @@ public extension BoundarySupplementaryComponentFactory {
         }
         let viewFactory = { (collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView in
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<SectionIdentifier>
-            view.initialize(bindingOptions: .default, bodyFactory: bodyFactory)
+            view.initialize(bindingOptions: bindingOptions, bodyProvider: { _, publisher in bodyProvider(publisher) })
             view.configure(using: sectionIdentifier)
             return view
         }
@@ -156,7 +157,7 @@ public extension BoundarySupplementaryComponentFactory where SectionIdentifier =
         absoluteOffset: CGPoint = .zero,
         extendsBoundary: Bool? = nil,
         pinToVisibleBounds: Bool? = nil,
-        body bodyFactory: @escaping () -> UIView
+        body bodyProvider: @escaping () -> UIView
     ) {
         let viewClass = ValuePublishingCell<Void>.self
         let elementKind = Self.elementKind
@@ -166,7 +167,7 @@ public extension BoundarySupplementaryComponentFactory where SectionIdentifier =
         }
         let viewFactory = { (collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: Void) -> UICollectionReusableView in
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<Void>
-            view.initialize(bindingOptions: .default, bodyFactory: { _ in bodyFactory() })
+            view.initialize(bindingOptions: .default, bodyProvider: { _, _ in bodyProvider() })
             view.configure(using: sectionIdentifier)
             return view
         }

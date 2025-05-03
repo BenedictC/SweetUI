@@ -1,29 +1,36 @@
-import UIKit
+//
+//  ValuePublishingCell.swift
+//  SweetUI
+//
+//  Created by Benedict Cohen on 03/05/2025.
+//
 
 
-internal final class ValuePublishingCell<ItemIdentifier>: UICollectionViewCell, ReusableViewConfigurable, CancellableStorageProvider {
+// MARK: - ValuePublishingCell
+
+internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableViewConfigurable, CancellableStorageProvider {
 
     // MARK: Properties
 
-    typealias BodyFactory = ((OneWayBinding<ItemIdentifier>) -> UIView)
+    typealias BodyProvider = ((UICollectionViewCell, OneWayBinding<Value>) -> UIView)
 
 
     // MARK: Properties
 
     let cancellableStorage = CancellableStorage()
     private var bindingOptions: BindingOptions = .default
-    private var bodyFactory: BodyFactory?
-    private var binding: Binding<ItemIdentifier>?
+    private var bodyProvider: BodyProvider?
+    private var binding: Binding<Value>?
 
 
     // MARK: - ReusableViewConfigurable
 
-    func initialize(bindingOptions: BindingOptions, bodyFactory: @escaping BodyFactory) {
+    func initialize(bindingOptions: BindingOptions, bodyProvider: @escaping BodyProvider) {
         self.bindingOptions = bindingOptions
-        self.bodyFactory = bodyFactory
+        self.bodyProvider = bodyProvider
     }
 
-    func configure(using value: ItemIdentifier) {
+    func configure(using value: Value) {
         CancellableStorage.push(cancellableStorage)
         defer { CancellableStorage.pop(expected: cancellableStorage) }
 
@@ -34,19 +41,18 @@ internal final class ValuePublishingCell<ItemIdentifier>: UICollectionViewCell, 
         }
         // Create binding and body
         self.binding = Binding(wrappedValue: value, options: bindingOptions)
-        guard let bodyFactory, let binding else {
+        guard let bodyProvider, let binding else {
             preconditionFailure("Misconfigured cell")
         }
-        let body = bodyFactory(binding)
+        let body = bodyProvider(self, binding)
 
         self.contentView.addSubview(body)
         body.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            body.leftAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leftAnchor),
-            body.rightAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.rightAnchor),
             body.topAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.topAnchor),
-            body.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor)
-                .priority(.almostRequired),
+            body.leadingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.leadingAnchor),
+            body.bottomAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.bottomAnchor).priority(.almostRequired),
+            body.trailingAnchor.constraint(equalTo: contentView.safeAreaLayoutGuide.trailingAnchor).priority(.almostRequired),
         ])
     }
 }

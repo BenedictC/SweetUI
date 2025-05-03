@@ -3,7 +3,7 @@ import UIKit
 
 // MARK: - Cell + GroupItem
 
-extension Cell: GroupItem {
+extension Cell: GroupItem where ItemIdentifier: Hashable {
 
     public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
         // Cells are registered separately
@@ -20,7 +20,7 @@ extension Cell: GroupItem {
 
 // MARK: - Cell + Supplementaries
 
-public extension Cell {
+public extension Cell where ItemIdentifier: Hashable {
 
     func supplementaries(
         @SupplementaryComponentsBuilder<ItemIdentifier>

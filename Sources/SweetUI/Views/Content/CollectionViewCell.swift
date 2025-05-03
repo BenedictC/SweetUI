@@ -2,7 +2,26 @@ import Foundation
 import UIKit
 
 
-public typealias CollectionViewCell = _CollectionViewCell & ViewBodyProvider
+// MARK: - ConfigurableCollectionViewCell
+
+public protocol ConfigurableCollectionViewCell: UICollectionViewCell { // UICollectionReusableView ???
+
+    associatedtype Value = Void
+
+    func configure(with value: Value)
+}
+
+public extension ConfigurableCollectionViewCell {
+
+    func configure(with value: Value) {
+        // Do nothing
+    }
+}
+
+
+// MARK: - CollectionViewCell
+
+public typealias CollectionViewCell = _CollectionViewCell & ViewBodyProvider & ConfigurableCollectionViewCell
 
 
 open class _CollectionViewCell: UICollectionViewCell, ReuseIdentifiable {
