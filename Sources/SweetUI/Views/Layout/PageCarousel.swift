@@ -2,29 +2,29 @@ import UIKit
 import Combine
 
 
-public final class Carousel: UIView {
+public final class PageCarousel: UIView {
 
     // MARK: Properties
 
-    public var items: [UIView] {
-        didSet { updateItemsStack() }
+    public var pages: [UIView] {
+        didSet { updatePagesStack() }
     }
     public let spacing: CGFloat
     public let inset: CGFloat
     public let alignment: HStack.Alignment
-    public private(set) var selectedItemIndex: Int?
-    public var selectedItem: UIView? { selectedItemIndex.flatMap { items[$0] } }
+    public private(set) var selectedPageIndex: Int?
+    public var selectedItem: UIView? { selectedPageIndex.flatMap { pages[$0] } }
 
     private var cancellable: AnyCancellable!
-    private var selectedItemIndexSubject: AnySubject<Int, Never>?
+    private var selectedPageIndexSubject: AnySubject<Int, Never>?
 
 
     // MARK: Views
 
-    private lazy var itemsStack = HStack(distribution: .fillEqually, alignment: alignment, spacing: 0)
+    private lazy var pagesStack = HStack(distribution: .fillEqually, alignment: alignment, spacing: 0)
 
     private lazy var scrollView = CarouselScrollView(axes: .horizontal, delegate: self) {
-        itemsStack
+        pagesStack
     }
         .showsHorizontalScrollIndicator(false)
         .pagingEnabled(true)
@@ -34,14 +34,14 @@ public final class Carousel: UIView {
 
     // MARK: Instance life cycle
 
-    public init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
-        let items = itemsBuilder()
-        self.items = items
+    public init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedPageIndex: some Publisher<Int, Never>, @ArrayBuilder<UIView> pages pagesBuilder: () -> [UIView]) {
+        let pages = pagesBuilder()
+        self.pages = pages
         self.spacing = spacing
         self.inset = inset
         self.alignment = alignment
         super.init(frame: .zero)
-        updateItemsStack()
+        updatePagesStack()
 
         // Configure views
         clipsToBounds = true
@@ -55,25 +55,25 @@ public final class Carousel: UIView {
         ])
 
         // Subscribe after the view has been built otherwise the initial value won't configure the view
-        cancellable = selectedItemIndex.sink { [weak self] index in
-            let isIndexValid = index > -1 && index < items.count
+        cancellable = selectedPageIndex.sink { [weak self] index in
+            let isIndexValid = index > -1 && index < pages.count
             if isIndexValid {
-                self?.selectedItemIndex = index
+                self?.selectedPageIndex = index
                 if let scrollView = self?.scrollView, !scrollView.isTracking {
-                    self?.setContentOffsetToShowItem(at: index, animated: true)
+                    self?.setContentOffsetToShowPage(at: index, animated: true)
                 }
             }
         }
     }
 
-    public convenience init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
-        let publisher = selectedItemIndex.eraseToAnyPublisher()
-        self.init(spacing: spacing, inset: inset, alignment: alignment, selectedItemIndex: publisher, items: itemsBuilder)
+    public convenience init(spacing: CGFloat = 0, inset: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedPageIndex: some Subject<Int, Never>, @ArrayBuilder<UIView> pages pagesBuilder: () -> [UIView]) {
+        let publisher = selectedPageIndex.eraseToAnyPublisher()
+        self.init(spacing: spacing, inset: inset, alignment: alignment, selectedPageIndex: publisher, pages: pagesBuilder)
 
-        self.selectedItemIndexSubject = selectedItemIndex.eraseToAnySubject()
+        self.selectedPageIndexSubject = selectedPageIndex.eraseToAnySubject()
         self.scrollView.isScrollEnabled = true
         self.scrollView.touchesDidEndHandler = { [weak self] in
-            self?.setSelectedItemIndexFromCurrentItem(alwaysSend: true)
+            self?.setSelectedPageIndexFromCurrentPage(alwaysSend: true)
         }
     }
 
@@ -85,15 +85,15 @@ public final class Carousel: UIView {
 
     // MARK: View life cycle
 
-    private func updateItemsStack() {
-        for stale in itemsStack.arrangedSubviews { stale.removeFromSuperview() }
+    private func updatePagesStack() {
+        for stale in pagesStack.arrangedSubviews { stale.removeFromSuperview() }
 
-        let paddedItems = items.map { $0.padding(leading: spacing) }
-        for item in paddedItems {
-            itemsStack.addArrangedSubview(item)
+        let paddedPages = pages.map { $0.padding(leading: spacing) }
+        for page in paddedPages {
+            pagesStack.addArrangedSubview(page)
         }
         NSLayoutConstraint.activate(
-            items.map {
+            pages.map {
                 $0.widthAnchor.constraint(equalTo: scrollView.frameLayoutGuide.widthAnchor, constant: -spacing)
             }
         )
@@ -101,7 +101,7 @@ public final class Carousel: UIView {
 
     public override func layoutSubviews() {
         super.layoutSubviews()
-        setContentOffsetToShowItem(at: selectedItemIndex, animated: false)
+        setContentOffsetToShowPage(at: selectedPageIndex, animated: false)
     }
 
 
@@ -117,39 +117,39 @@ public final class Carousel: UIView {
 
 // MARK: - Offset management
 
-private extension Carousel {
+private extension PageCarousel {
 
     // This does not set selectedItemIndex
-    func setContentOffsetToShowItem(at itemIndex: Int?, animated: Bool) {
-        guard let itemIndex, itemIndex > -1, itemIndex < items.count else { return }
+    func setContentOffsetToShowPage(at pageIndex: Int?, animated: Bool) {
+        guard let pageIndex, pageIndex > -1, pageIndex < pages.count else { return }
         guard window != nil else { return }
 
         scrollView.layoutIfNeeded()
-        let item = items[itemIndex]
-        let content = item.superview ?? item
-        let offset = content.convert(content.bounds.origin, to: scrollView)
+        let page = pages[pageIndex]
+        let paddedPage = page.superview ?? page // Default should never be needed
+        let offset = paddedPage.convert(paddedPage.bounds.origin, to: scrollView)
         scrollView.setContentOffset(offset, animated: animated)
     }
 
-    func itemIndexOfCurrentItem() -> Int? {
+    func indexOfCurrentPage() -> Int? {
         let center = self.center
-        let pair = items.enumerated().first {
-            let (_, item) = $0
-            let frameInSelfSpace = item.convert(item.bounds, to: self)
+        let pair = pages.enumerated().first {
+            let (_, page) = $0
+            let frameInSelfSpace = page.convert(page.bounds, to: self)
             let result = center.x >= frameInSelfSpace.minX && center.x < frameInSelfSpace.maxX
             return result
         }
         return pair?.offset
     }
 
-    func setSelectedItemIndexFromCurrentItem(alwaysSend: Bool = false) {
-        guard let selectedItemIndexSubject else {
+    func setSelectedPageIndexFromCurrentPage(alwaysSend: Bool = false) {
+        guard let selectedPageIndexSubject else {
             return
         }
-        if let itemIndex = itemIndexOfCurrentItem() {
-            let hasChanged = selectedItemIndex != itemIndex
+        if let pageIndex = indexOfCurrentPage() {
+            let hasChanged = selectedPageIndex != pageIndex
             if hasChanged || alwaysSend {
-                selectedItemIndexSubject.send(itemIndex)
+                selectedPageIndexSubject.send(pageIndex)
             }
         }
     }
@@ -158,14 +158,14 @@ private extension Carousel {
 
 // MARK: - UIScrollViewDelegate
 
-extension Carousel: UIScrollViewDelegate {
+extension PageCarousel: UIScrollViewDelegate {
 
     public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
-        setSelectedItemIndexFromCurrentItem()
+        setSelectedPageIndexFromCurrentPage()
     }
 
     public func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        setSelectedItemIndexFromCurrentItem()
+        setSelectedPageIndexFromCurrentPage()
     }
 }
 
