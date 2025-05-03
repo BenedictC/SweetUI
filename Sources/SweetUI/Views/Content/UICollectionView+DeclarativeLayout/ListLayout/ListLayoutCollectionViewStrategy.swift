@@ -92,8 +92,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
                 return cellView
             }
         }
-        "TODO: Figure out what to do if no cells create a view"
-        fatalError()
+        preconditionFailure("Failed to create cell for item at '\(indexPath)'")
     }
 
     public func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionReusableView {
