@@ -63,7 +63,7 @@ public extension Cell {
 
 public extension Cell {
 
-    static func mapValue<Value>(
+    static func mapItem<Value>(
         _ transform: @escaping (ItemIdentifier) -> Value?,
         cell: () -> Cell<Value>
     ) -> Self {
