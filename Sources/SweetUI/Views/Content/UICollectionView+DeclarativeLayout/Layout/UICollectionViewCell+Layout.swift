@@ -5,7 +5,7 @@ import UIKit
 
 public extension ConfigurableCollectionViewCell {
 
-    static func template(
+    static func provider(
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil
@@ -35,7 +35,7 @@ public extension UICollectionViewCell {
         let cancellableStorage = CancellableStorage()
     }
 
-    static func template<Value, Content: UIView>(
+    static func provider<Value, Content: UIView>(
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
@@ -79,7 +79,7 @@ public extension UICollectionViewCell {
 
 public extension UICollectionViewCell {
 
-    static func template<Value>(
+    static func provider<Value>(
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
