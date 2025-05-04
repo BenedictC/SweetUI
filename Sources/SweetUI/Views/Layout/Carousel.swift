@@ -151,14 +151,16 @@ private extension Carousel {
     }
 
     func indexOfCurrentItem() -> Int? {
-        let center = self.center
-        let pair = items.enumerated().first {
-            let (_, item) = $0
-            let frameInSelfSpace = item.convert(item.bounds, to: self)
-            let result = center.x >= frameInSelfSpace.minX && center.x < frameInSelfSpace.maxX
-            return result
+        let referenceX = scrollView.contentOffset.x
+        for (index, item) in items.enumerated() {
+            let paddedItem = item.superview ?? item // Default shouldn't be needed
+            let normalizedFrame = paddedItem.convert(paddedItem.bounds, to: scrollView)
+            let isFirstVisibleItem = normalizedFrame.minX <= referenceX && normalizedFrame.maxX > referenceX
+            if isFirstVisibleItem {
+                return index
+            }
         }
-        return pair?.offset
+        return nil
     }
 
     func setSelectedItemIndexFromCurrentItem(alwaysSend: Bool = false) {
