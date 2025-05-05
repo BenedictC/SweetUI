@@ -3,40 +3,21 @@ import UIKit
 
 // MARK: - Core types
 
-public protocol Group {
+public protocol Group<ItemIdentifier> {
 
-    associatedtype ItemIdentifier: Hashable
+    associatedtype ItemIdentifier
 
-    func cellsForRegistration() -> [Cell<ItemIdentifier>]
+    func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
     func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>]
     func makeLayoutGroup(environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup
-}
-
-extension Group {
-
-    static var defaultGroupSize: NSCollectionLayoutSize {
-        NSCollectionLayoutSize(
-            widthDimension: .fractionalWidth(1),
-            heightDimension: .estimated(100))
-    }
-}
-
-
-public protocol GroupItem {
-
-    associatedtype ItemIdentifier: Hashable
-
-    func cellsForRegistration() -> [Cell<ItemIdentifier>]
-    func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>]
-    func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem
 }
 
 
 // MARK: - AnyGroup
 
-public struct AnyGroup<ItemIdentifier: Hashable>: Group {
+public struct AnyGroup<ItemIdentifier>: Group {
 
-    public let allCellsHandler: () -> [Cell<ItemIdentifier>]
+    public let allCellsHandler: () -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
     internal let itemSupplementaryTemplatesHandler: () -> [ItemSupplementaryTemplate<ItemIdentifier>]
     internal let makeLayoutGroupHandler: (NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup
 
@@ -49,11 +30,11 @@ public struct AnyGroup<ItemIdentifier: Hashable>: Group {
         makeLayoutGroupHandler(environment)
     }
 
-    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
+    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
          allCellsHandler()
     }
 
-    func cells(forItemIndex index: Int) -> [Cell<ItemIdentifier>] {
+    func cells(forItemIndex index: Int) -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
         let cells = cellsForRegistration()
         let cellIndex = index % cells.count
         let cell = cells[cellIndex]
@@ -62,71 +43,9 @@ public struct AnyGroup<ItemIdentifier: Hashable>: Group {
 }
 
 
-// MARK: - AxisGroup
-
-public protocol AxisGroup: Group {
-
-    static var axis: AxisGroupAxis { get }
-    var groupSize: NSCollectionLayoutSize? { get }
-    var items: [AnyGroupItem<ItemIdentifier>] { get }
-    var layoutItemsFactory: (_ environment: NSCollectionLayoutEnvironment) -> [NSCollectionLayoutItem] { get }
-
-    init(groupSize: NSCollectionLayoutSize?, items: [AnyGroupItem<ItemIdentifier>], layoutItemsFactory: @escaping (_ environment: NSCollectionLayoutEnvironment) -> [NSCollectionLayoutItem])
-}
-
-
-public enum AxisGroupAxis {
-    case vertical, horizontal
-}
-
-
-extension AxisGroup {
-
-    internal static func cellLayoutSize(forItemCount itemCount: Int, axis: AxisGroupAxis) -> NSCollectionLayoutSize {
-        let fraction = 1.0 / Double(itemCount)
-        return switch axis {
-        case .vertical:
-            NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(fraction))
-        case .horizontal:
-            NSCollectionLayoutSize(widthDimension: .fractionalWidth(fraction), heightDimension: .fractionalHeight(1))
-        }
-    }
-
-    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
-        items.reduce([], { $0 + $1.cellsForRegistration() })
-    }
-
-    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
-        items.reduce([], { $0 + $1.itemSupplementaryTemplates() })
-    }
-
-    public func makeLayoutGroup(environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup {
-        let groupSize = self.groupSize ?? Self.defaultGroupSize
-        let subItems = self.layoutItemsFactory(environment)
-        switch Self.axis {
-        case .vertical:
-            return NSCollectionLayoutGroup.vertical(layoutSize: groupSize, subitems: subItems)
-        case .horizontal:
-            return NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: subItems)
-        }
-    }
-
-    public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
-        let size = self.groupSize ?? defaultSize
-        let subItems = self.items.map({ $0.makeLayoutGroupItem(defaultSize: size, environment: environment) })
-        switch Self.axis {
-        case .vertical:
-            return NSCollectionLayoutGroup.vertical(layoutSize: size, subitems: subItems)
-        case .horizontal:
-            return NSCollectionLayoutGroup.horizontal(layoutSize: size, subitems: subItems)
-        }
-    }
-}
-
-
 // MARK: - VGroup
 
-public struct VGroup<ItemIdentifier: Hashable>: AxisGroup, GroupItem {
+public struct VGroup<ItemIdentifier>: AxisGroup, GroupItem {
 
     public static var axis: AxisGroupAxis { .vertical }
 
@@ -134,7 +53,11 @@ public struct VGroup<ItemIdentifier: Hashable>: AxisGroup, GroupItem {
     public let items: [AnyGroupItem<ItemIdentifier>]
     public let layoutItemsFactory: (any NSCollectionLayoutEnvironment) -> [NSCollectionLayoutItem]
 
-    public init(groupSize: NSCollectionLayoutSize?, items: [AnyGroupItem<ItemIdentifier>], layoutItemsFactory: @escaping (any NSCollectionLayoutEnvironment) -> [NSCollectionLayoutItem]) {
+    public init(
+        groupSize: NSCollectionLayoutSize?,
+        items: [AnyGroupItem<ItemIdentifier>],
+        layoutItemsFactory: @escaping (any NSCollectionLayoutEnvironment) -> [NSCollectionLayoutItem]
+    ) {
         self.groupSize = groupSize
         self.items = items
         self.layoutItemsFactory = layoutItemsFactory
@@ -144,7 +67,7 @@ public struct VGroup<ItemIdentifier: Hashable>: AxisGroup, GroupItem {
 
 // MARK: - HGroup
 
-public struct HGroup<ItemIdentifier: Hashable>: AxisGroup, GroupItem {
+public struct HGroup<ItemIdentifier>: AxisGroup, GroupItem {
 
     public static var axis: AxisGroupAxis { .horizontal }
 
@@ -164,18 +87,18 @@ public struct HGroup<ItemIdentifier: Hashable>: AxisGroup, GroupItem {
 
 private var numberOfCellsByCustomGroupUUID = [UUID: Int]()
 
-public struct CustomGroup<ItemIdentifier: Hashable>: Group, GroupItem {
+public struct CustomGroup<ItemIdentifier>: Group, GroupItem {
 
     let size: NSCollectionLayoutSize?
-    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
+    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
         let count = numberOfCellsByCustomGroupUUID[uuid] ?? 1
         return Array(repeating: cell, count: count)
     }
     let itemProvider: NSCollectionLayoutGroupCustomItemProvider
-    private let cell: Cell<ItemIdentifier>
+    private let cell: _Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>
     private let uuid: UUID
 
-    public init(size: NSCollectionLayoutSize? = nil, cell: Cell<ItemIdentifier>, itemProvider: @escaping NSCollectionLayoutGroupCustomItemProvider) {
+    public init(size: NSCollectionLayoutSize? = nil, cell: _Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>, itemProvider: @escaping NSCollectionLayoutGroupCustomItemProvider) {
         self.size = size
         self.cell = cell
         self.itemProvider = itemProvider
@@ -203,5 +126,35 @@ public struct CustomGroup<ItemIdentifier: Hashable>: Group, GroupItem {
             numberOfCellsByCustomGroupUUID[uuid] = items.count
             return items
         })
+    }
+}
+
+
+// MARK: - SupplementedGroup
+
+public struct SupplementedGroup<ItemIdentifier>: Group {
+
+    let group: AnyGroup<ItemIdentifier>
+    let supplements: [Supplement<ItemIdentifier>]
+
+    init<G: Group>(group: G, supplements: [Supplement<ItemIdentifier>]) where G.ItemIdentifier == ItemIdentifier {
+        self.group = AnyGroup(
+            allCellsHandler: group.cellsForRegistration,
+            itemSupplementaryTemplatesHandler: group.itemSupplementaryTemplates,
+            makeLayoutGroupHandler: group.makeLayoutGroup
+        )
+        self.supplements = supplements
+    }
+
+    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+        fatalError()
+    }
+
+    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
+        fatalError()
+    }
+
+    public func makeLayoutGroup(environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup {
+        fatalError()
     }
 }

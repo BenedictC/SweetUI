@@ -9,9 +9,9 @@ public extension ConfigurableCollectionViewCell {
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil
-    ) -> Cell<Value> {
+    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
         let reuseIdentifier = UniqueIdentifier("\(Self.self)").value
-        return Cell(
+        return _Cell(
             cellRegistrar: { collectionView in
                 collectionView.register(Self.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -19,8 +19,7 @@ public extension ConfigurableCollectionViewCell {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! Self
                 cell.configure(with: value)
                 return cell
-            },
-            layoutItemHandlerProvider: Cell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
+            }
         )
     }
 }
@@ -41,10 +40,10 @@ public extension UICollectionViewCell {
         contentInsets: NSDirectionalEdgeInsets? = nil,
         dropsDuplicateValues: Bool = true,
         content contentBuilder: @escaping (_ cell: UICollectionViewCell, _ existing: Content?, _ value: Value) -> Content
-    ) -> Cell<Value> {
+    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
         typealias CellType = ContentCell<Content>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
-        return Cell(
+        return _Cell(
             cellRegistrar: { collectionView in
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -68,8 +67,7 @@ public extension UICollectionViewCell {
                     ])
                 }
                 return cell
-            },
-            layoutItemHandlerProvider: Cell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
+            }
         )
     }
 }
@@ -85,10 +83,10 @@ public extension UICollectionViewCell {
         contentInsets: NSDirectionalEdgeInsets? = nil,
         bindingOptions: BindingOptions = .default,
         body bodyProvider: @escaping (UICollectionViewCell, OneWayBinding<Value>) -> UIView
-    ) -> Cell<Value> {
+    ) -> _Cell<ListLayoutCellContent<Value>,Value> {
         typealias CellType = ValuePublishingCell<Value>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
-        return Cell(
+        return _Cell(
             cellRegistrar: { collectionView in
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -97,8 +95,7 @@ public extension UICollectionViewCell {
                 cell.initialize(bindingOptions: bindingOptions, bodyProvider: bodyProvider)
                 cell.configure(using: value)
                 return cell
-            },
-            layoutItemHandlerProvider: Cell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
+            }
         )
     }
 }

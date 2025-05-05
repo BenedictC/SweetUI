@@ -1,11 +1,3 @@
-//
-//  ValuePublishingCell.swift
-//  SweetUI
-//
-//  Created by Benedict Cohen on 03/05/2025.
-//
-
-
 // MARK: - ValuePublishingCell
 
 internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableViewConfigurable, CancellableStorageProvider {

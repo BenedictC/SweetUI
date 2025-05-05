@@ -5,13 +5,10 @@ import UIKit
 public extension UICollectionViewListCell {
 
     static func provider<Value>(
-        size: NSCollectionLayoutSize? = nil,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil,
         cellConfiguration: @escaping (UICollectionViewListCell, Value) -> Void
-    ) -> Cell<Value> {
+    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
-        return Cell(
+        return _Cell(
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -19,8 +16,7 @@ public extension UICollectionViewListCell {
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! UICollectionViewListCell
                 cellConfiguration(cell, value)
                 return cell
-            },
-            layoutItemHandlerProvider: Cell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
+            }
         )
     }
 }
@@ -30,13 +26,10 @@ public extension UICollectionViewListCell {
 public extension UICollectionViewListCell {
 
     static func provider<Value>(
-        size: NSCollectionLayoutSize? = nil,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil,
         contentConfiguration: @escaping (inout UIListContentConfiguration, inout UIBackgroundConfiguration?, Value) -> Void
-    ) -> Cell<Value> {
+    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
-        return Cell(
+        return _Cell(
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -48,8 +41,7 @@ public extension UICollectionViewListCell {
                 cell.contentConfiguration = content
                 cell.backgroundConfiguration = background
                 return cell
-            },
-            layoutItemHandlerProvider: Cell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
+            }
         )
     }
 }

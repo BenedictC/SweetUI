@@ -45,7 +45,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: Header<SectionIdentifier>,
-        cells: [Cell<ItemIdentifier>],
+        cells: [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
         self.content = ListSectionWithStandardHeader<SectionIdentifier, ItemIdentifier>(
@@ -61,7 +61,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     init(
         identifier: SectionIdentifier,
         header: Header<SectionIdentifier>,
-        cells: [Cell<ItemIdentifier>],
+        cells: [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
         self.init(
@@ -80,7 +80,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: () -> Header<SectionIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
         self.content = ListSectionWithStandardHeader<SectionIdentifier, ItemIdentifier>(
@@ -96,7 +96,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     init(
         identifier: SectionIdentifier,
         header: () -> Header<SectionIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
         self.init(
@@ -110,7 +110,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
         header: () -> Header<SectionIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
     ) {
         self.content = ListSectionWithStandardHeader<SectionIdentifier, ItemIdentifier>(
             predicate: predicate,
@@ -125,7 +125,7 @@ public extension Section where Content == ListSectionWithStandardHeader<SectionI
     init(
         identifier: SectionIdentifier,
         header: () -> Header<SectionIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
     ) {
         self.init(
             predicate: { $0 == identifier },

@@ -2,61 +2,7 @@ import UIKit
 import Combine
 
 
-public struct SupplementedGroup<ItemIdentifier: Hashable>: Group {
-
-    let group: AnyGroup<ItemIdentifier>
-    let supplements: [Supplement<ItemIdentifier>]
-
-    init<G: Group>(group: G, supplements: [Supplement<ItemIdentifier>]) where G.ItemIdentifier == ItemIdentifier {
-        self.group = AnyGroup(
-            allCellsHandler: group.cellsForRegistration,
-            itemSupplementaryTemplatesHandler: group.itemSupplementaryTemplates,
-            makeLayoutGroupHandler: group.makeLayoutGroup
-        )
-        self.supplements = supplements
-    }
-
-    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
-        fatalError()
-    }
-
-    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
-        fatalError()
-    }
-
-    public func makeLayoutGroup(environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup {
-        fatalError()
-    }
-}
-
-
-public struct SupplementedGroupItem<ItemIdentifier: Hashable>: GroupItem {
-
-    let cell: Cell<ItemIdentifier>
-    let supplements: [Supplement<ItemIdentifier>]
-
-    public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
-        cell.itemSupplementaryTemplates() + supplements
-            .map { $0.itemSupplementaryTemplates() }
-            .reduce([], +)
-    }
-
-    public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
-        let initial = cell.makeLayoutItem(defaultSize: defaultSize, environment: environment)
-        let supplementaryItems = supplements.map { $0.makeLayoutSupplementaryItem(defaultSize: defaultSize) }
-        let revised = NSCollectionLayoutItem(layoutSize: initial.layoutSize, supplementaryItems: supplementaryItems)
-        revised.edgeSpacing = initial.edgeSpacing
-        revised.contentInsets = initial.contentInsets
-        return revised
-    }
-
-    public func cellsForRegistration() -> [Cell<ItemIdentifier>] {
-        return cell.cellsForRegistration()
-    }
-}
-
-
-public struct Supplement<ItemIdentifier: Hashable> {
+public struct Supplement<ItemIdentifier> {
 
     let elementKind: String
     let viewRegistrar: (UICollectionView) -> Void
@@ -90,108 +36,17 @@ public struct Supplement<ItemIdentifier: Hashable> {
 }
 
 
-// MARK: - ReusableViewConfigurable
+public struct ItemSupplementaryTemplate<ItemIdentifier> {
 
-public extension Supplement {
+    let elementKind: String
+    let registerItemSupplementaryViewHandler: (UICollectionView) -> Void
+    let makeItemSupplementaryViewHandler: (UICollectionView, IndexPath, ItemIdentifier) -> UICollectionReusableView
 
-    init<V: ReusableViewConfigurable>(
-        _ viewClass: V.Type,
-        elementKind optionalElementKind: String? = nil,
-        size: NSCollectionLayoutSize? = nil,
-        containerAnchor: NSCollectionLayoutAnchor,
-        itemAnchor: NSCollectionLayoutAnchor? = nil
-    ) {
-        let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
-        let reuseIdentifier = UniqueIdentifier(elementKind).value
-
-        self.elementKind = elementKind
-        self.viewRegistrar = { collectionView in
-            collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
-        }
-        self.viewFactory = { collectionView, indexPath, ItemIdentifier in
-            collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath)
-        }
-        self.layoutItemFactory = { defaultSize in
-            let size = size ?? defaultSize
-            if let itemAnchor {
-                return NSCollectionLayoutSupplementaryItem(layoutSize: size, elementKind: elementKind, containerAnchor: containerAnchor, itemAnchor: itemAnchor)
-            } else {
-                return NSCollectionLayoutSupplementaryItem(layoutSize: size, elementKind: elementKind, containerAnchor: containerAnchor)
-            }
-        }
+    func registerItemSupplementaryView(in collectionView: UICollectionView) {
+        registerItemSupplementaryViewHandler(collectionView)
     }
-}
 
-
-// MARK: - UICollectionViewListCell
-
-@available(iOS 14, *)
-public extension Supplement {
-
-    init(
-        elementKind optionalElementKind: String? = nil,
-        size: NSCollectionLayoutSize? = nil,
-        containerAnchor: NSCollectionLayoutAnchor,
-        itemAnchor: NSCollectionLayoutAnchor? = nil,
-        configuration: @escaping (UICollectionViewListCell, ItemIdentifier) -> Void)
-    {
-        let viewClass = UICollectionViewListCell.self
-        let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
-        let reuseIdentifier = UniqueIdentifier(elementKind).value
-
-        self.elementKind = elementKind
-        self.viewRegistrar = { collectionView in
-            collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
-        }
-        self.viewFactory = { collectionView, indexPath, ItemIdentifier in
-            let cell = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! UICollectionViewListCell
-            configuration(cell, ItemIdentifier)
-            return cell
-        }
-        self.layoutItemFactory = { defaultSize in
-            let size = size ?? defaultSize
-            if let itemAnchor {
-                return NSCollectionLayoutSupplementaryItem(layoutSize: size, elementKind: elementKind, containerAnchor: containerAnchor, itemAnchor: itemAnchor)
-            } else {
-                return NSCollectionLayoutSupplementaryItem(layoutSize: size, elementKind: elementKind, containerAnchor: containerAnchor)
-            }
-        }
-    }
-}
-
-
-// MARK: - ValuePublishingCell
-
-public extension Supplement {
-
-    init(
-        elementKind optionalElementKind: String? = nil,
-        size: NSCollectionLayoutSize? = nil,
-        containerAnchor: NSCollectionLayoutAnchor,
-        itemAnchor: NSCollectionLayoutAnchor? = nil,
-        body bodyProvider: @escaping (OneWayBinding<ItemIdentifier>) -> UIView)
-    {
-        let viewClass = ValuePublishingCell<ItemIdentifier>.self
-        let elementKind = optionalElementKind ?? UniqueIdentifier("SupplementaryView").value
-        let reuseIdentifier = UniqueIdentifier(elementKind).value
-
-        self.elementKind = elementKind
-        self.viewRegistrar = { collectionView in
-            collectionView.register(viewClass, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
-        }
-        self.viewFactory = { collectionView, indexPath, itemIdentifier in
-            let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<ItemIdentifier>
-            view.initialize(bindingOptions: .default, bodyProvider: {_, publisher in bodyProvider(publisher) })
-            view.configure(using: itemIdentifier)
-            return view
-        }
-        self.layoutItemFactory = { defaultSize in
-            let size = size ?? defaultSize
-            if let itemAnchor {
-                return NSCollectionLayoutSupplementaryItem(layoutSize: size, elementKind: elementKind, containerAnchor: containerAnchor, itemAnchor: itemAnchor)
-            } else {
-                return NSCollectionLayoutSupplementaryItem(layoutSize: size, elementKind: elementKind, containerAnchor: containerAnchor)
-            }
-        }
+    func makeItemSupplementaryView(in collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: ItemIdentifier) -> UICollectionReusableView {
+        makeItemSupplementaryViewHandler(collectionView, indexPath, itemIdentifier)
     }
 }

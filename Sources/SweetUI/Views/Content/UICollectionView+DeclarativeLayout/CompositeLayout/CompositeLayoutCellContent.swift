@@ -1,20 +1,20 @@
 import UIKit
 
 
-public struct Cell<ItemIdentifier> {
+public struct CompositeLayoutCellContent<ItemIdentifier> {
 
     public typealias CellRegister = (UICollectionView) -> Void
     public typealias CellProvider = (UICollectionView, IndexPath, ItemIdentifier) -> UICollectionViewCell?
     public typealias LayoutItemHandlerProvider = (_ size: NSCollectionLayoutSize, _ environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem
 
-    private let cellRegistrar: CellRegister
-    private let cellProvider: CellProvider
-    private let layoutItemHandlerProvider: LayoutItemHandlerProvider
+    fileprivate let cellRegistrar: CellRegister
+    fileprivate let cellProvider: CellProvider
+    fileprivate let layoutItemHandlerProvider: LayoutItemHandlerProvider
 
     public init(
         cellRegistrar: @escaping (UICollectionView) -> Void,
         cellProvider: @escaping CellProvider,
-        layoutItemHandlerProvider: @escaping LayoutItemHandlerProvider = makeLayoutItemHandlerProvider()
+        layoutItemHandlerProvider: @escaping LayoutItemHandlerProvider = Self.makeLayoutItemHandlerProvider()
     ) {
         self.cellRegistrar = cellRegistrar
         self.cellProvider = cellProvider
@@ -32,14 +32,9 @@ public struct Cell<ItemIdentifier> {
     func makeLayoutItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
         layoutItemHandlerProvider(defaultSize, environment)
     }
-}
 
 
-// MARK: - LayoutItemProvider factory
-
-public extension Cell {
-
-    static func makeLayoutItemHandlerProvider(
+    public static func makeLayoutItemHandlerProvider(
         size preferredSize: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil
@@ -59,25 +54,42 @@ public extension Cell {
 }
 
 
-// MARK: - Value mapping
+// MARK: - LayoutItemProvider factory
 
-public extension Cell {
+public extension _Cell where Content == CompositeLayoutCellContent<ItemIdentifier> {
+
+    typealias LayoutItemHandlerProvider = CompositeLayoutCellContent<ItemIdentifier>.LayoutItemHandlerProvider
+
+    static func makeLayoutItemHandlerProvider(
+        size preferredSize: NSCollectionLayoutSize? = nil,
+        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
+        contentInsets: NSDirectionalEdgeInsets? = nil
+    ) -> LayoutItemHandlerProvider {
+        Content.makeLayoutItemHandlerProvider(size: preferredSize, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
+    }
+}
+
+
+// MARK: - Item mapping
+
+public extension _Cell where Content == CompositeLayoutCellContent<ItemIdentifier> {
 
     static func mapItem<Value>(
         _ transform: @escaping (ItemIdentifier) -> Value?,
-        cell: () -> Cell<Value>
+        cell: () -> _Cell<CompositeLayoutCellContent<Value>, Value>
     ) -> Self {
         let inner = cell()
-        return Cell(
-            cellRegistrar: inner.cellRegistrar,
-            cellProvider: { collectionView, indexPath, itemIdentifier in
-                guard let value = transform(itemIdentifier) else {
-                    return nil
-                }
-                return inner.cellProvider(collectionView, indexPath, value)
-            },
-            layoutItemHandlerProvider: inner.layoutItemHandlerProvider
-
+        return _Cell(
+            content: CompositeLayoutCellContent(
+                cellRegistrar: inner.content.cellRegistrar,
+                cellProvider: { collectionView, indexPath, itemIdentifier in
+                    guard let value = transform(itemIdentifier) else {
+                        return nil
+                    }
+                    return inner.content.cellProvider(collectionView, indexPath, value)
+                },
+                layoutItemHandlerProvider: inner.content.layoutItemHandlerProvider
+            )
         )
     }
 }

@@ -6,7 +6,7 @@ import UIKit
 
 public extension UILabel {
 
-    convenience init(text: String) {
+    convenience init(text: String?) {
         self.init()
         self.text = text
     }

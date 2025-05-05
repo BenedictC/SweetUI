@@ -54,11 +54,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
 
     private func section(for sectionIdentifier: SectionIdentifier) -> CompositeSection<SectionIdentifier, ItemIdentifier> {
         // Check sections with predicates for a match
-        if let section = components.sections.first(where: { $0.predicate?(sectionIdentifier) ?? false }) {
-            return section
-        }
-        // Default to first section that isn't predicated (should be only one)
-        if let section = components.sections.first(where: { $0.predicate == nil }) {
+        if let section = components.sections.first(where: { $0.predicate(sectionIdentifier) }) {
             return section
         }
         preconditionFailure("No sections to represent sectionIdentifier '\(sectionIdentifier)'.")
@@ -68,7 +64,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         let section = self.section(for: sectionIdentifier)
         let cells = section.cellTemplates(forItemIndex: indexPath.item)
         for cell in cells {
-            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+            if let cellView = cell.content.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
                 return cellView
             }
         }

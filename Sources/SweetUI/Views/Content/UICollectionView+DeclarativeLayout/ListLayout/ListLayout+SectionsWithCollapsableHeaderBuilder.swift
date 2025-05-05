@@ -41,8 +41,8 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
-        header: Cell<ItemIdentifier>,
-        cells: [Cell<ItemIdentifier>],
+        header: _Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>,
+        cells: [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
         self.content = ListSectionWithCollapsableHeader<SectionIdentifier, ItemIdentifier>(
@@ -57,8 +57,8 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 
     init(
         identifier: SectionIdentifier,
-        header: Cell<ItemIdentifier>,
-        cells: [Cell<ItemIdentifier>],
+        header: _Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>,
+        cells: [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: Footer<SectionIdentifier>? = nil
     ) {
         self.init(
@@ -76,8 +76,8 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
-        header: () -> Cell<ItemIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
+        header: () -> _Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>,
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
         self.content = ListSectionWithCollapsableHeader<SectionIdentifier, ItemIdentifier>(
@@ -92,8 +92,8 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 
     init(
         identifier: SectionIdentifier,
-        header: () -> Cell<ItemIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>],
+        header: () -> _Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>,
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
         footer: () -> Footer<SectionIdentifier>
     ) {
         self.init(
@@ -106,8 +106,8 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
-        header: () -> Cell<ItemIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
+        header: () -> _Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>,
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
     ) {
         self.content = ListSectionWithCollapsableHeader<SectionIdentifier, ItemIdentifier>(
             predicate: predicate,
@@ -121,8 +121,8 @@ public extension Section where Content == ListSectionWithCollapsableHeader<Secti
 
     init(
         identifier: SectionIdentifier,
-        header: () -> Cell<ItemIdentifier>,
-        @ArrayBuilder<Cell<ItemIdentifier>> cells: () -> [Cell<ItemIdentifier>]
+        header: () -> _Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>,
+        @ArrayBuilder<_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>> cells: () -> [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
     ) {
         self.init(
             predicate: { $0 == identifier },

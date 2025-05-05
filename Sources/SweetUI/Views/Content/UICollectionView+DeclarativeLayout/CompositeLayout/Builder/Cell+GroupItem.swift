@@ -3,24 +3,26 @@ import UIKit
 
 // MARK: - Cell + GroupItem
 
-extension Cell: GroupItem where ItemIdentifier: Hashable {
+extension _Cell: GroupItem where Content == CompositeLayoutCellContent<ItemIdentifier> {
+
+    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+        [self]
+    }
 
     public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
-        // Cells are registered separately
+        // Cells are registered by registerCellClass so don't return again
         []
     }
 
-    public func cellsForRegistration() -> [Cell<ItemIdentifier>] { [self] }
-
     public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
-        self.makeLayoutItem(defaultSize: defaultSize, environment: environment)
+        self.content.makeLayoutItem(defaultSize: defaultSize, environment: environment)
     }
 }
 
 
 // MARK: - Cell + Supplementaries
 
-public extension Cell where ItemIdentifier: Hashable {
+extension _Cell where Content == CompositeLayoutCellContent<ItemIdentifier> {
 
     func supplementaries(
         @SupplementaryComponentsBuilder<ItemIdentifier>

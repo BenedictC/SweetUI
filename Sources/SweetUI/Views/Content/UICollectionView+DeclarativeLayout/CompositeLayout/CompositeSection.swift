@@ -4,12 +4,12 @@ import UIKit
 // MARK: - CompositeSection
 
 @available(iOS 14, *) 
-public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
+public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier> {
 
     // MARK: Properties
 
-    let predicate: ((SectionIdentifier) -> Bool)?
-    let components: SectionComponents<SectionIdentifier, ItemIdentifier>
+    let predicate: ((SectionIdentifier) -> Bool)
+    let components: CompositeSectionComponents<SectionIdentifier, ItemIdentifier>
 
     let orthogonalScrollingBehavior: UICollectionLayoutSectionOrthogonalScrollingBehavior?
     let interGroupSpacing: CGFloat?
@@ -30,7 +30,7 @@ public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier: Hash
     func registerCellsAndSupplementaryViews(in collectionView: UICollectionView) {
         // Register the cells
         for cell in components.group.cellsForRegistration() {
-            cell.registerCellClass(in: collectionView)
+            cell.content.registerCellClass(in: collectionView)
         }
         // Section supplementary
         for supplementary in components.sectionSupplementariesByElementKind.values {
@@ -56,7 +56,7 @@ public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier: Hash
         components.itemSupplementaryTemplateByElementKind[elementKind]
     }
 
-    func cellTemplates(forItemIndex index: Int) -> [Cell<ItemIdentifier>] {
+    func cellTemplates(forItemIndex index: Int) -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
         components.group.cells(forItemIndex: index)
     }
 
@@ -102,23 +102,7 @@ public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier: Hash
 }
 
 
-public struct ItemSupplementaryTemplate<ItemIdentifier> {
-    
-    let elementKind: String
-    let registerItemSupplementaryViewHandler: (UICollectionView) -> Void
-    let makeItemSupplementaryViewHandler: (UICollectionView, IndexPath, ItemIdentifier) -> UICollectionReusableView
-
-    func registerItemSupplementaryView(in collectionView: UICollectionView) {
-        registerItemSupplementaryViewHandler(collectionView)
-    }
-
-    func makeItemSupplementaryView(in collectionView: UICollectionView, indexPath: IndexPath, itemIdentifier: ItemIdentifier) -> UICollectionReusableView {
-        makeItemSupplementaryViewHandler(collectionView, indexPath, itemIdentifier)
-    }
-}
-
-
-public struct SectionComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
+public struct CompositeSectionComponents<SectionIdentifier: Hashable, ItemIdentifier> {
 
     let group: AnyGroup<ItemIdentifier>
     let background: Background?
