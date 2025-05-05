@@ -41,7 +41,7 @@ extension AxisGroup {
         }
     }
 
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
         items.reduce([], { $0 + $1.cellsForRegistration() })
     }
 
@@ -78,12 +78,12 @@ extension AxisGroup {
 
 public struct AnyGroupItem<ItemIdentifier>: GroupItem {
 
-    private let allCellsHandler: () -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
+    private let allCellsHandler: () -> [CompositeLayoutCell<ItemIdentifier>]
     private let makeLayoutGroupItemHandler: (_ defaultSize: NSCollectionLayoutSize, _ environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem
     private let itemSupplementaryTemplatesHandler: () -> [ItemSupplementaryTemplate<ItemIdentifier>]
 
     init(
-        allCellsHandler: @escaping () -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>],
+        allCellsHandler: @escaping () -> [CompositeLayoutCell<ItemIdentifier>],
         makeLayoutGroupItemHandler: @escaping (_ defaultSize: NSCollectionLayoutSize, _ environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem,
         itemSupplementaryTemplatesHandler: @escaping () -> [ItemSupplementaryTemplate<ItemIdentifier>])
     {
@@ -102,7 +102,7 @@ public struct AnyGroupItem<ItemIdentifier>: GroupItem {
         itemSupplementaryTemplatesHandler()
     }
 
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
         allCellsHandler()
     }
 

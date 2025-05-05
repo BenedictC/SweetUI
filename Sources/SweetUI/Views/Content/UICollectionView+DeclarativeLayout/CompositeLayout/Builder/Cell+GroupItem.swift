@@ -3,9 +3,9 @@ import UIKit
 
 // MARK: - Cell + GroupItem
 
-extension _Cell: GroupItem where Content == CompositeLayoutCellContent<ItemIdentifier> {
+extension CompositeLayoutCell {
 
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
         [self]
     }
 
@@ -15,14 +15,14 @@ extension _Cell: GroupItem where Content == CompositeLayoutCellContent<ItemIdent
     }
 
     public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
-        self.content.makeLayoutItem(defaultSize: defaultSize, environment: environment)
+        self.makeLayoutItem(defaultSize: defaultSize, environment: environment)
     }
 }
 
 
 // MARK: - Cell + Supplementaries
 
-extension _Cell where Content == CompositeLayoutCellContent<ItemIdentifier> {
+extension CompositeLayoutCell {
 
     func supplementaries(
         @SupplementaryComponentsBuilder<ItemIdentifier>

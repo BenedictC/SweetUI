@@ -7,7 +7,7 @@ public protocol Group<ItemIdentifier> {
 
     associatedtype ItemIdentifier
 
-    func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
+    func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>]
     func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>]
     func makeLayoutGroup(environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup
 }
@@ -17,7 +17,7 @@ public protocol Group<ItemIdentifier> {
 
 public struct AnyGroup<ItemIdentifier>: Group {
 
-    public let allCellsHandler: () -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
+    public let allCellsHandler: () -> [CompositeLayoutCell<ItemIdentifier>]
     internal let itemSupplementaryTemplatesHandler: () -> [ItemSupplementaryTemplate<ItemIdentifier>]
     internal let makeLayoutGroupHandler: (NSCollectionLayoutEnvironment) -> NSCollectionLayoutGroup
 
@@ -30,11 +30,11 @@ public struct AnyGroup<ItemIdentifier>: Group {
         makeLayoutGroupHandler(environment)
     }
 
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
          allCellsHandler()
     }
 
-    func cells(forItemIndex index: Int) -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    func cells(forItemIndex index: Int) -> [CompositeLayoutCell<ItemIdentifier>] {
         let cells = cellsForRegistration()
         let cellIndex = index % cells.count
         let cell = cells[cellIndex]
@@ -90,15 +90,15 @@ private var numberOfCellsByCustomGroupUUID = [UUID: Int]()
 public struct CustomGroup<ItemIdentifier>: Group, GroupItem {
 
     let size: NSCollectionLayoutSize?
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
         let count = numberOfCellsByCustomGroupUUID[uuid] ?? 1
         return Array(repeating: cell, count: count)
     }
     let itemProvider: NSCollectionLayoutGroupCustomItemProvider
-    private let cell: _Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>
+    private let cell: CompositeLayoutCell<ItemIdentifier>
     private let uuid: UUID
 
-    public init(size: NSCollectionLayoutSize? = nil, cell: _Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>, itemProvider: @escaping NSCollectionLayoutGroupCustomItemProvider) {
+    public init(size: NSCollectionLayoutSize? = nil, cell: CompositeLayoutCell<ItemIdentifier>, itemProvider: @escaping NSCollectionLayoutGroupCustomItemProvider) {
         self.size = size
         self.cell = cell
         self.itemProvider = itemProvider
@@ -146,7 +146,7 @@ public struct SupplementedGroup<ItemIdentifier>: Group {
         self.supplements = supplements
     }
 
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
         fatalError()
     }
 

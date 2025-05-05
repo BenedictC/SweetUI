@@ -1,7 +1,7 @@
 import UIKit
 
 
-public struct CompositeLayoutCellContent<ItemIdentifier> {
+public struct CompositeLayoutCell<ItemIdentifier> {
 
     public typealias CellRegister = (UICollectionView) -> Void
     public typealias CellProvider = (UICollectionView, IndexPath, ItemIdentifier) -> UICollectionViewCell?
@@ -54,42 +54,24 @@ public struct CompositeLayoutCellContent<ItemIdentifier> {
 }
 
 
-// MARK: - LayoutItemProvider factory
-
-public extension _Cell where Content == CompositeLayoutCellContent<ItemIdentifier> {
-
-    typealias LayoutItemHandlerProvider = CompositeLayoutCellContent<ItemIdentifier>.LayoutItemHandlerProvider
-
-    static func makeLayoutItemHandlerProvider(
-        size preferredSize: NSCollectionLayoutSize? = nil,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil
-    ) -> LayoutItemHandlerProvider {
-        Content.makeLayoutItemHandlerProvider(size: preferredSize, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
-    }
-}
-
-
 // MARK: - Item mapping
 
-public extension _Cell where Content == CompositeLayoutCellContent<ItemIdentifier> {
+public extension Cell {
 
     static func mapItem<Value>(
         _ transform: @escaping (ItemIdentifier) -> Value?,
-        cell: () -> _Cell<CompositeLayoutCellContent<Value>, Value>
-    ) -> Self {
+        cell: () -> CompositeLayoutCell<Value>
+    ) -> CompositeLayoutCell<ItemIdentifier> {
         let inner = cell()
-        return _Cell(
-            content: CompositeLayoutCellContent(
-                cellRegistrar: inner.content.cellRegistrar,
-                cellProvider: { collectionView, indexPath, itemIdentifier in
-                    guard let value = transform(itemIdentifier) else {
-                        return nil
-                    }
-                    return inner.content.cellProvider(collectionView, indexPath, value)
-                },
-                layoutItemHandlerProvider: inner.content.layoutItemHandlerProvider
-            )
+        return CompositeLayoutCell(
+            cellRegistrar: inner.cellRegistrar,
+            cellProvider: { collectionView, indexPath, itemIdentifier in
+                guard let value = transform(itemIdentifier) else {
+                    return nil
+                }
+                return inner.cellProvider(collectionView, indexPath, value)
+            },
+            layoutItemHandlerProvider: inner.layoutItemHandlerProvider
         )
     }
 }

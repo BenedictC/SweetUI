@@ -64,7 +64,7 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         let section = self.section(for: sectionIdentifier)
         let cells = section.cellTemplates(forItemIndex: indexPath.item)
         for cell in cells {
-            if let cellView = cell.content.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
                 return cellView
             }
         }

@@ -5,7 +5,7 @@ public protocol GroupItem<ItemIdentifier> {
 
     associatedtype ItemIdentifier
 
-    func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
+    func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>]
     func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>]
     func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem
 }
@@ -13,7 +13,7 @@ public protocol GroupItem<ItemIdentifier> {
 
 public struct SupplementedGroupItem<ItemIdentifier>: GroupItem {
 
-    let cell: _Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>
+    let cell: CompositeLayoutCell<ItemIdentifier>
     let supplements: [Supplement<ItemIdentifier>]
 
     public func itemSupplementaryTemplates() -> [ItemSupplementaryTemplate<ItemIdentifier>] {
@@ -23,7 +23,7 @@ public struct SupplementedGroupItem<ItemIdentifier>: GroupItem {
     }
 
     public func makeLayoutGroupItem(defaultSize: NSCollectionLayoutSize, environment: NSCollectionLayoutEnvironment) -> NSCollectionLayoutItem {
-        let initial = cell.content.makeLayoutItem(defaultSize: defaultSize, environment: environment)
+        let initial = cell.makeLayoutItem(defaultSize: defaultSize, environment: environment)
         let supplementaryItems = supplements.map { $0.makeLayoutSupplementaryItem(defaultSize: defaultSize) }
         let revised = NSCollectionLayoutItem(layoutSize: initial.layoutSize, supplementaryItems: supplementaryItems)
         revised.edgeSpacing = initial.edgeSpacing
@@ -31,7 +31,7 @@ public struct SupplementedGroupItem<ItemIdentifier>: GroupItem {
         return revised
     }
 
-    public func cellsForRegistration() -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    public func cellsForRegistration() -> [CompositeLayoutCell<ItemIdentifier>] {
         return cell.cellsForRegistration()
     }
 }

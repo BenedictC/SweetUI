@@ -30,7 +30,7 @@ public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier> {
     func registerCellsAndSupplementaryViews(in collectionView: UICollectionView) {
         // Register the cells
         for cell in components.group.cellsForRegistration() {
-            cell.content.registerCellClass(in: collectionView)
+            cell.registerCellClass(in: collectionView)
         }
         // Section supplementary
         for supplementary in components.sectionSupplementariesByElementKind.values {
@@ -56,7 +56,7 @@ public struct CompositeSection<SectionIdentifier: Hashable, ItemIdentifier> {
         components.itemSupplementaryTemplateByElementKind[elementKind]
     }
 
-    func cellTemplates(forItemIndex index: Int) -> [_Cell<CompositeLayoutCellContent<ItemIdentifier>, ItemIdentifier>] {
+    func cellTemplates(forItemIndex index: Int) -> [CompositeLayoutCell<ItemIdentifier>] {
         components.group.cells(forItemIndex: index)
     }
 
