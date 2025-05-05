@@ -6,9 +6,9 @@ public extension UICollectionViewListCell {
 
     static func provider<Value>(
         cellConfiguration: @escaping (UICollectionViewListCell, Value) -> Void
-    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
+    ) -> ListLayoutCell<Value> {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
-        return _Cell(
+        return ListLayoutCell(
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -27,9 +27,9 @@ public extension UICollectionViewListCell {
 
     static func provider<Value>(
         contentConfiguration: @escaping (inout UIListContentConfiguration, inout UIBackgroundConfiguration?, Value) -> Void
-    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
+    ) -> ListLayoutCell<Value> {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
-        return _Cell(
+        return ListLayoutCell(
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
             },

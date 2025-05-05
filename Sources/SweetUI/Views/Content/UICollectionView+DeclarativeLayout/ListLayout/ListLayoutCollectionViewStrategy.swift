@@ -84,11 +84,11 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
         let shouldUseHeaderCell = indexPath.item == 0
         if shouldUseHeaderCell,
            case .collapsable(let headerCell) = section.components.header {
-            return headerCell.content.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath)!
+            return headerCell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath)!
         }
         let cells = section.components.cells
         for cell in cells {
-            if let cellView = cell.content.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
                 return cellView
             }
         }
@@ -175,13 +175,13 @@ public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashab
 
     func registerViews(in collectionView: UICollectionView) {
         for cell in components.cells {
-            cell.content.registerCellClass(in: collectionView)
+            cell.registerCellClass(in: collectionView)
         }
         switch components.header {
         case .standard(let header):
             header.registerSupplementaryView(in: collectionView)
         case .collapsable(let cell):
-            cell.content.registerCellClass(in: collectionView)
+            cell.registerCellClass(in: collectionView)
         case .none:
             break
         }
@@ -209,9 +209,9 @@ public struct ListSectionComponents<SectionIdentifier: Hashable, ItemIdentifier:
     public enum HeaderKind {
         case none
         case standard(Header<SectionIdentifier>)
-        case collapsable(_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>)
+        case collapsable(ListLayoutCell<ItemIdentifier>)
     }
-    let cells: [_Cell<ListLayoutCellContent<ItemIdentifier>, ItemIdentifier>]
+    let cells: [ListLayoutCell<ItemIdentifier>]
     let header: HeaderKind
     let footer: Footer<SectionIdentifier>?
 }

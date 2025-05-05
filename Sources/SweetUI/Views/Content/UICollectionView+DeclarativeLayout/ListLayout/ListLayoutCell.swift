@@ -1,7 +1,7 @@
 import UIKit
 
 
-public struct ListLayoutCellContent<ItemIdentifier> {
+public struct ListLayoutCell<ItemIdentifier> {
 
     public typealias CellRegister = (UICollectionView) -> Void
     public typealias CellProvider = (UICollectionView, IndexPath, ItemIdentifier) -> (UICollectionViewCell?)
@@ -27,38 +27,22 @@ public struct ListLayoutCellContent<ItemIdentifier> {
 }
 
 
-// MARK: - Init
-
-public extension _Cell where Content == ListLayoutCellContent<ItemIdentifier> {
-
-    init(
-        cellRegistrar: @escaping ListLayoutCellContent<ItemIdentifier>.CellRegister,
-        cellProvider: @escaping ListLayoutCellContent<ItemIdentifier>.CellProvider
-    ) {
-        self.content = ListLayoutCellContent(
-            cellRegistrar: cellRegistrar,
-            cellProvider: cellProvider
-        )
-    }
-}
-
-
 // MARK: - Item mapping
 
-public extension _Cell where Content == ListLayoutCellContent<ItemIdentifier> {
-
+public extension Cell {
+    
     static func mapItem<Value>(
         _ transform: @escaping (ItemIdentifier) -> Value?,
-        cell: () -> _Cell<ListLayoutCellContent<Value>, Value>
-    ) -> Self {
+        cell: () -> ListLayoutCell<Value>
+    ) -> ListLayoutCell<ItemIdentifier> {
         let inner = cell()
-        return _Cell(
-            cellRegistrar: inner.content.cellRegistrar,
+        return ListLayoutCell(
+            cellRegistrar: inner.cellRegistrar,
             cellProvider: { collectionView, indexPath, itemIdentifier in
                 guard let value = transform(itemIdentifier) else {
                     return nil
                 }
-                return inner.content.cellProvider(collectionView, indexPath, value)
+                return inner.cellProvider(collectionView, indexPath, value)
             }
         )
     }

@@ -6,12 +6,9 @@ import UIKit
 public extension ConfigurableCollectionViewCell {
 
     static func provider(
-        size: NSCollectionLayoutSize? = nil,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil
-    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
+    ) -> ListLayoutCell<Value> {
         let reuseIdentifier = UniqueIdentifier("\(Self.self)").value
-        return _Cell(
+        return ListLayoutCell(
             cellRegistrar: { collectionView in
                 collectionView.register(Self.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -35,15 +32,12 @@ public extension UICollectionViewCell {
     }
 
     static func provider<Value, Content: UIView>(
-        size: NSCollectionLayoutSize? = nil,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil,
         dropsDuplicateValues: Bool = true,
         content contentBuilder: @escaping (_ cell: UICollectionViewCell, _ existing: Content?, _ value: Value) -> Content
-    ) -> _Cell<ListLayoutCellContent<Value>, Value> {
+    ) -> ListLayoutCell<Value> {
         typealias CellType = ContentCell<Content>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
-        return _Cell(
+        return ListLayoutCell(
             cellRegistrar: { collectionView in
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -78,15 +72,12 @@ public extension UICollectionViewCell {
 public extension UICollectionViewCell {
 
     static func provider<Value>(
-        size: NSCollectionLayoutSize? = nil,
-        edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
-        contentInsets: NSDirectionalEdgeInsets? = nil,
         bindingOptions: BindingOptions = .default,
         body bodyProvider: @escaping (UICollectionViewCell, OneWayBinding<Value>) -> UIView
-    ) -> _Cell<ListLayoutCellContent<Value>,Value> {
+    ) -> ListLayoutCell<Value> {
         typealias CellType = ValuePublishingCell<Value>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
-        return _Cell(
+        return ListLayoutCell(
             cellRegistrar: { collectionView in
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
