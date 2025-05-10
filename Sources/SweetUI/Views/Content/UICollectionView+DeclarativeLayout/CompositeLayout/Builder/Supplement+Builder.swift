@@ -93,7 +93,7 @@ public extension Supplement {
         self.viewFactory = { collectionView, indexPath, itemIdentifier in
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<ItemIdentifier>
             view.initialize(bindingOptions: .default, bodyProvider: {_, publisher in bodyProvider(publisher) })
-            view.configure(using: itemIdentifier)
+            view.configure(withValue: itemIdentifier)
             return view
         }
         self.layoutItemFactory = { defaultSize in

@@ -22,7 +22,7 @@ internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableV
         self.bodyProvider = bodyProvider
     }
 
-    func configure(using value: Value) {
+    func configure(withValue value: Value) {
         CancellableStorage.push(cancellableStorage)
         defer { CancellableStorage.pop(expected: cancellableStorage) }
 

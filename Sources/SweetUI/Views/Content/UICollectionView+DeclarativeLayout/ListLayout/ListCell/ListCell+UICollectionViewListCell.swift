@@ -2,19 +2,19 @@ import UIKit
 
 
 @available(iOS 14, *)
-public extension UICollectionViewListCell {
+public extension ListCell {
 
-    static func provider<Value>(
-        cellConfiguration: @escaping (UICollectionViewListCell, Value) -> Void
-    ) -> ListLayoutCell<Value> {
+    static func withListCell(
+        configuration: @escaping (UICollectionViewListCell, ItemIdentifier) -> Void
+    ) -> ListCell<ItemIdentifier> {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
-        return ListLayoutCell(
+        return ListCell(
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! UICollectionViewListCell
-                cellConfiguration(cell, value)
+                configuration(cell, value)
                 return cell
             }
         )
@@ -23,13 +23,13 @@ public extension UICollectionViewListCell {
 
 
 @available(iOS 16, *)
-public extension UICollectionViewListCell {
+public extension ListCell {
 
-    static func provider<Value>(
-        contentConfiguration: @escaping (inout UIListContentConfiguration, inout UIBackgroundConfiguration?, Value) -> Void
-    ) -> ListLayoutCell<Value> {
+    static func withContentConfiguration(
+        _ contentConfiguration: @escaping (inout UIListContentConfiguration, inout UIBackgroundConfiguration?, ItemIdentifier) -> Void
+    ) -> ListCell<ItemIdentifier> {
         let reuseIdentifier = UniqueIdentifier("\(UICollectionViewListCell.self)").value
-        return ListLayoutCell(
+        return ListCell(
             cellRegistrar: { collectionView in
                 collectionView.register(UICollectionViewListCell.self, forCellWithReuseIdentifier: reuseIdentifier)
             },

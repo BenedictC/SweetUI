@@ -51,9 +51,9 @@ public struct CollectionViewLayoutBehaviors<SectionIdentifier: Hashable, ItemIde
 
 public protocol ReusableViewConfigurable: UICollectionReusableView {
 
-    associatedtype Value = Void
+    associatedtype Value
 
-    func configure(using value: Value)
+    func configure(withValue value: Value)
 }
 
 public extension ReusableViewConfigurable where Value == Void {

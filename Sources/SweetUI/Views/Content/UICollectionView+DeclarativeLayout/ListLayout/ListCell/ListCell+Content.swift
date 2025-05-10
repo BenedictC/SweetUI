@@ -1,43 +1,22 @@
 import UIKit
 
 
-// MARK: - ConfigurableCollectionViewCell
-
-public extension ConfigurableCollectionViewCell {
-
-    static func provider(
-    ) -> ListLayoutCell<Value> {
-        let reuseIdentifier = UniqueIdentifier("\(Self.self)").value
-        return ListLayoutCell(
-            cellRegistrar: { collectionView in
-                collectionView.register(Self.self, forCellWithReuseIdentifier: reuseIdentifier)
-            },
-            cellProvider: { collectionView, indexPath, value in
-                let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! Self
-                cell.configure(with: value)
-                return cell
-            }
-        )
-    }
-}
-
-
 // MARK: - Replace contents of cell.content
 
-public extension UICollectionViewCell {
+public extension ListCell {
 
     private class ContentCell<Content: UIView>: UICollectionViewCell {
         var content: Content?
         let cancellableStorage = CancellableStorage()
     }
 
-    static func provider<Value, Content: UIView>(
+    static func withContent<Content: UIView>(
         dropsDuplicateValues: Bool = true,
-        content contentBuilder: @escaping (_ cell: UICollectionViewCell, _ existing: Content?, _ value: Value) -> Content
-    ) -> ListLayoutCell<Value> {
+        contentBuilder: @escaping (_ cell: UICollectionViewCell, _ existing: Content?, _ value: ItemIdentifier) -> Content
+    ) -> ListCell {
         typealias CellType = ContentCell<Content>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
-        return ListLayoutCell(
+        return ListCell(
             cellRegistrar: { collectionView in
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
@@ -69,22 +48,22 @@ public extension UICollectionViewCell {
 
 // MARK: - Published Value
 
-public extension UICollectionViewCell {
+public extension ListCell {
 
-    static func provider<Value>(
+    static func withContent(
         bindingOptions: BindingOptions = .default,
-        body bodyProvider: @escaping (UICollectionViewCell, OneWayBinding<Value>) -> UIView
-    ) -> ListLayoutCell<Value> {
-        typealias CellType = ValuePublishingCell<Value>
+        contentBuilder: @escaping (UICollectionViewCell, OneWayBinding<ItemIdentifier>) -> UIView
+    ) -> ListCell<ItemIdentifier> {
+        typealias CellType = ValuePublishingCell<ItemIdentifier>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
-        return ListLayoutCell(
+        return ListCell(
             cellRegistrar: { collectionView in
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-                cell.initialize(bindingOptions: bindingOptions, bodyProvider: bodyProvider)
-                cell.configure(using: value)
+                cell.initialize(bindingOptions: bindingOptions, bodyProvider: contentBuilder)
+                cell.configure(withValue: value)
                 return cell
             }
         )

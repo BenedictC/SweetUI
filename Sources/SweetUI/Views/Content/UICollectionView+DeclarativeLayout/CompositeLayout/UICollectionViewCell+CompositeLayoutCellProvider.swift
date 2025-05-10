@@ -17,7 +17,7 @@ public extension ConfigurableCollectionViewCell {
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! Self
-                cell.configure(with: value)
+                cell.configure(withValue: value)
                 return cell
             },
             layoutItemHandlerProvider: CompositeLayoutCell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)
@@ -95,7 +95,7 @@ public extension UICollectionViewCell {
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
                 cell.initialize(bindingOptions: bindingOptions, bodyProvider: bodyProvider)
-                cell.configure(using: value)
+                cell.configure(withValue: value)
                 return cell
             },
             layoutItemHandlerProvider: CompositeLayoutCell<Any>.makeLayoutItemHandlerProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)

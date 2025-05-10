@@ -5,10 +5,7 @@ import UIKit
 // MARK: - ListLayout
 
 @available(iOS 14, *)
-public typealias ListLayout = ListLayoutCollectionViewStrategy
-
-@available(iOS 14, *)
-public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: CollectionViewLayoutStrategy {
+public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: CollectionViewLayoutStrategy {
 
     let appearance: UICollectionLayoutListConfiguration.Appearance
     let components: ListLayoutComponents<SectionIdentifier, ItemIdentifier>
@@ -39,7 +36,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
 
     public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionViewLayout {
         var listConfiguration = UICollectionLayoutListConfiguration(appearance: appearance)
-        let firstHeader = components.sections[0].components.header
+        let firstHeader = components.sections[0].header
         switch firstHeader {
         case .collapsable:
             listConfiguration.headerMode = .firstItemInSection
@@ -48,7 +45,7 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
         case .none:
             break
         }
-        let hasFooter = components.sections.contains { $0.components.footer != nil }
+        let hasFooter = components.sections.contains { $0.footer != nil }
         if hasFooter {
             listConfiguration.footerMode = .supplementary
         }
@@ -62,9 +59,10 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
             let footerItem = footer.makeLayoutBoundarySupplementaryItem()
             layoutConfiguration.boundarySupplementaryItems += [footerItem]
         }
-        var builder = listConfiguration as any LayoutConfigurationBuilder
-        components.configuration?.builder(&builder)
-        listConfiguration = builder as! UICollectionLayoutListConfiguration
+        var configurationParameters: LayoutConfiguration.Parameters = listConfiguration
+        components.configuration?.builder(&configurationParameters)
+        // This is weird. If the builder changed the object entirely then the changes would be ignored
+        listConfiguration = (configurationParameters as? UICollectionLayoutListConfiguration) ?? listConfiguration
         let layout = UICollectionViewCompositionalLayout.list(using: listConfiguration)
         layout.configuration = layoutConfiguration
 
@@ -83,10 +81,10 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
         let section = self.section(for: sectionIdentifier)
         let shouldUseHeaderCell = indexPath.item == 0
         if shouldUseHeaderCell,
-           case .collapsable(let headerCell) = section.components.header {
+           case .collapsable(let headerCell) = section.header {
             return headerCell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath)!
         }
-        let cells = section.components.cells
+        let cells = section.cells
         for cell in cells {
             if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
                 return cellView
@@ -117,6 +115,9 @@ public struct ListLayoutCollectionViewStrategy<SectionIdentifier: Hashable, Item
     }
 }
 
+
+// MARK: - ListLayoutComponents
+
 @available(iOS 14, *)
 public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
 
@@ -130,54 +131,65 @@ public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemIdentifier: 
 // MARK: - LayoutConfiguration
 
 @available(iOS 14, *)
-public protocol LayoutConfigurationBuilder {
-    var showsSeparators: Bool { get set }
-    @available(iOS 14.5, *)
-    var separatorConfiguration: UIListSeparatorConfiguration { get set }
-    @available(iOS 14.5, *)
-    var itemSeparatorHandler: UICollectionLayoutListConfiguration.ItemSeparatorHandler?  { get set }
-    var backgroundColor: UIColor? { get set }
-    var leadingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
-    var trailingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
-    @available(iOS 15, *)
-    var headerTopPadding: CGFloat? { get set }
-}
-
-@available(iOS 14, *)
-extension UICollectionLayoutListConfiguration: LayoutConfigurationBuilder { }
-
-@available(iOS 14, *)
 public struct LayoutConfiguration {
 
-    let builder: (inout LayoutConfigurationBuilder) -> Void
+    // Only UICollectionLayoutListConfiguration needs to conform.
+    // This protocol is used to restrict which properties can be modified so that the layout can't be broken.
+    public protocol Parameters {
+        var showsSeparators: Bool { get set }
+        @available(iOS 14.5, *)
+        var separatorConfiguration: UIListSeparatorConfiguration { get set }
+        @available(iOS 14.5, *)
+        var itemSeparatorHandler: UICollectionLayoutListConfiguration.ItemSeparatorHandler?  { get set }
+        var backgroundColor: UIColor? { get set }
+        var leadingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
+        var trailingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
+        @available(iOS 15, *)
+        var headerTopPadding: CGFloat? { get set }
+    }
 
-    @available(iOS 14, *)
-    public init(builder: @escaping (inout LayoutConfigurationBuilder) -> Void) {
+
+    let builder: (inout Parameters) -> Void
+
+
+    public init(builder: @escaping (inout Parameters) -> Void) {
         self.builder = builder
     }
 }
 
 
-// MARK: - ListSection
+@available(iOS 14, *)
+extension UICollectionLayoutListConfiguration: LayoutConfiguration.Parameters { }
 
-public protocol ListSection {
-    associatedtype SectionIdentifier: Hashable
-    associatedtype ItemIdentifier: Hashable
 
-    var predicate: ((SectionIdentifier) -> Bool) { get }
-    var components: ListSectionComponents<SectionIdentifier, ItemIdentifier> { get }
-}
+// MARK: - AnyListSection
 
-public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
+public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
+
+    // MARK: Types
+
+    public enum HeaderKind {
+        case none
+        case standard(Header<SectionIdentifier>)
+        case collapsable(ListCell<ItemIdentifier>)
+    }
+
+
+    // MARK: Types
 
     public let predicate: ((SectionIdentifier) -> Bool)
-    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
+    let header: HeaderKind
+    let cells: [ListCell<ItemIdentifier>]
+    let footer: Footer<SectionIdentifier>?
+
+
+    // MARK: Internal
 
     func registerViews(in collectionView: UICollectionView) {
-        for cell in components.cells {
+        for cell in cells {
             cell.registerCellClass(in: collectionView)
         }
-        switch components.header {
+        switch header {
         case .standard(let header):
             header.registerSupplementaryView(in: collectionView)
         case .collapsable(let cell):
@@ -185,19 +197,19 @@ public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashab
         case .none:
             break
         }
-        components.footer?.registerSupplementaryView(in: collectionView)
+        footer?.registerSupplementaryView(in: collectionView)
     }
 
     func makeSupplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView? {
         switch elementKind {
         case UICollectionView.elementKindSectionHeader:
-            guard case .standard(let header) = components.header else {
+            guard case .standard(let header) = header else {
                 return nil
             }
             return header.makeSupplementaryView(for: collectionView, indexPath: indexPath, sectionIdentifier: sectionIdentifier)
             
         case UICollectionView.elementKindSectionFooter:
-            return components.footer?.makeSupplementaryView(for: collectionView, indexPath: indexPath, sectionIdentifier: sectionIdentifier)
+            return footer?.makeSupplementaryView(for: collectionView, indexPath: indexPath, sectionIdentifier: sectionIdentifier)
             
         default:
             return nil
@@ -205,46 +217,31 @@ public struct AnyListSection<SectionIdentifier: Hashable, ItemIdentifier: Hashab
     }
 }
 
-public struct ListSectionComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
-    public enum HeaderKind {
-        case none
-        case standard(Header<SectionIdentifier>)
-        case collapsable(ListLayoutCell<ItemIdentifier>)
+
+// MARK: - ListCell
+
+public struct ListCell<ItemIdentifier> {
+
+    public typealias CellRegister = (UICollectionView) -> Void
+    public typealias CellProvider = (UICollectionView, IndexPath, ItemIdentifier) -> (UICollectionViewCell?)
+
+    let cellRegistrar: CellRegister
+    let cellProvider: CellProvider
+
+
+    public init(
+        cellRegistrar: @escaping (UICollectionView) -> Void,
+        cellProvider: @escaping CellProvider
+    ) {
+        self.cellRegistrar = cellRegistrar
+        self.cellProvider = cellProvider
     }
-    let cells: [ListLayoutCell<ItemIdentifier>]
-    let header: HeaderKind
-    let footer: Footer<SectionIdentifier>?
-}
 
+    func registerCellClass(in collectionView: UICollectionView) {
+        cellRegistrar(collectionView)
+    }
 
-// MARK: - ListSectionWithoutHeader
-
-public struct ListSectionWithoutHeader<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
-
-    // MARK: Properties
-
-    public let predicate: ((SectionIdentifier) -> Bool)
-    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
-}
-
-
-// MARK: - ListSectionWithStandardHeader
-
-public struct ListSectionWithStandardHeader<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
-
-    // MARK: Properties
-
-    public let predicate: ((SectionIdentifier) -> Bool)
-    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
-}
-
-
-// MARK: - ListSectionWithCollapsableHeader
-
-public struct ListSectionWithCollapsableHeader<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: ListSection {
-
-    // MARK: Properties
-
-    public let predicate: ((SectionIdentifier) -> Bool)
-    public let components: ListSectionComponents<SectionIdentifier, ItemIdentifier>
+    func makeCell(with value: ItemIdentifier, for collectionView: UICollectionView, at indexPath: IndexPath) -> UICollectionViewCell? {
+        cellProvider(collectionView, indexPath, value)
+    }
 }

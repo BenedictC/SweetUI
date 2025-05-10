@@ -4,18 +4,7 @@ import UIKit
 
 // MARK: - ConfigurableCollectionViewCell
 
-public protocol ConfigurableCollectionViewCell: UICollectionViewCell { // UICollectionReusableView ???
-
-    associatedtype Value = Void
-
-    func configure(with value: Value)
-}
-
-public extension ConfigurableCollectionViewCell {
-
-    func configure(with value: Value) {
-        // Do nothing
-    }
+public protocol ConfigurableCollectionViewCell: UICollectionViewCell, ReusableViewConfigurable {
 }
 
 

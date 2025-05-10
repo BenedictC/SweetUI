@@ -3,7 +3,6 @@ import Foundation
 
 // MARK: - CancellableStorage
 
-@MainActor
 public final class CancellableStorage {
 
     // MARK: Properties

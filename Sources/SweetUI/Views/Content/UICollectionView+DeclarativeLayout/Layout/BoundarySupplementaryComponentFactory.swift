@@ -38,7 +38,7 @@ public extension BoundarySupplementaryComponentFactory {
         }
         let viewFactory = { (collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView in
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! View
-            view.configure(using: sectionIdentifier)
+            view.configure(withValue: sectionIdentifier)
             return view
         }
         self.init(
@@ -58,7 +58,7 @@ public extension BoundarySupplementaryComponentFactory {
 
 final class EmptyBoundarySupplementaryViewBody<Value>: UICollectionReusableView, ReusableViewConfigurable {
     // Do nothing
-    func configure(using value: Value) { }
+    func configure(withValue value: Value) { }
 }
 
 public extension BoundarySupplementaryComponentFactory {
@@ -130,7 +130,7 @@ public extension BoundarySupplementaryComponentFactory {
         let viewFactory = { (collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView in
             let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! ValuePublishingCell<SectionIdentifier>
             view.initialize(bindingOptions: bindingOptions, bodyProvider: { _, publisher in bodyProvider(publisher) })
-            view.configure(using: sectionIdentifier)
+            view.configure(withValue: sectionIdentifier)
             return view
         }
         self.init(
