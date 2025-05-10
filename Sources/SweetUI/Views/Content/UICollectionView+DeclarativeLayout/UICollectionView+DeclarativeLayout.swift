@@ -21,12 +21,12 @@ public extension UICollectionView {
         // Configure dataSource (the dataSource is stored by the snapshotCoordinator)
         let dataSource = snapshotCoordinator.register(
             collectionView: self,
-            cellProvider: { collectionView, indexPath, ItemIdentifier in
+            cellProvider: { collectionView, indexPath, itemIdentifier in
                 let dataSource = collectionView.dataSource as! UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>
                 guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
                     preconditionFailure("Invalid section index")
                 }
-                let cell = strategy.cell(for: collectionView, ItemIdentifier: ItemIdentifier, in: sectionIdentifier, at: indexPath)
+                let cell = strategy.cell(for: collectionView, itemIdentifier: itemIdentifier, in: sectionIdentifier, at: indexPath)
                 return cell
             }
         )

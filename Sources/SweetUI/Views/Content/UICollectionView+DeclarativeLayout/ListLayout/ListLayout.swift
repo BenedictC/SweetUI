@@ -77,16 +77,16 @@ public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>:
         preconditionFailure("No sections to represent sectionIdentifier '\(sectionIdentifier)'.")
     }
 
-    public func cell(for collectionView: UICollectionView, ItemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
+    public func cell(for collectionView: UICollectionView, itemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
         let section = self.section(for: sectionIdentifier)
         let shouldUseHeaderCell = indexPath.item == 0
         if shouldUseHeaderCell,
            case .collapsable(let headerCell) = section.header {
-            return headerCell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath)!
+            return headerCell.makeCell(with: itemIdentifier, for: collectionView, at: indexPath)!
         }
         let cells = section.cells
         for cell in cells {
-            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+            if let cellView = cell.makeCell(with: itemIdentifier, for: collectionView, at: indexPath) {
                 return cellView
             }
         }
