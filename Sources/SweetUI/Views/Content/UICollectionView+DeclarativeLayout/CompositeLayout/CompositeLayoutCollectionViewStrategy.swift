@@ -60,11 +60,11 @@ public struct CompositeLayoutCollectionViewStrategy<SectionIdentifier: Hashable,
         preconditionFailure("No sections to represent sectionIdentifier '\(sectionIdentifier)'.")
     }
 
-    public func cell(for collectionView: UICollectionView, ItemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
+    public func cell(for collectionView: UICollectionView, itemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell {
         let section = self.section(for: sectionIdentifier)
         let cells = section.cellTemplates(forItemIndex: indexPath.item)
         for cell in cells {
-            if let cellView = cell.makeCell(with: ItemIdentifier, for: collectionView, at: indexPath) {
+            if let cellView = cell.makeCell(with: itemIdentifier, for: collectionView, at: indexPath) {
                 return cellView
             }
         }
