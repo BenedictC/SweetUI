@@ -5,11 +5,6 @@ import UIKit
 
 public extension ListCell {
 
-    private class ContentCell<Content: UIView>: UICollectionViewCell {
-        var content: Content?
-        let cancellableStorage = CancellableStorage()
-    }
-
     static func withContent<Content: UIView>(
         dropsDuplicateValues: Bool = true,
         contentBuilder: @escaping (_ cell: UICollectionViewCell, _ existing: Content?, _ value: ItemIdentifier) -> Content
@@ -22,22 +17,8 @@ public extension ListCell {
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-                let stale = cell.content
-                let fresh = cell.cancellableStorage.storeCancellables {
-                    contentBuilder(cell, stale, value)
-                }
-                if stale != fresh {
-                    stale?.removeFromSuperview()
-                    cell.content = fresh
-                    let container = cell.contentView
-                    container.addSubview(fresh)
-                    fresh.translatesAutoresizingMaskIntoConstraints = false
-                    NSLayoutConstraint.activate([
-                        fresh.topAnchor.constraint(equalTo: container.topAnchor),
-                        fresh.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                        fresh.bottomAnchor.constraint(equalTo: container.bottomAnchor).priority(.almostRequired),
-                        fresh.trailingAnchor.constraint(equalTo: container.trailingAnchor).priority(.almostRequired),
-                    ])
+                cell.replaceContent { cell, content in
+                    contentBuilder(cell, content, value)
                 }
                 return cell
             }

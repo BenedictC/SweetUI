@@ -44,8 +44,8 @@ public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
-        header: Header<SectionIdentifier>,
-        footer: Footer<SectionIdentifier>? = nil,
+        header: SectionHeader<SectionIdentifier>,
+        footer: SectionFooter<SectionIdentifier>? = nil,
         cells: [ListCell<ItemIdentifier>]
     ) {
         self = Self(
@@ -58,8 +58,8 @@ public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
         identifier: SectionIdentifier,
-        header: Header<SectionIdentifier>,
-        footer: Footer<SectionIdentifier>? = nil,
+        header: SectionHeader<SectionIdentifier>,
+        footer: SectionFooter<SectionIdentifier>? = nil,
         cells: [ListCell<ItemIdentifier>]
     ) {
         self = Self(
@@ -77,8 +77,8 @@ public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
-        header: Header<SectionIdentifier>,
-        footer: Footer<SectionIdentifier>,
+        header: SectionHeader<SectionIdentifier>,
+        footer: SectionFooter<SectionIdentifier>,
         @ArrayBuilder<ListCell<ItemIdentifier>>
         cells: () -> [ListCell<ItemIdentifier>]
     ) {
@@ -92,8 +92,8 @@ public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
         identifier: SectionIdentifier,
-        header: Header<SectionIdentifier>,
-        footer: Footer<SectionIdentifier>,
+        header: SectionHeader<SectionIdentifier>,
+        footer: SectionFooter<SectionIdentifier>,
         @ArrayBuilder<ListCell<ItemIdentifier>>
         cells: () -> [ListCell<ItemIdentifier>]
     ) {
@@ -107,7 +107,7 @@ public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
         predicate: @escaping ((SectionIdentifier) -> Bool) = { _ in true },
-        header: Header<SectionIdentifier>,
+        header: SectionHeader<SectionIdentifier>,
         @ArrayBuilder<ListCell<ItemIdentifier>>
         cells: () -> [ListCell<ItemIdentifier>]
     ) {
@@ -121,7 +121,7 @@ public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
         identifier: SectionIdentifier,
-        header: Header<SectionIdentifier>,
+        header: SectionHeader<SectionIdentifier>,
         @ArrayBuilder<ListCell<ItemIdentifier>>
         cells: () -> [ListCell<ItemIdentifier>]
     ) {

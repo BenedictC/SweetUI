@@ -16,8 +16,8 @@ public protocol CollectionViewLayoutStrategy {
 
     func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout)
     func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionViewLayout
-    func cell(for collectionView: UICollectionView, itemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell
-    func supplementaryView(for collectionView: UICollectionView, elementKind: String, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionReusableView
+    func makeCell(for collectionView: UICollectionView, itemIdentifier: ItemIdentifier, in sectionIdentifier: SectionIdentifier, at indexPath: IndexPath) -> UICollectionViewCell
+    func makeSupplementaryView(ofKind elementKind: String, for collectionView: UICollectionView, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionReusableView
 }
 
 
@@ -58,62 +58,7 @@ public protocol ReusableViewConfigurable: UICollectionReusableView {
 
 public extension ReusableViewConfigurable where Value == Void {
 
-    func configure(using value: Value) {
+    func configure(withValue value: Value) {
         // Do nothing
-    }
-}
-
-
-// MARK: - BoundarySupplementaryComponent/AnyBoundarySupplementaryComponent
-
-public protocol BoundarySupplementaryComponent {
-
-    associatedtype SectionIdentifier
-
-    var elementKind: String { get }
-
-    func registerSupplementaryView(in collectionView: UICollectionView)
-    func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem
-    func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView
-}
-
-
-
-public struct AnyBoundarySupplementaryComponent<SectionIdentifier>: BoundarySupplementaryComponent {
-
-    public let elementKind: String
-    let registerSupplementaryViewHandler: (_ collectionView: UICollectionView) -> Void
-    let makeLayoutBoundarySupplementaryItemHandler: () -> NSCollectionLayoutBoundarySupplementaryItem
-    let makeSupplementaryViewHandler: (_ collectionView: UICollectionView, _ indexPath: IndexPath, _ sectionIdentifier: SectionIdentifier) -> UICollectionReusableView
-
-    init(
-        elementKind: String,
-        registerSupplementaryViewHandler: @escaping (_ collectionView: UICollectionView) -> Void,
-        makeLayoutBoundarySupplementaryItemHandler: @escaping () -> NSCollectionLayoutBoundarySupplementaryItem,
-        makeSupplementaryViewHandler: @escaping (_ collectionView: UICollectionView, _ indexPath: IndexPath, _ sectionIdentifier: SectionIdentifier) -> UICollectionReusableView
-    ) {
-        self.elementKind = elementKind
-        self.registerSupplementaryViewHandler = registerSupplementaryViewHandler
-        self.makeLayoutBoundarySupplementaryItemHandler = makeLayoutBoundarySupplementaryItemHandler
-        self.makeSupplementaryViewHandler = makeSupplementaryViewHandler
-    }
-
-    init<T: BoundarySupplementaryComponent>(erased: T) where T.SectionIdentifier == SectionIdentifier {
-        self.elementKind = erased.elementKind
-        registerSupplementaryViewHandler = erased.registerSupplementaryView(in:)
-        makeLayoutBoundarySupplementaryItemHandler = erased.makeLayoutBoundarySupplementaryItem
-        makeSupplementaryViewHandler = erased.makeSupplementaryView(for:indexPath:sectionIdentifier:)
-    }
-
-    public func registerSupplementaryView(in collectionView: UICollectionView) {
-        registerSupplementaryViewHandler(collectionView)
-    }
-
-    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
-        makeLayoutBoundarySupplementaryItemHandler()
-    }
-
-    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
-        makeSupplementaryViewHandler(collectionView, indexPath, sectionIdentifier)
     }
 }

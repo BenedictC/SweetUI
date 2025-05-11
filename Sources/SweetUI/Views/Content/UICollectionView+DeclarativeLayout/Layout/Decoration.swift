@@ -1,7 +1,7 @@
 import UIKit
 
 
-public protocol DecorationComponent {
+public protocol Decoration {
 
     var elementKind: String { get }
 

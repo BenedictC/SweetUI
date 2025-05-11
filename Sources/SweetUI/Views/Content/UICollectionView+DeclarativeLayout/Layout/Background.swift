@@ -1,7 +1,7 @@
 import UIKit
 
 
-public struct Background: DecorationComponent {
+public struct Background: Decoration {
 
     public let elementKind: String
     let zIndex: Int?

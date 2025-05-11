@@ -1,55 +1,61 @@
 import UIKit
 
 
-public struct LayoutHeader: BoundarySupplementaryComponent, BoundarySupplementaryComponentFactory {
+public struct LayoutHeader: BoundarySupplement {
 
-    public typealias SectionIdentifier = Void
+    // MARK: - Properties
 
-    public static var defaultAlignment: NSRectAlignment { .topLeading }
-    public static let elementKind = UniqueIdentifier("Layout Header").value
-    public var elementKind: String { Self.elementKind }
-    let width: NSCollectionLayoutDimension
-    let height: NSCollectionLayoutDimension
-    let alignment: NSRectAlignment
-    let absoluteOffset: CGPoint
-    let extendsBoundary: Bool?
-    let pinToVisibleBounds: Bool?
-    let viewRegistrar: (UICollectionView) -> Void
-    let viewFactory: (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView
+    let elementKind = UniqueIdentifier("LayoutHeader").value
+    private let viewRegistrar: (UICollectionView) -> Void
+    private let viewFactory: (UICollectionView, IndexPath, Void) -> UICollectionReusableView
 
-    public init(width: NSCollectionLayoutDimension, height: NSCollectionLayoutDimension, alignment: NSRectAlignment, absoluteOffset: CGPoint, extendsBoundary: Bool?, pinToVisibleBounds: Bool?, viewRegistrar: @escaping (UICollectionView) -> Void, viewFactory: @escaping (UICollectionView, IndexPath, SectionIdentifier) -> UICollectionReusableView) {
-        self.width = width
-        self.height = height
-        self.alignment = alignment
-        self.absoluteOffset = absoluteOffset
-        self.extendsBoundary = extendsBoundary
-        self.pinToVisibleBounds = pinToVisibleBounds
+
+    // MARK: - Instance life cycle
+
+    init(
+        viewRegistrar: @escaping (UICollectionView) -> Void,
+        viewFactory: @escaping (UICollectionView, IndexPath, Void) -> UICollectionReusableView
+    ) {
         self.viewRegistrar = viewRegistrar
         self.viewFactory = viewFactory
     }
 
-    public func registerSupplementaryView(in collectionView: UICollectionView) {
+
+    // MARK: - BoundarySupplement
+
+    public func registerReusableViews(in collectionView: UICollectionView) {
         viewRegistrar(collectionView)
     }
 
-    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
-        let size = NSCollectionLayoutSize(widthDimension: width, heightDimension: height)
-        let layoutItem = NSCollectionLayoutBoundarySupplementaryItem(
-            layoutSize: size,
-            elementKind: elementKind,
-            alignment: alignment,
-            absoluteOffset: absoluteOffset)
-        if let extendsBoundary {
-            layoutItem.extendsBoundary = extendsBoundary
-        }
-        if let pinToVisibleBounds {
-            layoutItem.pinToVisibleBounds = pinToVisibleBounds
-        }
-        return layoutItem
-    }
-
-    public func makeSupplementaryView(for collectionView: UICollectionView, indexPath: IndexPath, sectionIdentifier: SectionIdentifier) -> UICollectionReusableView {
-        viewFactory(collectionView, indexPath, sectionIdentifier)
+    public func makeSupplementaryView(ofKind elementKind: String, for collectionView: UICollectionView, indexPath: IndexPath, value: Void) -> UICollectionReusableView? {
+        guard elementKind == self.elementKind else { return nil }
+        return viewFactory(collectionView, indexPath, value)
     }
 }
 
+
+// MARK: - Static
+
+public extension LayoutHeader {
+
+    init<Content: UIView>(
+        bindingOptions: BindingOptions = .default,
+        contentBuilder: @escaping () -> Content
+    ) {
+        typealias CellType = ContentCell<Content>
+        let elementKind = self.elementKind
+        let reuseIdentifier = UniqueIdentifier("\(Self.self) reuseIdentifier").value
+        self.viewRegistrar = { collectionView in
+            collectionView.register(CellType.self, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
+        }
+        self.viewFactory = { collectionView, indexPath, sectionIdentifier in
+            let cell = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
+            if !cell.hasContent {
+                cell.replaceContent { _, content in
+                    contentBuilder()
+                }
+            }
+            return cell
+        }
+    }
+}

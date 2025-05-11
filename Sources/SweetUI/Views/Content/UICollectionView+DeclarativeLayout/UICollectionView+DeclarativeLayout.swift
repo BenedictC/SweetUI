@@ -26,7 +26,7 @@ public extension UICollectionView {
                 guard let sectionIdentifier = dataSource.sectionIdentifier(forSectionAtIndex: indexPath.section) else {
                     preconditionFailure("Invalid section index")
                 }
-                let cell = strategy.cell(for: collectionView, itemIdentifier: itemIdentifier, in: sectionIdentifier, at: indexPath)
+                let cell = strategy.makeCell(for: collectionView, itemIdentifier: itemIdentifier, in: sectionIdentifier, at: indexPath)
                 return cell
             }
         )
@@ -38,7 +38,7 @@ public extension UICollectionView {
             guard let dataSource else {
                 fatalError()
             }
-            let view = strategy.supplementaryView(for: collectionView, elementKind: elementKind, at: indexPath, dataSource: dataSource)
+            let view = strategy.makeSupplementaryView(ofKind: elementKind, for: collectionView, at: indexPath, dataSource: dataSource)
             return view
         }
         dataSource.indexElementsProvider = strategy.behaviors.indexElementsProvider
