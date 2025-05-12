@@ -1,6 +1,16 @@
 # TODO
 
-- ItemCarousel
+- BoundarySupplement
+    - LayoutHeader/LayoutFooter inits
+    - SectionHeader/SectionFooter inits
+- SectionSupplement
+- GroupSupplement
+- GroupItemSupplement
+
+- CustomGroup
+
+
+
 
 - Remove `preconditionFailure`s in collectionView layout where possible.
 

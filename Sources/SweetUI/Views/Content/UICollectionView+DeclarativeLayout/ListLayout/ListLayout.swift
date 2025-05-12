@@ -11,7 +11,7 @@ public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>:
     let components: ListLayoutComponents<SectionIdentifier, ItemIdentifier>
     public let behaviors: CollectionViewLayoutBehaviors<SectionIdentifier, ItemIdentifier>
 
-    private let emptyFooter = SectionFooter<SectionIdentifier> { _ in Spacer(height: 0) }
+    private let emptyFooter = SectionFooter<SectionIdentifier> { _, _ in Spacer(height: 0) }
 
 
     internal init(

@@ -1,35 +1,60 @@
-import UIKit
+public struct LayoutHeader {
+
+    // MARK: Types
+
+    public typealias SupplementRegistrar = (UICollectionView) -> Void
+    public typealias SupplementProvider = (String, UICollectionView, IndexPath, Void) -> UICollectionReusableView?
 
 
-public struct LayoutHeader: BoundarySupplement {
-
-    // MARK: - Properties
+    // MARK: Properties
 
     let elementKind = UniqueIdentifier("LayoutHeader").value
-    private let viewRegistrar: (UICollectionView) -> Void
-    private let viewFactory: (UICollectionView, IndexPath, Void) -> UICollectionReusableView
+    private let supplementRegistrar: SupplementRegistrar
+    private let supplementProvider: SupplementProvider
 
 
-    // MARK: - Instance life cycle
+    // MARK: Instance life cycle
 
     init(
-        viewRegistrar: @escaping (UICollectionView) -> Void,
-        viewFactory: @escaping (UICollectionView, IndexPath, Void) -> UICollectionReusableView
+        supplementRegistrar: @escaping SupplementRegistrar,
+        supplementProvider: @escaping SupplementProvider
     ) {
-        self.viewRegistrar = viewRegistrar
-        self.viewFactory = viewFactory
+        self.supplementRegistrar = supplementRegistrar
+        self.supplementProvider = supplementProvider
     }
 
 
-    // MARK: - BoundarySupplement
+    // MARK:  BoundarySupplement
 
     public func registerReusableViews(in collectionView: UICollectionView) {
-        viewRegistrar(collectionView)
+        supplementRegistrar(collectionView)
+    }
+
+    public func makeLayoutBoundarySupplementaryItem() -> NSCollectionLayoutBoundarySupplementaryItem {
+        let size = NSCollectionLayoutSize(
+            widthDimension: .fractionalWidth(1),
+            heightDimension: .estimated(44)
+        )
+        let layoutItem = NSCollectionLayoutBoundarySupplementaryItem(
+            layoutSize: size,
+            elementKind: elementKind,
+            alignment: .top,
+            absoluteOffset: .zero
+        )
+        return layoutItem
     }
 
     public func makeSupplementaryView(ofKind elementKind: String, for collectionView: UICollectionView, indexPath: IndexPath, value: Void) -> UICollectionReusableView? {
         guard elementKind == self.elementKind else { return nil }
-        return viewFactory(collectionView, indexPath, value)
+        return supplementProvider(elementKind, collectionView, indexPath, value)
+    }
+
+    public func asBoundarySupplement() -> BoundarySupplement<Void> {
+        return BoundarySupplement(
+            supplementRegistrar: registerReusableViews(in:),
+            layoutBoundarySupplementaryItemProvider: makeLayoutBoundarySupplementaryItem,
+            supplementProvider: makeSupplementaryView(ofKind:for:indexPath:value:)
+        )
     }
 }
 
@@ -45,10 +70,10 @@ public extension LayoutHeader {
         typealias CellType = ContentCell<Content>
         let elementKind = self.elementKind
         let reuseIdentifier = UniqueIdentifier("\(Self.self) reuseIdentifier").value
-        self.viewRegistrar = { collectionView in
+        self.supplementRegistrar = { collectionView in
             collectionView.register(CellType.self, forSupplementaryViewOfKind: elementKind, withReuseIdentifier: reuseIdentifier)
         }
-        self.viewFactory = { collectionView, indexPath, sectionIdentifier in
+        self.supplementProvider = { _, collectionView, indexPath, sectionIdentifier in
             let cell = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
             if !cell.hasContent {
                 cell.replaceContent { _, content in
