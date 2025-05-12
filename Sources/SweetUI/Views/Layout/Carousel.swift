@@ -35,8 +35,8 @@ public final class Carousel: UIView {
 
     // MARK: Instance life cycle
 
-    public init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
-        let items = itemsBuilder()
+    public init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, items: [UIView] = []) {
+        let items = items
         self.items = items
         self.spacing = spacing
         self.itemWidth = itemWidth
@@ -77,9 +77,9 @@ public final class Carousel: UIView {
         }
     }
 
-    public convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    public convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, items: [UIView] = []) {
         let publisher = selectedItemIndex.eraseToAnyPublisher()
-        self.init(inset: inset, itemWidth: itemWidth, spacing: spacing, alignment: alignment, selectedItemIndex: publisher, items: itemsBuilder)
+        self.init(inset: inset, itemWidth: itemWidth, spacing: spacing, alignment: alignment, selectedItemIndex: publisher, items: items)
 
         self.selectedItemIndexSubject = selectedItemIndex.eraseToAnySubject()
         self.scrollView.isScrollEnabled = true
@@ -205,5 +205,19 @@ private class CarouselScrollView<Content: UIView>: ScrollView<Content> {
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
         super.touchesCancelled(touches, with: event)
         touchesDidEndHandler?()
+    }
+}
+
+
+// MARK: - Factories
+
+public extension Carousel {
+
+    convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+        self.init(inset: inset, itemWidth: itemWidth, spacing: spacing, alignment: alignment, selectedItemIndex: selectedItemIndex, items: itemsBuilder())
+    }
+
+    convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+        self.init(inset: inset, itemWidth: itemWidth, spacing: spacing, alignment: alignment, selectedItemIndex: selectedItemIndex, items: itemsBuilder())
     }
 }
