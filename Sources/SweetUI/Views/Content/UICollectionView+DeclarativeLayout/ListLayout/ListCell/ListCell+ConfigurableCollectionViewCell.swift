@@ -3,7 +3,7 @@
 public extension ListCell {
 
     static func cell<CellType: ConfigurableCollectionViewCell>(
-        ofType cellType: CellType? = nil
+        ofType cellType: CellType.Type? = nil
     ) -> ListCell<ItemIdentifier> where CellType.Value == ItemIdentifier {
         let reuseIdentifier = UniqueIdentifier("\(Self.self)").value
         return ListCell(
