@@ -3,7 +3,7 @@
 public extension CompositeCell {
 
     static func cell<CellType: ConfigurableCollectionViewCell>(
-        ofType cellType: CellType.Type? = nil,
+        ofType cellType: CellType.Type = CellType.self,
         predicate: @escaping Predicate = { _, _ in true }
     ) -> CompositeCell<ItemIdentifier> where CellType.Value == ItemIdentifier {
         let reuseIdentifier = UniqueIdentifier("\(Self.self)").value
