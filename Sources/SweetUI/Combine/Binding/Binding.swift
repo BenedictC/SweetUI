@@ -30,13 +30,23 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
     public func send(subscription: Subscription) {
         subject.send(subscription: subscription)
     }
-    
-    
-    // MARK: Subscripts
-    
-    public subscript<T>(_ keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
+}
+
+
+
+// MARK: - Avoid collision with another framework
+
+public typealias UIBinding = Binding
+
+
+
+// MARK: - Subscripts
+
+public extension Binding {
+
+    subscript<T>(_ keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
         if keyPath == \.self, let existing = self as? Binding<T> { return existing }
-        
+
         let rootSubject = subject
         let rootGetter = getter
         let setter = { (newValue: T) in
@@ -59,7 +69,7 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
         return binding
     }
 
-    public subscript<T>(_ keyPath: WritableKeyPath<Output, Optional<T>>, default defaultValue: T) -> Binding<T> where Output == Optional<T> {
+    subscript<T>(_ keyPath: WritableKeyPath<Output, Optional<T>>, default defaultValue: T) -> Binding<T> {
         if keyPath == \.self, let existing = self as? Binding<T> { return existing }
 
         let rootSubject = subject
@@ -84,14 +94,7 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
         return binding
     }
 
-    public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
+    subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
         return self[keyPath]
     }
 }
-
-
-
-// MARK: - Avoid collision with another framework
-
-public typealias UIBinding = Binding
-

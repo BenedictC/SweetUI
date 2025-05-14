@@ -66,14 +66,25 @@ public class OneWayBinding<Output>: Publisher {
     // MARK: Subscript
 
     public subscript<T>(dynamicMember keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
-        return self[binding: keyPath]
+        return self[keyPath]
     }
 
-    public subscript<T>(binding keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
+    public subscript<T>(_ keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
         if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
 
         let rootGetter = getter
         return OneWayBinding<T>(publisher: self.map { $0[keyPath: keyPath] }, cancellable: nil, get: { rootGetter()[keyPath: keyPath] })
+    }
+
+    public subscript<T>(_ keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
+        if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
+
+        let rootGetter = getter
+        return OneWayBinding<T>(
+            publisher: self.map { $0[keyPath: keyPath] ?? defaultValue },
+            cancellable: nil,
+            get: { rootGetter()[keyPath: keyPath] ?? defaultValue }
+        )
     }
 }
 
