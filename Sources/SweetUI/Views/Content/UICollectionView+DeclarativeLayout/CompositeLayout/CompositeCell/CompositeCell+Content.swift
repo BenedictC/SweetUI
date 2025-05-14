@@ -6,7 +6,6 @@ import UIKit
 public extension CompositeCell {
 
     static func withContent<Content: UIView>(
-        predicate: @escaping Predicate = { _, _ in true },
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
@@ -20,7 +19,6 @@ public extension CompositeCell {
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
             cellProvider: { collectionView, indexPath, value in
-                guard predicate(indexPath, value) else { return nil }
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
                 cell.replaceContent { cell, content in
                     contentBuilder(cell, content, value)
@@ -38,7 +36,6 @@ public extension CompositeCell {
 public extension CompositeCell {
 
     static func withContent(
-        predicate: @escaping Predicate = { _, _ in true },
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
@@ -52,7 +49,6 @@ public extension CompositeCell {
                 collectionView.register(CellType.self, forCellWithReuseIdentifier: reuseIdentifier)
             },
             cellProvider: { collectionView, indexPath, value in
-                guard predicate(indexPath, value) else { return nil }
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
                 cell.initialize(bindingOptions: bindingOptions, bodyProvider: bodyProvider)
                 cell.configure(withValue: value)
