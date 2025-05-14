@@ -34,7 +34,7 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
     
     // MARK: Subscripts
     
-    public subscript<T>(binding keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
+    public subscript<T>(_ keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
         if keyPath == \.self, let existing = self as? Binding<T> { return existing }
         
         let rootSubject = subject
@@ -58,9 +58,34 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
         )
         return binding
     }
-    
+
+    public subscript<T>(_ keyPath: WritableKeyPath<Output, Optional<T>>, default defaultValue: T) -> Binding<T> where Output == Optional<T> {
+        if keyPath == \.self, let existing = self as? Binding<T> { return existing }
+
+        let rootSubject = subject
+        let rootGetter = getter
+        let setter = { (newValue: T) in
+            var rootValue = rootGetter()
+            rootValue[keyPath: keyPath] = newValue
+            rootSubject.send(rootValue)
+        }
+        let subject = AnySubject(
+            get: publisher.map { $0[keyPath: keyPath] ?? defaultValue },
+            set: setter
+        )
+        let binding = Binding<T>(
+            subject: subject,
+            cancellable: nil,
+            getter: {
+                let root = rootGetter()
+                return root[keyPath: keyPath] ?? defaultValue
+            }
+        )
+        return binding
+    }
+
     public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
-        return self[binding: keyPath]
+        return self[keyPath]
     }
 }
 
