@@ -39,7 +39,8 @@ public final class CancellableStorage {
             cancellablesByKey[key] = cancellable
         }
     }
-    
+
+    @discardableResult
     public func removeCancellable(forKey key: CancellableStorageKey) -> AnyCancellable? {
         cancellablesByKey.removeValue(forKey: key)
     }

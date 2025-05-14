@@ -17,6 +17,11 @@ public extension CancellableStorageProvider {
     func storeCancellables<T>(with key: CancellableStorageKey = .unique(), actions: () -> T) -> T {
         cancellableStorage.storeCancellables(with: key, actions: actions)
     }
+
+    @discardableResult
+    func removeCancellable(forKey key: CancellableStorageKey) -> AnyCancellable? {
+        cancellableStorage.removeCancellable(forKey: key)
+    }
 }
 
 
