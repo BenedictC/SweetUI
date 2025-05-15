@@ -32,6 +32,32 @@ public extension ListLayout {
         )
         self.init(appearance: appearance, components: components, behaviors: behaviors)
     }
+
+    init(
+        appearance: UICollectionLayoutListConfiguration.Appearance,
+        configuration: LayoutConfiguration = LayoutConfiguration(builder: { _ in }),
+        indexElementsProvider: DiffableDataSource.IndexElementsProvider? = nil,
+        reorderHandlers: DiffableDataSource.ReorderingHandlers? = nil,
+        sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil,
+        header: LayoutHeader? = nil,
+        footer: LayoutFooter? = nil,
+        @ArrayBuilder<ListCell<ItemIdentifier>>
+        cells: () -> [ListCell<ItemIdentifier>]
+    ) {
+        let section = ListSectionWithoutHeader(cells: cells()).eraseToAnyListSection()
+        let components = ListLayoutComponents(
+            configuration: configuration,
+            header: header,
+            footer: footer,
+            sections: [section]
+        )
+        let behaviors = CollectionViewLayoutBehaviors(
+            indexElementsProvider: indexElementsProvider,
+            reorderHandlers: reorderHandlers,
+            sectionSnapshotHandlers: sectionSnapshotHandlers
+        )
+        self.init(appearance: appearance, components: components, behaviors: behaviors)
+    }
 }
 
 
