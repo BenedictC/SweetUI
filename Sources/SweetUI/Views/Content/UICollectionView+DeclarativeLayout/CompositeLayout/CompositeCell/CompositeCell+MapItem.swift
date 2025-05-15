@@ -17,4 +17,17 @@ public extension CompositeCell {
             layoutGroupItemProvider: inner.layoutGroupItemProvider
         )
     }
+
+    static func mapItem<Value>(
+        _ transform: @escaping (ItemIdentifier) -> Value?,
+        cell: () -> CompositeCell<Void>
+    ) -> CompositeCell<ItemIdentifier> {
+        let inner = cell()
+        return CompositeCell(
+            cellRegistrar: inner.cellRegistrar,
+            cellProvider: { collectionView, indexPath, _ in
+                return inner.cellProvider(collectionView, indexPath, ())
+            }
+        )
+    }
 }

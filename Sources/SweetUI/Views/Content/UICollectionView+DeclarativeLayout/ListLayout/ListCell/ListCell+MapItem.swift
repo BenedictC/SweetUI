@@ -16,4 +16,17 @@ public extension ListCell {
             }
         )
     }
+
+    static func mapItem<Value>(
+        _ transform: @escaping (ItemIdentifier) -> Value?,
+        cell: () -> ListCell<Void>
+    ) -> ListCell<ItemIdentifier> {
+        let inner = cell()
+        return ListCell(
+            cellRegistrar: inner.cellRegistrar,
+            cellProvider: { collectionView, indexPath, _ in
+                return inner.cellProvider(collectionView, indexPath, ())
+            }
+        )
+    }
 }
