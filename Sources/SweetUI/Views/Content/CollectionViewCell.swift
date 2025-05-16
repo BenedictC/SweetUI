@@ -50,3 +50,20 @@ extension CancellableStorageProvider where Self: _CollectionViewCell {
 
     public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
 }
+
+
+// MARK: - ViewBodyProviding
+
+extension _CollectionViewCell {
+
+    public static func arrangeBody(_ body: UIView, in container: UIView) {
+        body.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(body)
+        NSLayoutConstraint.activate([
+            body.topAnchor.constraint(equalTo: container.topAnchor),
+            body.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            body.bottomAnchor.constraint(equalTo: container.bottomAnchor).priority(.almostRequired),
+            body.trailingAnchor.constraint(equalTo: container.trailingAnchor).priority(.almostRequired),
+        ])
+    }
+}

@@ -11,32 +11,21 @@ public protocol ViewBodyProvider: _ViewBodyProvider {
     var body: Body { get }
 
     // Optional from _ViewBodyProvider (and duplicated for clarity)
-    typealias Initializer = ViewInitializer<Self>
-    static var initializer: Initializer { get }
+    func awake()
     var bodyContainer: UIView { get }
+    static func arrangeBody(_ body: UIView, in container: UIView)
 }
 
 
 public protocol _ViewBodyProvider: UIView, CancellableStorageProvider { // Core functionality avoiding associated types
 
-    var _body: UIView { get }
-    var bodyContainer: UIView { get }
-
-    static func initializeInstance(of view: _ViewBodyProvider)
-    static func initializeBody(of view: _ViewBodyProvider)
     func awake()
-}
+    var bodyContainer: UIView { get }
+    static func arrangeBody(_ body: UIView, in container: UIView)
 
-
-// MARK: - Supporting type
-
-public struct ViewInitializer<T: UIView> {
-
-    let handler: (T) -> Void
-
-    public init<R>(_ handler: @escaping (T) -> R) {
-        self.handler = { _ = handler($0) }
-    }
+    
+    var _body: UIView { get } // Implement in a ViewBodyProvider extension. Should not override
+    static func _initializeBody(of view: _ViewBodyProvider)
 }
 
 
@@ -44,27 +33,21 @@ public struct ViewInitializer<T: UIView> {
 
 public extension ViewBodyProvider {
 
-    static var initializer: Initializer { Initializer { _ in } }
+    var bodyContainer: UIView { self }
 
     var _body: UIView { body }
 
-    var bodyContainer: UIView { self }
-
-    static func initializeInstance(of view: _ViewBodyProvider) {
-        guard let view = view as? Self else {
-            preconditionFailure("_initialize(instance:) must only be called with instances of Self")
+    static func _initializeBody(of anyHost: _ViewBodyProvider) {
+        guard let host = anyHost as? Self else {
+            fatalError()
         }
-        _ = initializer.handler(view)
-    }
-
-    static func initializeBody(of host: _ViewBodyProvider) {
         let body = host._body
         let container = host.bodyContainer
         let isSelfHosted = body == container
         if isSelfHosted {
             return
         }
-        container.addAndFill(subview: body, overrideEdgesIgnoringSafeArea: nil)
+        Self.arrangeBody(body, in: container)
     }
 }
 
@@ -76,9 +59,7 @@ public extension _ViewBodyProvider {
     func initializeBodyHosting() {
         if _body.superview == nil {
             detectPotentialRetainCycle(of: self) {
-                Self.initializeInstance(of: self)
-                Self.initializeBody(of: self)
-                self.awake()
+                Self._initializeBody(of: self)
             }
         }
     }

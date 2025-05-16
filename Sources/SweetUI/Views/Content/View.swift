@@ -31,11 +31,11 @@ open class _View: UIView, TraitCollectionChangesProvider {
         guard let bodyProvider = self as? _ViewBodyProvider else {
             preconditionFailure("_View subclasses must conform to _ViewBodyProvider")
         }
-        bodyProvider.storeCancellables(with: CancellableKey.loadBody) {
-            bodyProvider.initializeBodyHosting()
-        }
         bodyProvider.storeCancellables(with: CancellableKey.awake) {
             bodyProvider.awake()
+        }
+        bodyProvider.storeCancellables(with: CancellableKey.loadBody) {
+            bodyProvider.initializeBodyHosting()
         }
     }
     
@@ -59,4 +59,12 @@ open class _View: UIView, TraitCollectionChangesProvider {
 extension CancellableStorageProvider where Self: View {
 
     public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
+}
+
+
+public extension _View {
+
+    static func arrangeBody(_ body: UIView, in container: UIView) {
+        container.addAndFill(subview: body, overrideEdgesIgnoringSafeArea: nil)
+    }
 }
