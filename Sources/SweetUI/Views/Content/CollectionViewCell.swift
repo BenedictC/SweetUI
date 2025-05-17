@@ -25,15 +25,7 @@ open class _CollectionViewCell: UICollectionViewCell, ReuseIdentifiable {
 
     public required override init(frame: CGRect) {
         super.init(frame: frame)
-        guard let bodyProvider = self as? _ViewBodyProvider else {
-            preconditionFailure("_CollectionViewCell subclasses must conform to _ViewBodyProvider")
-        }
-        bodyProvider.storeCancellables(with: View.CancellableKey.awake) {
-            bodyProvider.awake()
-        }
-        bodyProvider.storeCancellables(with: View.CancellableKey.loadBody) {
-            bodyProvider.initializeBodyHosting()
-        }
+        Self.initializeBodyHosting(of: self)
     }
 
     @available(*, unavailable)
@@ -52,16 +44,18 @@ extension CancellableStorageProvider where Self: _CollectionViewCell {
 }
 
 
-// MARK: - ViewBodyProviding
+// MARK: - ViewBodyProvider
 
 extension _CollectionViewCell {
 
-    public static func arrangeBody(_ body: UIView, in container: UIView) {
+    public func arrangeBody(_ body: UIView, in container: UIView) {
         body.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(body)
         NSLayoutConstraint.activate([
             body.topAnchor.constraint(equalTo: container.topAnchor),
             body.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            // Priority is less than required to break cleanly if the content resizes without invalidating the
+            // collectionView layout.
             body.bottomAnchor.constraint(equalTo: container.bottomAnchor).priority(.almostRequired),
             body.trailingAnchor.constraint(equalTo: container.trailingAnchor).priority(.almostRequired),
         ])

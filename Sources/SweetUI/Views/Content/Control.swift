@@ -45,16 +45,7 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
         self.stateSubject = stateSubject
         self.stateChanges = stateSubject.eraseToAnyPublisher()
         super.init(frame: .zero)
-        
-        guard let bodyProvider = self as? _ViewBodyProvider else {
-            preconditionFailure("_Control subclasses must conform to _ViewBodyProvider")
-        }
-        bodyProvider.storeCancellables(with: View.CancellableKey.awake) {
-            bodyProvider.awake()
-        }
-        bodyProvider.storeCancellables(with: View.CancellableKey.loadBody) {
-            bodyProvider.initializeBodyHosting()
-        }
+        UIView.initializeBodyHosting(of: self)
     }
 
     @available(*, unavailable)
@@ -95,10 +86,19 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
 }
 
 
-
 // MARK: - CancellableStorageProvider defaults
 
 extension CancellableStorageProvider where Self: _Control {
 
     public var cancellableStorage: CancellableStorage { defaultCancellableStorage }
+}
+
+
+// MARK: - ViewBodyProvider
+
+public extension _Control {
+
+    func arrangeBody(_ body: UIView, in container: UIView) {
+        container.addAndFill(subview: body, overrideEdgesIgnoringSafeArea: nil)
+    }
 }

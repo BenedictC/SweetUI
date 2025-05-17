@@ -2,8 +2,14 @@ import Foundation
 import UIKit
 
 
-// MARK: - Core
-
+// ViewBodyProvider can only be conformed to by UIView subclasses marked `final`. However, the core functionality
+// supporting ViewBodyProvider is usually provided by the final class's superclass but said superclass cannot conform
+// to ViewBodyProvider because doing so would mean that it would be responsible for providing the type of Body.
+// Therefore we must jump up and down the types in order for the superclass to provide the functionality.
+// ViewBodyProvider is a PAC so cannot by arbitrarily cast. To work around this ViewBodyProvider conforms to a non-PAC
+// called _ViewBodyProvider which can be arbitrarily cast to. Specifically, `_initializeBody()` on _ViewBodyProvider
+// has a default implementation provided by ViewBodyProvider so that calling it on a _ViewBodyProvider means the type
+// is narrowed/(demoted?) from _ViewBodyProvider to ViewBodyProvider and can thus reference the associated types.
 public protocol ViewBodyProvider: _ViewBodyProvider {
 
     // Required
@@ -13,7 +19,13 @@ public protocol ViewBodyProvider: _ViewBodyProvider {
     // Optional from _ViewBodyProvider (and duplicated for clarity)
     func awake()
     var bodyContainer: UIView { get }
-    static func arrangeBody(_ body: UIView, in container: UIView)
+    func arrangeBody(_ body: UIView, in container: UIView)
+
+    // Called in the init of View, Control, CollectionViewCell and CollectionReusableView. If a class conforms to
+    // ViewBodyProvider but does not subclass from one of these 4 classes then it must call initializeBodyHosting()
+    // from its init.
+    @MainActor
+    func initializeBodyHosting()
 }
 
 
@@ -21,15 +33,35 @@ public protocol _ViewBodyProvider: UIView, CancellableStorageProvider { // Core 
 
     func awake()
     var bodyContainer: UIView { get }
-    static func arrangeBody(_ body: UIView, in container: UIView)
 
-    
-    var _body: UIView { get } // Implement in a ViewBodyProvider extension. Should not override
-    static func _initializeBody(of view: _ViewBodyProvider)
+    // Implemented by ViewBodyProvider. Should not be overridden.
+    var _body: UIView { get }
+    @MainActor
+    func _initializeBodyHosting()
 }
 
 
-// MARK: - Default implementation
+// MARK: - Core
+
+public extension UIView {
+
+    static func initializeBodyHosting(of view: UIView) {
+        guard let bodyProvider = view as? _ViewBodyProvider else {
+            preconditionFailure("body hosting views must conform to ViewBodyProvider")
+        }
+        bodyProvider.initializeBodyHosting()
+    }
+}
+
+
+public extension _ViewBodyProvider {
+
+    @MainActor
+    func initializeBodyHosting() {
+        _initializeBodyHosting()
+    }
+}
+
 
 public extension ViewBodyProvider {
 
@@ -37,34 +69,28 @@ public extension ViewBodyProvider {
 
     var _body: UIView { body }
 
-    static func _initializeBody(of anyHost: _ViewBodyProvider) {
-        guard let host = anyHost as? Self else {
-            fatalError()
-        }
-        let body = host._body
-        let container = host.bodyContainer
-        let isSelfHosted = body == container
-        if isSelfHosted {
-            return
-        }
-        Self.arrangeBody(body, in: container)
+    func awake() {
+        // Default do nothing
     }
-}
 
-
-// MARK: - Convenience
-
-public extension _ViewBodyProvider {
-
-    func initializeBodyHosting() {
+    @MainActor
+    func _initializeBodyHosting() {
         if _body.superview == nil {
-            detectPotentialRetainCycle(of: self) {
-                Self._initializeBody(of: self)
+            self.storeCancellables(with: View.CancellableKey.awake) {
+                detectPotentialRetainCycle(of: self) {
+                    self.awake()
+                }
+            }
+            self.storeCancellables(with: View.CancellableKey.loadBody) {
+                detectPotentialRetainCycle(of: self) {
+                    let body = self.body
+                    let container = self.bodyContainer
+                    let isSelfHosted = body == container
+                    if !isSelfHosted {
+                        arrangeBody(body, in: container)
+                    }
+                }
             }
         }
-    }
-
-    func awake() {
-
     }
 }
