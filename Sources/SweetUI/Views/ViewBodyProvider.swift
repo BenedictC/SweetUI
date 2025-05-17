@@ -75,20 +75,20 @@ public extension ViewBodyProvider {
 
     @MainActor
     func _initializeBodyHosting() {
-        if _body.superview == nil {
-            self.storeCancellables(with: View.CancellableKey.awake) {
+        self.storeCancellables(with: View.CancellableKey.awake) {
+            if _body.superview == nil { // This causes body to be loaded
                 detectPotentialRetainCycle(of: self) {
                     self.awake()
                 }
             }
-            self.storeCancellables(with: View.CancellableKey.loadBody) {
-                detectPotentialRetainCycle(of: self) {
-                    let body = self.body
-                    let container = self.bodyContainer
-                    let isSelfHosted = body == container
-                    if !isSelfHosted {
-                        arrangeBody(body, in: container)
-                    }
+        }
+        self.storeCancellables(with: View.CancellableKey.loadBody) {
+            detectPotentialRetainCycle(of: self) {
+                let body = self.body
+                let container = self.bodyContainer
+                let isSelfHosted = body == container
+                if !isSelfHosted {
+                    arrangeBody(body, in: container)
                 }
             }
         }
