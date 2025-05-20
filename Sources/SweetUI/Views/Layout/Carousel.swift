@@ -18,7 +18,7 @@ public final class Carousel: UIView {
 
     private var cancellable: AnyCancellable!
     private var selectedItemIndexSubject: AnySubject<Int, Never>?
-
+    
 
     // MARK: Views
 
@@ -130,12 +130,22 @@ public final class Carousel: UIView {
         // Point can be outside of the self's bounds, which is surprising.
         let isInBounds = bounds.contains(point)
         guard isInBounds else { return nil }
-        
+
         let superResult = super.hitTest(point, with: event)
         if superResult != self {
             return superResult
         }
-        return scrollView
+
+        let pointInScrollViewCoordinateSpace = scrollView.convert(point, from: nil)
+        let hitSubviews: [UIView] = scrollView.subviews
+            .filter { $0.frame.contains(pointInScrollViewCoordinateSpace) }
+        let zIndexAndSubviewPairs: [(zIndex: Int, subview: UIView)] = hitSubviews.compactMap { subview in
+            guard let zIndex = scrollView.subviews.firstIndex(of: subview) else { return nil }
+            return (zIndex: zIndex, subview: subview)
+        }
+        let subviewsByZIndex = Dictionary(uniqueKeysWithValues: zIndexAndSubviewPairs)
+        let subview = subviewsByZIndex.keys.max().flatMap { subviewsByZIndex[$0] }
+        return subview ?? scrollView
     }
 }
 
