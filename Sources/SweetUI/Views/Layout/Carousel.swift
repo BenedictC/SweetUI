@@ -129,7 +129,7 @@ public final class Carousel: UIView {
     public override func hitTest(_ point: CGPoint, with event: UIEvent?) -> UIView? {
         // Point can be outside of the self's bounds, which is surprising.
         let isInBounds = bounds.contains(point)
-        return isInBounds ? scrollView : nil
+        return isInBounds ? scrollView.hitTest(point, with: event) : nil
     }
 }
 
@@ -213,11 +213,11 @@ private class CarouselScrollView<Content: UIView>: ScrollView<Content> {
 
 public extension Carousel {
 
-    convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Publisher<Int, Never>, @SubviewsBuilder items itemsBuilder: () -> [UIView]) {
         self.init(inset: inset, itemWidth: itemWidth, spacing: spacing, alignment: alignment, selectedItemIndex: selectedItemIndex, items: itemsBuilder())
     }
 
-    convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, @ArrayBuilder<UIView> items itemsBuilder: () -> [UIView]) {
+    convenience init(inset: CGFloat = 0, itemWidth: CGFloat? = nil, spacing: CGFloat = 0, alignment: HStack.Alignment = .fill, selectedItemIndex: some Subject<Int, Never>, @SubviewsBuilder items itemsBuilder: () -> [UIView]) {
         self.init(inset: inset, itemWidth: itemWidth, spacing: spacing, alignment: alignment, selectedItemIndex: selectedItemIndex, items: itemsBuilder())
     }
 }
