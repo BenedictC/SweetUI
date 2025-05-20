@@ -145,7 +145,7 @@ public final class Carousel: UIView {
         }
         let subviewsByZIndex = Dictionary(uniqueKeysWithValues: zIndexAndSubviewPairs)
         let subview = subviewsByZIndex.keys.max().flatMap { subviewsByZIndex[$0] }
-        return subview ?? scrollView
+        return subview?.hitTest(point, with: event) ?? scrollView.hitTest(point, with: event)
     }
 }
 
