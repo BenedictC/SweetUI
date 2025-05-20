@@ -136,7 +136,9 @@ public final class Carousel: UIView {
             return superResult
         }
 
-        let pointInScrollViewCoordinateSpace = scrollView.convert(point, from: nil)
+        // We've messed up the scrollView's hitTest because of clipToBounds and frame manipulations
+        // so we manually find its subviews.
+        let pointInScrollViewCoordinateSpace = scrollView.convert(point, from: self)
         let hitSubviews: [UIView] = scrollView.subviews
             .filter { $0.frame.contains(pointInScrollViewCoordinateSpace) }
         let zIndexAndSubviewPairs: [(zIndex: Int, subview: UIView)] = hitSubviews.compactMap { subview in
@@ -145,7 +147,11 @@ public final class Carousel: UIView {
         }
         let subviewsByZIndex = Dictionary(uniqueKeysWithValues: zIndexAndSubviewPairs)
         let subview = subviewsByZIndex.keys.max().flatMap { subviewsByZIndex[$0] }
-        return subview?.hitTest(point, with: event) ?? scrollView.hitTest(point, with: event)
+        if let subview {
+            let pointInSubviewCoordinateSpace = subview.convert(point, from: self)
+            return subview.hitTest(pointInSubviewCoordinateSpace, with: event)
+        }
+        return scrollView.hitTest(pointInScrollViewCoordinateSpace, with: event)
     }
 }
 
