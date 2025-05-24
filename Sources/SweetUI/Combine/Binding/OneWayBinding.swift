@@ -15,7 +15,6 @@ public struct BindingOptions: OptionSet {
 
 
 /// OneWayBinding is a readonly publisher that also provides a getter. It is the base class for the Bindings class cluster.
-@dynamicMemberLookup
 public class OneWayBinding<Output>: Publisher {
 
     // MARK: Types
@@ -64,10 +63,6 @@ public class OneWayBinding<Output>: Publisher {
 
 
     // MARK: Subscript
-
-    public subscript<T>(dynamicMember keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
-        return self[keyPath]
-    }
 
     public subscript<T>(_ keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
         if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }

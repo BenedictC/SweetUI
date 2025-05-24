@@ -4,7 +4,6 @@ public typealias BindingOneWay<T> = Binding<T>.OneWay
 
 
 @propertyWrapper
-@dynamicMemberLookup
 public final class Binding<Output>: _MutableBinding<Output>, Subject {
     
     // MARK: Properties
@@ -94,7 +93,4 @@ public extension Binding {
         return binding
     }
 
-    subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
-        return self[keyPath]
-    }
 }
