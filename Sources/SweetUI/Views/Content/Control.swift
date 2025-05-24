@@ -14,11 +14,12 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
 
     // MARK: Properties
 
-    private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
-    private let stateSubject: CurrentValueSubject<UIControl.State, Never>
-    public let stateChanges: AnyPublisher<UIControl.State, Never>
-    fileprivate lazy var defaultCancellableStorage = CancellableStorage()    
+    public let stateChanges: OneWayBinding<UIControl.State>
+
+    private let stateBinding: Binding<UIControl.State>
+    private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
+    fileprivate lazy var defaultCancellableStorage = CancellableStorage()
 
     override public var isEnabled: Bool {
         get { super.isEnabled }
@@ -40,10 +41,14 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
 
     // MARK: Instance life cycle
 
-    public init() {
-        let stateSubject = CurrentValueSubject<UIControl.State, Never>(.normal)
-        self.stateSubject = stateSubject
-        self.stateChanges = stateSubject.eraseToAnyPublisher()
+    convenience public init() {
+        let stateBinding = Binding<UIControl.State>(wrappedValue: .normal)
+        self.init(stateBinding: stateBinding)
+    }
+
+    internal init(stateBinding: Binding<UIControl.State>) {
+        self.stateBinding = stateBinding
+        self.stateChanges = stateBinding
         super.init(frame: .zero)
         UIView.initializeBodyHosting(of: self)
     }
@@ -81,7 +86,7 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     // MARK: State management
 
     private func notifyOfStateChange() {
-        stateSubject.send(state)        
+        stateBinding.send(state)        
     }
 }
 
