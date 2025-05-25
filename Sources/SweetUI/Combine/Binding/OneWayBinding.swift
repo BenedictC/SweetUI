@@ -29,6 +29,7 @@ public class OneWayBinding<Output>: Publisher {
     // ProjectedValue and WrappedValue are handled by leaves of the cluster which conform to @propertyWrapper,
     // i.e. Binding and Binding.OneWay
 
+    public let options: BindingOptions
     public var value: Output { getter() }
 
     internal let publisher: AnyPublisher<Output, Failure>
@@ -39,17 +40,20 @@ public class OneWayBinding<Output>: Publisher {
     // MARK: Instance life cycle
 
     public init(currentValueSubject: CurrentValueSubject<Output, Never>, options: BindingOptions = .default) {
+        self.options = options
         self.publisher = options.decorate(currentValueSubject).eraseToAnyPublisher()
         self.getter = { currentValueSubject.value }
     }
 
     public init(wrappedValue: Output, options: BindingOptions = .default) {
+        self.options = options
         let just = Just(wrappedValue)
         self.publisher = options.decorate(just).eraseToAnyPublisher()
         self.getter = { just.output }
     }
 
     internal init(publisher: some Publisher<Output, Never>, get getter: @escaping () -> Output, options: BindingOptions = .default) {
+        self.options = options
         self.publisher = options.decorate(publisher).eraseToAnyPublisher()
         self.getter = getter
     }
