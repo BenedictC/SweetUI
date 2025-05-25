@@ -23,6 +23,7 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
 
 
     // MARK: Properties
+
     @Binding.OneWay
     public private(set) var snapshot: Snapshot
     private weak var collectionView: UICollectionView?
