@@ -122,15 +122,17 @@ public extension OneWayBinding {
         )
     }
 
-    subscript<T>(oneWay keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
-        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
-            return existing
-        }
-
+    subscript<T: _Optionalable>(oneWay keyPath: KeyPath<Output, T>, default defaultValue: T.Wrapped) -> OneWayBinding<T.Wrapped> {
         let rootGetter = getter
-        return OneWayBinding<T>(
-            publisher: self.map { $0[keyPath: keyPath] ?? defaultValue },
-            get: { rootGetter()[keyPath: keyPath] ?? defaultValue }
+        return OneWayBinding<T.Wrapped>(
+            publisher: self.map { root in
+                let value = root[keyPath: keyPath].asOptional
+                return value ?? defaultValue
+            },
+            get: {
+                let value: T = rootGetter()[keyPath: keyPath]
+                return value.asOptional ?? defaultValue
+            }
         )
     }
 }
@@ -141,6 +143,30 @@ public extension OneWayBinding {
 public extension OneWayBinding where Output: _Optionalable {
 
     subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T>) -> OneWayBinding<T?> {
+        let rootGetter = getter
+        return OneWayBinding<T?>(
+            publisher: self.map { value in
+                value[keyPath: \Output.asOptional]?[keyPath: keyPath]
+            },
+            get: { rootGetter()[keyPath: \Output.asOptional]?[keyPath: keyPath] }
+        )
+    }
+
+    subscript<T: _Optionalable>(oneWay keyPath: KeyPath<Output.Wrapped, T>, default defaultValue: T.Wrapped) -> OneWayBinding<T.Wrapped> {
+        let rootGetter = getter
+        return OneWayBinding<T.Wrapped>(
+            publisher: self.map { value in
+                value[keyPath: \Output.asOptional]?[keyPath: keyPath].asOptional ?? defaultValue
+            },
+            get: {
+                let root: Output.Wrapped? = rootGetter().asOptional
+                let value = root?[keyPath: keyPath].asOptional
+                return value.asOptional ?? defaultValue
+            }
+        )
+    }
+
+    subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T?>) -> OneWayBinding<T?> {
         let rootGetter = getter
         return OneWayBinding<T?>(
             publisher: self.map { value in
