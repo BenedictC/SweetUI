@@ -28,18 +28,26 @@ internal extension BindingOptions {
 private extension Publisher {
 
     func unconstrainedDropDuplicates() -> some Publisher<Output, Failure> {
-        guard Output.self is any Equatable.Type else {
-            return self.eraseToAnyPublisher()
-        }
-        return self
-            .removeDuplicates { stale, fresh in
-                guard let staleEq = stale as? any Equatable,
-                      let freshEq = fresh as? any Equatable else {
-                    return false
+        if Output.self is any Equatable.Type  {
+            return self.removeDuplicates { stale, fresh in
+                if let staleEq = stale as? any Equatable,
+                   let freshEq = fresh as? any Equatable {
+                    return staleEq.isEqual(freshEq)
                 }
-                return staleEq.isEqual(freshEq)
+                return false
             }
             .eraseToAnyPublisher()
+        }
+        if Output.self is AnyObject.Type {
+            return self.removeDuplicates { stale, fresh in
+                let staleObj = (stale as AnyObject)
+                let freshObj = (fresh as AnyObject)
+                return staleObj === freshObj
+            }
+            .eraseToAnyPublisher()
+        }
+
+        return self.eraseToAnyPublisher()
     }
 }
 

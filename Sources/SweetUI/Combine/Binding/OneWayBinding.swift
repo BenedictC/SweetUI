@@ -62,44 +62,54 @@ public class OneWayBinding<Output>: Publisher {
     }
 
 
-    // MARK: Dynamic Member Lookup
+    // MARK: Dynamic member lookup (for creating binding to reference types)
 
-    public subscript<T>(dynamicMember keyPath: KeyPath<Output, some OneWayBinding<T>>) -> OneWayBinding<T> {
-        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
+    public subscript<T>(dynamicMember bindingKeyPath: KeyPath<Output, some OneWayBinding<T>>) -> OneWayBinding<T> {
+        if bindingKeyPath == \T.self, let existing = self as? OneWayBinding<T> {
             return existing
         }
         // Create the initial state
-        let initialValue = self.value[keyPath: keyPath].value
+        let initialValue = self.value[keyPath: bindingKeyPath].value
         let subject = CurrentValueSubject<T, Never>(initialValue)
         let result = OneWayBinding<T>(currentValueSubject: subject, options: .default)
 
         var previousCancellable: AnyCancellable?
         // when self emits a new value ...
-        let cancellable = self.sink { [weak result] root in
-            _ = self // retain the previous Binding
+        let cancellable = self.sink { [weak result] rootObject in
+            _ = self // retain the previous Binding but don't retain the output as that would great a retain cycle
             guard let result else {
                 return
             }
             // ... we need to re-construct the value we were binding to
-            let publisher = root[keyPath: keyPath]
+            let childBinding = rootObject[keyPath: bindingKeyPath]
             if let previousCancellable {
                 result.cancellables.remove(previousCancellable)
                 previousCancellable.cancel()
             }
-            let freshCancellable = publisher.sink { subject.send($0) }
+            let freshCancellable = childBinding.sink { childObject in
+                subject.send(childObject)
+            }
             result.cancellables.insert(freshCancellable)
             previousCancellable = freshCancellable
+            // Send the child this may have already occured
+            let updatedChild = rootObject[keyPath: bindingKeyPath].value
+            subject.send(updatedChild)
         }
         result.cancellables.insert(cancellable)
 
         return result
     }
+}
 
 
-    // MARK: Subscript
+// MARK: - KeyPath based sub-bindings (for value types)
 
-    public subscript<T>(oneWay keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
-        if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
+public extension OneWayBinding {
+
+    subscript<T>(oneWay keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
+        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
+            return existing
+        }
 
         let rootGetter = getter
         return OneWayBinding<T>(
@@ -108,8 +118,10 @@ public class OneWayBinding<Output>: Publisher {
         )
     }
 
-    public subscript<T>(oneWay keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
-        if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
+    subscript<T>(oneWay keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
+        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
+            return existing
+        }
 
         let rootGetter = getter
         return OneWayBinding<T>(
@@ -117,12 +129,14 @@ public class OneWayBinding<Output>: Publisher {
             get: { rootGetter()[keyPath: keyPath] ?? defaultValue }
         )
     }
+}
 
-    public subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T>) -> OneWayBinding<T?> where Output: _Optionalable {
-//        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
-//            return existing
-//        }
 
+// Allow leading `.?.` to be dropped when self is optional
+
+public extension OneWayBinding where Output: _Optionalable {
+
+    subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T>) -> OneWayBinding<T?> {
         let rootGetter = getter
         return OneWayBinding<T?>(
             publisher: self.map { value in
@@ -131,10 +145,17 @@ public class OneWayBinding<Output>: Publisher {
             get: { rootGetter()[keyPath: \Output.asOptional]?[keyPath: keyPath] }
         )
     }
-}
 
-@available(*, deprecated)
-private var _cancellables = Set<AnyCancellable>()
+    subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T?>, default defaultValue: T) -> OneWayBinding<T> {
+        let rootGetter = getter
+        return OneWayBinding<T>(
+            publisher: self.map { value in
+                value[keyPath: \Output.asOptional]?[keyPath: keyPath] ?? defaultValue
+            },
+            get: { rootGetter()[keyPath: \Output.asOptional]?[keyPath: keyPath] ?? defaultValue }
+        )
+    }
+}
 
 
 // MARK: - Factories
@@ -157,6 +178,8 @@ public extension CurrentValueSubject where Failure == Never {
 
 public extension Publisher where Failure == Never {
 
+    // This is ugly.
+    // We need an initial value but we can't be sure that the publisher will provide one so we have to request it.
     func makeOneWayBinding(initialValue: Output, options: BindingOptions = .default) -> OneWayBinding<Output> {
         var value = initialValue
         let publisher = self
