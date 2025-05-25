@@ -15,43 +15,43 @@ public struct BindingOptions: OptionSet {
 
 
 /// OneWayBinding is a readonly publisher that also provides a getter. It is the base class for the Bindings class cluster.
+@dynamicMemberLookup
 public class OneWayBinding<Output>: Publisher {
 
     // MARK: Types
 
     public typealias Output = Output
     public typealias Failure = Never
-    public typealias Options = BindingOptions
 
 
     // MARK: Properties
 
-    public var wrappedValue: Output { getter() }
+    // ProjectedValue and WrappedValue are handled by leaves of the cluster which conform to @propertyWrapper,
+    // i.e. Binding and Binding.OneWay
+
+    public var value: Output { getter() }
 
     internal let publisher: AnyPublisher<Output, Failure>
-    internal let cancellable: AnyCancellable?
+    internal lazy var cancellables = Set<AnyCancellable>()
     internal let getter: () -> Output
 
 
     // MARK: Instance life cycle
 
-    internal init(publisher: some Publisher<Output, Never>, cancellable: AnyCancellable?, get getter: @escaping () -> Output, options: Options = .default) {
-        self.publisher = options.decorate(publisher).eraseToAnyPublisher()
-        self.getter = getter
-        self.cancellable = cancellable
+    public init(currentValueSubject: CurrentValueSubject<Output, Never>, options: BindingOptions = .default) {
+        self.publisher = options.decorate(currentValueSubject).eraseToAnyPublisher()
+        self.getter = { currentValueSubject.value }
     }
 
-    public init(wrappedValue: Output, options: Options = .default) {
+    public init(wrappedValue: Output, options: BindingOptions = .default) {
         let just = Just(wrappedValue)
         self.publisher = options.decorate(just).eraseToAnyPublisher()
-        self.cancellable = nil
         self.getter = { just.output }
     }
 
-    public init(currentValueSubject: CurrentValueSubject<Output, Never>, options: Options = .default) {
-        self.publisher = options.decorate(currentValueSubject).eraseToAnyPublisher()
-        self.cancellable = nil
-        self.getter = { currentValueSubject.value }
+    internal init(publisher: some Publisher<Output, Never>, get getter: @escaping () -> Output, options: BindingOptions = .default) {
+        self.publisher = options.decorate(publisher).eraseToAnyPublisher()
+        self.getter = getter
     }
 
 
@@ -62,26 +62,79 @@ public class OneWayBinding<Output>: Publisher {
     }
 
 
+    // MARK: Dynamic Member Lookup
+
+    public subscript<T>(dynamicMember keyPath: KeyPath<Output, some OneWayBinding<T>>) -> OneWayBinding<T> {
+        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
+            return existing
+        }
+        // Create the initial state
+        let initialValue = self.value[keyPath: keyPath].value
+        let subject = CurrentValueSubject<T, Never>(initialValue)
+        let result = OneWayBinding<T>(currentValueSubject: subject, options: .default)
+
+        var previousCancellable: AnyCancellable?
+        // when self emits a new value ...
+        let cancellable = self.sink { [weak result] root in
+            _ = self // retain the previous Binding
+            guard let result else {
+                return
+            }
+            // ... we need to re-construct the value we were binding to
+            let publisher = root[keyPath: keyPath]
+            if let previousCancellable {
+                result.cancellables.remove(previousCancellable)
+                previousCancellable.cancel()
+            }
+            let freshCancellable = publisher.sink { subject.send($0) }
+            result.cancellables.insert(freshCancellable)
+            previousCancellable = freshCancellable
+        }
+        result.cancellables.insert(cancellable)
+
+        return result
+    }
+
+
     // MARK: Subscript
 
-    public subscript<T>(_ keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
+    public subscript<T>(oneWay keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
         if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
 
         let rootGetter = getter
-        return OneWayBinding<T>(publisher: self.map { $0[keyPath: keyPath] }, cancellable: nil, get: { rootGetter()[keyPath: keyPath] })
+        return OneWayBinding<T>(
+            publisher: self.map { $0[keyPath: keyPath] },
+            get: { rootGetter()[keyPath: keyPath] }
+        )
     }
 
-    public subscript<T>(_ keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
+    public subscript<T>(oneWay keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
         if keyPath == \T.self, let existing = self as? OneWayBinding<T> { return existing }
 
         let rootGetter = getter
         return OneWayBinding<T>(
             publisher: self.map { $0[keyPath: keyPath] ?? defaultValue },
-            cancellable: nil,
             get: { rootGetter()[keyPath: keyPath] ?? defaultValue }
         )
     }
+
+    public subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T>) -> OneWayBinding<T?> where Output: _Optionalable {
+//        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
+//            return existing
+//        }
+
+        let rootGetter = getter
+        return OneWayBinding<T?>(
+            publisher: self.map { value in
+                value[keyPath: \Output.asOptional]?[keyPath: keyPath]
+            },
+            get: { rootGetter()[keyPath: \Output.asOptional]?[keyPath: keyPath] }
+        )
+    }
 }
+
+@available(*, deprecated)
+private var _cancellables = Set<AnyCancellable>()
 
 
 // MARK: - Factories
@@ -89,27 +142,29 @@ public class OneWayBinding<Output>: Publisher {
 public extension Just {
 
     func makeOneWayBinding() -> OneWayBinding<Output> {
-        OneWayBinding(publisher: self, cancellable: nil, get: { self.output })
+        OneWayBinding(publisher: self,/* cancellable: nil,*/ get: { self.output })
     }
 }
 
 
 public extension CurrentValueSubject where Failure == Never {
 
-    func makeOneWayBinding() -> OneWayBinding<Output> {
-        OneWayBinding(currentValueSubject: self)
+    func makeOneWayBinding(options: BindingOptions = .default) -> OneWayBinding<Output> {
+        OneWayBinding(currentValueSubject: self, options: options)
     }
 }
 
 
 public extension Publisher where Failure == Never {
 
-    func makeOneWayBinding(initialValue: Output) -> OneWayBinding<Output> {
+    func makeOneWayBinding(initialValue: Output, options: BindingOptions = .default) -> OneWayBinding<Output> {
         var value = initialValue
         let publisher = self
         let cancellable = publisher.sink {
             value = $0
         }
-        return OneWayBinding(publisher: publisher, cancellable: cancellable, get: { value })
+        let binding = OneWayBinding(publisher: publisher, get: { value }, options: options)
+        binding.cancellables.insert(cancellable)
+        return binding
     }
 }

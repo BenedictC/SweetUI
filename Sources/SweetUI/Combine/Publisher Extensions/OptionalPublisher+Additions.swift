@@ -13,7 +13,7 @@ extension Optional: _Optionalable { }
 
 extension _Optionalable {
 
-    fileprivate var asOptional: Optional<Wrapped> {
+    internal var asOptional: Optional<Wrapped> {
         self as! Optional<Wrapped>
     }
 }

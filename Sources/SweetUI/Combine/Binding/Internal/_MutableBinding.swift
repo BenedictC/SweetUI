@@ -7,21 +7,26 @@ public class _MutableBinding<Output>: OneWayBinding<Output> {
 
     // MARK: Properties
 
+    // Value
+
+    public override var value: Output {
+        get { getter() }
+        set { subject.send(newValue) }
+    }
+    private var currentValue: Output?
+
     internal let subject: AnySubject<Output, Never>
+    private let externalStorageToken: AnyHashable?
 
 
     // MARK: Instance life cycle
-
-    internal init(subject: AnySubject<Output, Never>, cancellable: AnyCancellable?, getter: @escaping () -> Output, options: Options = .default) {
-        self.subject = subject
-        super.init(publisher: subject, cancellable: nil, get: getter, options: options)
-    }
 
     public init(
         wrappedValue: Output,
         willSet: @escaping (_ currentValue: Output, _ proposedValue: Output) -> Output = { $1 },
         didSet: @escaping (_ oldValue: Output, _ newValue: Output) -> Void = { _, _ in },
-        options: Options = .default) {
+        options: BindingOptions = .default
+    ) {
         let subject = CurrentValueSubject<Output, Never>(wrappedValue)
         self.subject = AnySubject(
             receiveHandler: { subject.receive(subscriber: $0) },
@@ -34,15 +39,85 @@ public class _MutableBinding<Output>: OneWayBinding<Output> {
             sendCompletionHandler: { _ in /* Bindings can't complete */ },
             sendSubscriptionHandler: { _ in /* ??? */ }
         )
+        self.externalStorageToken = nil
         let getter = { subject.value }
-        super.init(publisher: subject, cancellable: nil, get: getter, options: options)
+        super.init(publisher: subject, get: getter, options: options)
     }
 
-    public override init(currentValueSubject: CurrentValueSubject<Output, Never>, options: Options = .default) {
+    public init(options: BindingOptions = .default) where Output: _Optionalable {
+        let currentValueSubject = CurrentValueSubject<Output.Wrapped?, Never>(nil) as! CurrentValueSubject<Output, Never>
         self.subject = currentValueSubject.eraseToAnySubject()
+        self.externalStorageToken = nil
         super.init(currentValueSubject: currentValueSubject, options: options)
     }
+
+    public init(options: BindingOptions = .default) {
+        let passthroughSubject = PassthroughSubject<Output, Never>()
+        self.subject = passthroughSubject.eraseToAnySubject()
+
+        let externalStorageToken = UUID()
+        self.externalStorageToken = externalStorageToken
+        super.init(
+            publisher: passthroughSubject,
+            get: {
+                let anyValue = deferredStorage[externalStorageToken]
+                guard let anyValue else {
+                    fatalError("Attempted to access value before it has been initialized")
+                }
+                guard let value = anyValue as? Output else {
+                    fatalError()
+                }
+                return value
+            },
+            options: options
+        )
+    }
+
+    public override init(wrappedValue: Output, options: BindingOptions = .default) {
+        let currentValueSubject = CurrentValueSubject<Output, Never>(wrappedValue)
+        self.subject = currentValueSubject.eraseToAnySubject()
+        self.externalStorageToken = nil
+        super.init(currentValueSubject: currentValueSubject, options: options)
+    }
+
+    public override init(currentValueSubject: CurrentValueSubject<Output, Never>, options: BindingOptions = .default) {
+        self.subject = currentValueSubject.eraseToAnySubject()
+        self.externalStorageToken = nil
+        super.init(currentValueSubject: currentValueSubject, options: options)
+    }
+
+    internal init(subject: AnySubject<Output, Never>, cancellable: AnyCancellable?, getter: @escaping () -> Output, options: BindingOptions = .default) {
+        self.subject = subject
+        self.externalStorageToken = nil
+        super.init(publisher: subject, get: getter, options: options)
+    }
+
+
+    // MARK: - Accessors
+
+    func receiveValue(_ fresh: Output) {
+        if let externalStorageToken {
+            deferredStorage[externalStorageToken] = fresh
+        }
+        subject.send(fresh)
+    }
+
+
+    private static func makeCurrentValueSubject() -> CurrentValueSubject<Output, Never>? where Output: _Optionalable {
+        (CurrentValueSubject<Output.Wrapped?, Never>(nil) as! CurrentValueSubject<Output, Never>)
+    }
+
+
+    private static func makeCurrentValueSubject() -> CurrentValueSubject<Output, Never>? {
+        nil
+    }
 }
+
+
+// MARK: - Deferred Initialization
+
+
+private var deferredStorage = [AnyHashable: Any]()
 
 
 // MARK: - Additional initializers
