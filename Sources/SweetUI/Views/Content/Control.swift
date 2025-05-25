@@ -41,9 +41,12 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
 
     // MARK: Instance life cycle
 
-    convenience public init() {
+    public init() {
         let stateBinding = Binding<UIControl.State>(wrappedValue: .normal)
-        self.init(stateBinding: stateBinding)
+        self.stateBinding = stateBinding
+        self.stateChanges = stateBinding
+        super.init(frame: .zero)
+        UIView.initializeBodyHosting(of: self)
     }
 
     internal init(stateBinding: Binding<UIControl.State>) {
