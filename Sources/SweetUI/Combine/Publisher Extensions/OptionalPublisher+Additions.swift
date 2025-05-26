@@ -19,6 +19,22 @@ extension _Optionalable {
 }
 
 
+protocol Flattenable {
+    func flattened() -> Any?
+}
+
+extension Optional: Flattenable {
+    func flattened() -> Any? {
+        switch self {
+        case .some(let x as Flattenable): return x.flattened()
+        case .some(let x): return x
+        case .none: return nil
+        }
+    }
+}
+
+
+
 // MARK: - Nil checks
 
 public extension Publisher where Output: _Optionalable {

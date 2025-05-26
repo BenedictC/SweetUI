@@ -1,7 +1,7 @@
 import Foundation
 
 
-struct UniqueIdentifier {
+struct UniqueIdentifier: Hashable {
 
     static private var count = 0
 

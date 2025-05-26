@@ -387,4 +387,70 @@ extension OneWayBindingTests {
         XCTAssertEqual(textBinding.value, text4)
         XCTAssertEqual(textCollector.collectedValues, [text1, text2, text3, text4])
     }
+
+    func testPublisherBackedBinding() {
+        let double1 = 1.0
+        let child1 = ChildObject(double: double1, rootValue: nil)
+        let root1 = RootObject(childObject: child1)
+        let int1 = 1
+        root1.int = int1
+        let rootSubject = CurrentValueSubject<RootObject, Never>(root1)
+        let rootBinding = rootSubject.makeOneWayBinding()
+
+        let publisherBackedBinding = rootBinding.$intPublished
+        let publisherBackedCollector = BindingCollector(binding: publisherBackedBinding)
+        XCTAssertEqual(publisherBackedBinding.value, int1)
+        XCTAssertEqual(publisherBackedCollector.collectedValues, [int1])
+
+        let int2 = 2
+        root1.int = int2
+        XCTAssertEqual(publisherBackedBinding.value, int2)
+        XCTAssertEqual(publisherBackedCollector.collectedValues, [int1, int2])
+
+        let int3 = 3
+        let root2 = RootObject(childObject: child1)
+        root2.int = int3
+        rootSubject.send(root2)
+        XCTAssertEqual(publisherBackedBinding.value, int3)
+        XCTAssertEqual(publisherBackedCollector.collectedValues, [int1, int2, int3])
+    }
+}
+
+
+// MARK: - Optional subscripts
+
+extension OneWayBindingTests {
+
+    func testOptionalSubscripts() {
+        class Root {
+            @Binding var child: ChildObject?
+        }
+        let rootObject = Root()
+        let rootBinding = Just(rootObject).makeOneWayBinding()
+        let childBinding = rootBinding.$child
+        let childValue = ChildValue(text: "text", texts: ["text"])
+        let otherChildValue = ChildValue(text: "other", texts: ["other"])
+
+        // ChildObject.childValue is optional
+        let binding1: OneWayBinding<ChildValue?> = childBinding[oneWay: \.?.childValue]
+        // The type remains optional because we're not shortcutting the root object
+        let binding2: OneWayBinding<ChildValue?> = childBinding[oneWay: \.?.childValue, default: otherChildValue]
+
+        // The root is being shortcut but the property is still optional
+        let binding3: OneWayBinding<ChildValue?> = childBinding[oneWay: \.childValue]
+        // The root is being shortcut and the property is having a default applied
+        let binding4: OneWayBinding<ChildValue> = childBinding[oneWay: \.childValue, default: otherChildValue]
+
+        XCTAssertEqual(binding1.value, nil)
+        XCTAssertEqual(binding2.value, otherChildValue)
+        XCTAssertEqual(binding3.value, nil)
+        XCTAssertEqual(binding4.value, otherChildValue)
+
+        rootObject.child = ChildObject(double: 0, rootValue: nil)
+        rootObject.child?.childValue = childValue
+        XCTAssertEqual(binding1.value, childValue)
+        XCTAssertEqual(binding2.value, childValue)
+        XCTAssertEqual(binding3.value, childValue)
+        XCTAssertEqual(binding4.value, childValue)
+    }
 }

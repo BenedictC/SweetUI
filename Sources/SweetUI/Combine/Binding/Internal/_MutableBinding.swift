@@ -11,9 +11,8 @@ public class _MutableBinding<Output>: OneWayBinding<Output> {
 
     public override var value: Output {
         get { getter() }
-        set { subject.send(newValue) }
+        set { receiveValue(newValue) }
     }
-    private var currentValue: Output?
 
     internal let subject: AnySubject<Output, Never>
     private let externalStorageToken: AnyHashable?
@@ -55,7 +54,7 @@ public class _MutableBinding<Output>: OneWayBinding<Output> {
         let passthroughSubject = PassthroughSubject<Output, Never>()
         self.subject = passthroughSubject.eraseToAnySubject()
 
-        let externalStorageToken = UUID()
+        let externalStorageToken = UniqueIdentifier("_MutableBinding")
         self.externalStorageToken = externalStorageToken
         super.init(
             publisher: passthroughSubject,
@@ -95,7 +94,7 @@ public class _MutableBinding<Output>: OneWayBinding<Output> {
 
     // MARK: - Accessors
 
-    func receiveValue(_ fresh: Output) {
+    func receiveValue(_ fresh: Output) { 
         if let externalStorageToken {
             deferredStorage[externalStorageToken] = fresh
         }

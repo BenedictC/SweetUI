@@ -8,34 +8,14 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
     
     // MARK: Properties
 
-    // ProjectedValue
-
-    public var projectedValue: Binding<Output> { self }
-
-
-    // WrappedValue
-
     @available(*, unavailable, message: "@Binding is only available on properties of classes")
     public var wrappedValue: Output {
         get { getter() }
         set { receiveValue(newValue) }
     }
+    public var projectedValue: Binding<Output> { self }
 
-    // Subscript to allow classes to access the wrappedValue
-    public static subscript<EnclosingObject: AnyObject>(
-        _enclosingInstance object: EnclosingObject,
-        wrapped wrappedKeyPath: ReferenceWritableKeyPath<EnclosingObject, Output>,
-        storage storageKeyPath: ReferenceWritableKeyPath<EnclosingObject, Binding<Output>>
-    ) -> Output {
-        get {
-            let binding = object[keyPath: storageKeyPath]
-            return binding.getter()
-        }
-        set {
-            let binding = object[keyPath: storageKeyPath]
-            binding.receiveValue(newValue)
-        }
-    }
+    var ancestorSetter: ((Output) -> Void)?
 
 
     // MARK: Instance life cycle
@@ -58,165 +38,104 @@ public final class Binding<Output>: _MutableBinding<Output>, Subject {
     }
 
 
-    // TODO: Make a two-way binding look up graph. Is it even possible?
-//    // MARK: Dynamic member lookup (for creating binding to reference types)
-//
-//    public subscript<T>(dynamicMember bindingKeyPath: KeyPath<Output, some OneWayBinding<T>>) -> OneWayBinding<T> {
-//        if bindingKeyPath == \T.self, let existing = self as? OneWayBinding<T> {
-//            return existing
-//        }
-//        // Create the initial state
-//        let initialValue = self.value[keyPath: bindingKeyPath].value
-//        let subject = CurrentValueSubject<T, Never>(initialValue)
-//        let result = OneWayBinding<T>(currentValueSubject: subject, options: .default)
-//
-//        var previousCancellable: AnyCancellable?
-//        // when self emits a new value ...
-//        let cancellable = self.sink { [weak result] rootObject in
-//            _ = self // retain the previous Binding but don't retain the output as that would great a retain cycle
-//            guard let result else {
-//                return
-//            }
-//            // ... we need to re-construct the value we were binding to
-//            let childBinding = rootObject[keyPath: bindingKeyPath]
-//            if let previousCancellable {
-//                result.cancellables.remove(previousCancellable)
-//                previousCancellable.cancel()
-//            }
-//            let freshCancellable = childBinding.sink { childObject in
-//                subject.send(childObject)
-//            }
-//            result.cancellables.insert(freshCancellable)
-//            previousCancellable = freshCancellable
-//            // Send the child this may have already occured
-//            let updatedChild = rootObject[keyPath: bindingKeyPath].value
-//            subject.send(updatedChild)
-//        }
-//        result.cancellables.insert(cancellable)
-//
-//        return result
-//    }
+    // MARK: Accessors
+
+    // Subscript to allow classes to access the wrappedValue
+    public static subscript<EnclosingObject: AnyObject>(
+        _enclosingInstance object: EnclosingObject,
+        wrapped wrappedKeyPath: ReferenceWritableKeyPath<EnclosingObject, Output>,
+        storage storageKeyPath: ReferenceWritableKeyPath<EnclosingObject, Binding<Output>>
+    ) -> Output {
+        get {
+            let binding = object[keyPath: storageKeyPath]
+            return binding.getter()
+        }
+        set {
+            let binding = object[keyPath: storageKeyPath]
+            binding.receiveValue(newValue)
+        }
+    }
+
+    override func receiveValue(_ fresh: Output) {
+        if let ancestorSetter {
+            ancestorSetter(fresh)
+            return
+        }
+        super.receiveValue(fresh)
+    }
+
+
+    // MARK: Dynamic member lookup (for creating binding to reference types)
+
+    public subscript<T>(dynamicMember bindingKeyPath: KeyPath<Output, some Binding<T>>) -> Binding<T> {
+        // Create the initial state
+        let initialValue = self.value[keyPath: bindingKeyPath].value
+        let subject = CurrentValueSubject<T, Never>(initialValue)
+
+        let result = Binding<T>(currentValueSubject: subject, options: .default)
+        result.ancestorSetter = { (updatedChild: T) -> Void in
+            let bindingOnSelf = self.value[keyPath: bindingKeyPath]
+            bindingOnSelf.value = updatedChild
+            self.receiveValue(self.value)
+        }
+
+        var previousCancellable: AnyCancellable?
+        // when self emits a new value ...
+        let cancellable = self.sink { [weak result] rootObject in
+            _ = self // retain the previous Binding but don't retain the output as that would great a retain cycle
+            guard let result else {
+                return
+            }
+            // ... we need to re-construct the value we were binding to
+            let childBinding = rootObject[keyPath: bindingKeyPath]
+            if let previousCancellable {
+                result.cancellables.remove(previousCancellable)
+                previousCancellable.cancel()
+            }
+            let freshCancellable = childBinding.sink { childObject in
+                subject.send(childObject)
+            }
+            result.cancellables.insert(freshCancellable)
+            previousCancellable = freshCancellable
+            // Send the child this may have already occured
+            let updatedChild = rootObject[keyPath: bindingKeyPath].value
+            subject.send(updatedChild)
+        }
+        result.cancellables.insert(cancellable)
+
+        return result
+    }
+
+    public subscript<T>(_ propertyKeyPath: WritableKeyPath<Output, T>) -> ValueBinding<T> {
+        // Create the initial state
+        let initialValue = self.value[keyPath: propertyKeyPath]
+        let subject = CurrentValueSubject<T, Never>(initialValue)
+
+        let result = ValueBinding<T>(currentValueSubject: subject, options: self.options, setter: { (updated: T) in
+            var newValue = self.value
+            newValue[keyPath: propertyKeyPath] = updated
+            self.value = newValue
+            self.receiveValue(self.value)
+        })
+
+        // when self emits a new value ...
+        let cancellable = self.sink { rootObject in
+            _ = self // retain the previous Binding but don't retain the output as that would great a retain cycle
+            // ... we need to re-construct the value we were binding to
+            let property = rootObject[keyPath: propertyKeyPath]
+            subject.send(property)
+        }
+        result.cancellables.insert(cancellable)
+
+        return result
+    }
 }
 
 
-// MARK: - KeyPath based sub-bindings (for value types)
 
-// TODO: Make a two-way binding look up graph. Is it even possible?
-//public extension OneWayBinding {
-//
-//    subscript<T>(oneWay keyPath: KeyPath<Output, T>) -> OneWayBinding<T> {
-//        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
-//            return existing
-//        }
-//
-//        let rootGetter = getter
-//        return OneWayBinding<T>(
-//            publisher: self.map { $0[keyPath: keyPath] },
-//            get: { rootGetter()[keyPath: keyPath] }
-//        )
-//    }
-//
-//    subscript<T>(oneWay keyPath: KeyPath<Output, T?>, default defaultValue: T) -> OneWayBinding<T> {
-//        if keyPath == \T.self, let existing = self as? OneWayBinding<T> {
-//            return existing
-//        }
-//
-//        let rootGetter = getter
-//        return OneWayBinding<T>(
-//            publisher: self.map { $0[keyPath: keyPath] ?? defaultValue },
-//            get: { rootGetter()[keyPath: keyPath] ?? defaultValue }
-//        )
-//    }
-//}
-//
-//
-//// Allow leading `.?.` to be dropped when self is optional
-//
-//public extension OneWayBinding where Output: _Optionalable {
-//
-//    subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T>) -> OneWayBinding<T?> {
-//        let rootGetter = getter
-//        return OneWayBinding<T?>(
-//            publisher: self.map { value in
-//                value[keyPath: \Output.asOptional]?[keyPath: keyPath]
-//            },
-//            get: { rootGetter()[keyPath: \Output.asOptional]?[keyPath: keyPath] }
-//        )
-//    }
-//
-//    subscript<T>(oneWay keyPath: KeyPath<Output.Wrapped, T?>, default defaultValue: T) -> OneWayBinding<T> {
-//        let rootGetter = getter
-//        return OneWayBinding<T>(
-//            publisher: self.map { value in
-//                value[keyPath: \Output.asOptional]?[keyPath: keyPath] ?? defaultValue
-//            },
-//            get: { rootGetter()[keyPath: \Output.asOptional]?[keyPath: keyPath] ?? defaultValue }
-//        )
-//    }
-//}
+public extension CurrentValueSubject where Failure == Never {
 
-
-// MARK: - Avoid collision with another framework
-
-public typealias UIBinding = Binding
-
-
-
-// MARK: - Subscripts
-
-public extension Binding {
-
-//    subscript<T>(_ keyPath: WritableKeyPath<Output, T>) -> Binding<T> {
-//        if keyPath == \.self, let existing = self as? Binding<T> { return existing }
-//
-//        let rootSubject = subject
-//        let rootGetter = getter
-//        let setter = { (newValue: T) in
-//            var rootValue = rootGetter()
-//            rootValue[keyPath: keyPath] = newValue
-//            rootSubject.send(rootValue)
-//        }
-//        let subject = AnySubject(
-//            get: publisher.map { $0[keyPath: keyPath] },
-//            set: setter
-//        )
-//        fatalError()
-//        """
-//        let binding = Binding<T>(
-//            subject: subject,
-//            getter: {
-//                let root = rootGetter()
-//                return root[keyPath: keyPath]
-//            }
-//        )
-//        return binding
-//        """
-//    }
-//
-//    subscript<T>(_ keyPath: WritableKeyPath<Output, Optional<T>>, default defaultValue: T) -> Binding<T> {
-//        if keyPath == \.self, let existing = self as? Binding<T> { return existing }
-//
-//        let rootSubject = subject
-//        let rootGetter = getter
-//        let setter = { (newValue: T) in
-//            var rootValue = rootGetter()
-//            rootValue[keyPath: keyPath] = newValue
-//            rootSubject.send(rootValue)
-//        }
-//        let subject = AnySubject(
-//            get: publisher.map { $0[keyPath: keyPath] ?? defaultValue },
-//            set: setter
-//        )
-//        fatalError()
-//        """
-//        let binding = Binding<T>(
-//            subject: subject,
-//            getter: {
-//                let root = rootGetter()
-//                return root[keyPath: keyPath] ?? defaultValue
-//            }
-//        )
-//        return binding
-//        """
-//    }
+    func makeBinding(options: BindingOptions = .default) -> Binding<Output> {
+        Binding(currentValueSubject: self, options: options)
+    }
 }

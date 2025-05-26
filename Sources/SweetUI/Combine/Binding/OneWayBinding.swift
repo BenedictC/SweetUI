@@ -75,7 +75,7 @@ public class OneWayBinding<Output>: Publisher {
         // Create the initial state
         let initialValue = self.value[keyPath: bindingKeyPath].value
         let subject = CurrentValueSubject<T, Never>(initialValue)
-        let result = OneWayBinding<T>(currentValueSubject: subject, options: .default)
+        let result = OneWayBinding<T>(currentValueSubject: subject, options: self.options)
 
         var previousCancellable: AnyCancellable?
         // when self emits a new value ...
@@ -95,13 +95,79 @@ public class OneWayBinding<Output>: Publisher {
             }
             result.cancellables.insert(freshCancellable)
             previousCancellable = freshCancellable
-            // Send the child this may have already occured
+            // Send the child this may have already occurred
             let updatedChild = rootObject[keyPath: bindingKeyPath].value
             subject.send(updatedChild)
         }
         result.cancellables.insert(cancellable)
 
         return result
+    }
+
+    public subscript<T>(dynamicMember publisherKeyPath: KeyPath<Output, Published<T>.Publisher>) -> OneWayBinding<T> {
+        // Create the initial state
+        let childPublisher = self.value[keyPath: publisherKeyPath]
+        var initialValue: T!
+        let initialCancellable = childPublisher.sink { initialValue = $0 }
+
+        if let initialValue {
+            initialCancellable.cancel()
+            let subject = CurrentValueSubject<T, Never>(initialValue)
+            let result = OneWayBinding<T>(currentValueSubject: subject, options: self.options)
+
+            var previousCancellable: AnyCancellable?
+            // when self emits a new value ...
+            let cancellable = self.sink { [weak result] rootObject in
+                _ = self // retain the previous Binding but don't retain the output as that would great a retain cycle
+                guard let result else {
+                    return
+                }
+                // ... we need to re-construct the value we were binding to
+                let childBinding = rootObject[keyPath: publisherKeyPath]
+                if let previousCancellable {
+                    result.cancellables.remove(previousCancellable)
+                    previousCancellable.cancel()
+                }
+                let freshCancellable = childBinding.sink { childObject in
+                    subject.send(childObject)
+                }
+                result.cancellables.insert(freshCancellable)
+                previousCancellable = freshCancellable
+            }
+            result.cancellables.insert(cancellable)
+            return result
+        } else {
+            // It would be very strange if publisher immediately supply a value but it's possible according to
+            // the api contract. This is untested.
+            initialCancellable.cancel()
+            var currentValue: T!
+            let subject = PassthroughSubject<T, Never>()
+            let result = OneWayBinding<T>(publisher: subject, get: { currentValue }, options: self.options)
+
+            var previousCancellable: AnyCancellable?
+            // when self emits a new value ...
+            let cancellable = self.sink { [weak result] rootObject in
+                _ = self // retain the previous Binding but don't retain the output as that would great a retain cycle
+                guard let result else {
+                    return
+                }
+                // ... we need to re-construct the value we were binding to
+                let childPublisher = rootObject[keyPath: publisherKeyPath]
+                if let previousCancellable {
+                    result.cancellables.remove(previousCancellable)
+                    previousCancellable.cancel()
+                }
+                let freshCancellable = childPublisher.sink { childObject in
+                    subject.send(childObject)
+                    // Set after sending so that the old value is still accessible in sinks
+                    currentValue = childObject
+                }
+                result.cancellables.insert(freshCancellable)
+                previousCancellable = freshCancellable
+            }
+            result.cancellables.insert(cancellable)
+            return result
+        }
     }
 }
 
@@ -123,15 +189,24 @@ public extension OneWayBinding {
     }
 
     subscript<T: _Optionalable>(oneWay keyPath: KeyPath<Output, T>, default defaultValue: T.Wrapped) -> OneWayBinding<T.Wrapped> {
+        func fetchAndUnwrap(root: Output) -> T.Wrapped {
+            let anyValue = root[keyPath: keyPath] as Any?
+            let anyFlattenedValue = anyValue.flattened() as? T.Wrapped?
+
+            if let flattendValue = anyFlattenedValue {
+                return flattendValue ?? defaultValue
+            } else {
+                return defaultValue
+            }
+        }
+        
         let rootGetter = getter
         return OneWayBinding<T.Wrapped>(
             publisher: self.map { root in
-                let value = root[keyPath: keyPath].asOptional
-                return value ?? defaultValue
+                fetchAndUnwrap(root: root)
             },
             get: {
-                let value: T = rootGetter()[keyPath: keyPath]
-                return value.asOptional ?? defaultValue
+                fetchAndUnwrap(root: rootGetter())
             }
         )
     }
