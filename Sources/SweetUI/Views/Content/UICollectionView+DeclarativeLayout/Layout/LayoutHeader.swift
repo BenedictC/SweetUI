@@ -1,3 +1,5 @@
+
+
 public struct LayoutHeader {
 
     // MARK: Types
@@ -64,7 +66,6 @@ public struct LayoutHeader {
 public extension LayoutHeader {
 
     init<Content: UIView>(
-        bindingOptions: BindingOptions = .default,
         contentBuilder: @escaping () -> Content
     ) {
         typealias CellType = ContentCell<Content>

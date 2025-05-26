@@ -3,15 +3,15 @@ import Combine
 
 // MARK: -
 
-public protocol _Optionalable {
+public protocol _Optionable {
     associatedtype Wrapped
 }
 
 
-extension Optional: _Optionalable { }
+extension Optional: _Optionable { }
 
 
-extension _Optionalable {
+extension _Optionable {
 
     internal var asOptional: Optional<Wrapped> {
         self as! Optional<Wrapped>
@@ -19,25 +19,9 @@ extension _Optionalable {
 }
 
 
-protocol Flattenable {
-    func flattened() -> Any?
-}
-
-extension Optional: Flattenable {
-    func flattened() -> Any? {
-        switch self {
-        case .some(let x as Flattenable): return x.flattened()
-        case .some(let x): return x
-        case .none: return nil
-        }
-    }
-}
-
-
-
 // MARK: - Nil checks
 
-public extension Publisher where Output: _Optionalable {
+public extension Publisher where Output: _Optionable {
 
     var isNil: some Publisher<Bool, Failure> {
         map { $0.asOptional == nil }

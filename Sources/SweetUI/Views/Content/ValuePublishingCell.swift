@@ -1,42 +1,42 @@
+
 // MARK: - ValuePublishingCell
 
 internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableViewConfigurable, CancellableStorageProvider {
 
     // MARK: Properties
 
-    typealias BodyProvider = ((UICollectionViewCell, OneWayBinding<Value>) -> UIView)
+    typealias BodyProvider = ((UICollectionViewCell, AnyPublisher<Value, Never>) -> UIView)
 
 
     // MARK: Properties
 
     let cancellableStorage = CancellableStorage()
-    private var bindingOptions: BindingOptions = .default
     private var bodyProvider: BodyProvider?
-    private var binding: Binding<Value>?
+    @Published private var value: Value!
 
 
     // MARK: - ReusableViewConfigurable
 
-    func initialize(bindingOptions: BindingOptions, bodyProvider: @escaping BodyProvider) {
-        self.bindingOptions = bindingOptions
+    func initialize(bodyProvider: @escaping BodyProvider) {
         self.bodyProvider = bodyProvider
     }
 
-    func configure(withValue value: Value) {
-        CancellableStorage.push(cancellableStorage)
-        defer { CancellableStorage.pop(expected: cancellableStorage) }
-
-        if let binding {
-            // Use already created
-            binding.send(value)
+    func configure(withValue freshValue: Value) {
+        let isInitialized = value != nil
+        if isInitialized {
+            self.value = freshValue
             return
         }
+
         // Create binding and body
-        self.binding = Binding(wrappedValue: value, options: bindingOptions)
-        guard let bodyProvider, let binding else {
+        CancellableStorage.push(cancellableStorage)
+        defer { CancellableStorage.pop(expected: cancellableStorage) }
+        
+        self.value = freshValue
+        guard let bodyProvider else {
             preconditionFailure("Misconfigured cell")
         }
-        let body = bodyProvider(self, binding)
+        let body = bodyProvider(self, $value.map { $0! }.eraseToAnyPublisher())
 
         self.contentView.addSubview(body)
         body.translatesAutoresizingMaskIntoConstraints = false

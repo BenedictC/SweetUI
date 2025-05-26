@@ -67,8 +67,7 @@ public struct SectionFooter<SectionIdentifier> {
 public extension SectionFooter {
 
     init(
-        bindingOptions: BindingOptions = .default,
-        contentBuilder: @escaping (UICollectionViewCell, OneWayBinding<SectionIdentifier>) -> UIView
+        contentBuilder: @escaping (UICollectionViewCell, AnyPublisher<SectionIdentifier, Never>) -> UIView
     ) {
         typealias CellType = ValuePublishingCell<SectionIdentifier>
         let elementKind = self.elementKind
@@ -78,7 +77,7 @@ public extension SectionFooter {
         }
         self.supplementProvider = { elementKind, collectionView, indexPath, sectionIdentifier in
             let cell = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-            cell.initialize(bindingOptions: bindingOptions, bodyProvider: contentBuilder)
+            cell.initialize(bodyProvider: contentBuilder)
             cell.configure(withValue: sectionIdentifier)
             return cell
         }

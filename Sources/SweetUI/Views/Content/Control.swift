@@ -1,6 +1,5 @@
 import Foundation
 import UIKit
-import Combine
 
 
 // MARK: - View
@@ -15,9 +14,9 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     // MARK: Properties
 
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
-    public let stateChanges: OneWayBinding<UIControl.State>
+    public var stateChanges: Published<UIControl.State>.Publisher { $_stateChanges }
 
-    private let stateBinding: Binding<UIControl.State>
+    @Published private var _stateChanges = UIControl.State.normal
     private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     fileprivate lazy var defaultCancellableStorage = CancellableStorage()
 
@@ -42,16 +41,12 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     // MARK: Instance life cycle
 
     public init() {
-        let stateBinding = Binding<UIControl.State>(wrappedValue: .normal)
-        self.stateBinding = stateBinding
-        self.stateChanges = stateBinding
         super.init(frame: .zero)
         UIView.initializeBodyHosting(of: self)
     }
 
-    internal init(stateBinding: Binding<UIControl.State>) {
-        self.stateBinding = stateBinding
-        self.stateChanges = stateBinding
+    internal init(stateChanges: Published<UIControl.State>) {
+        self.__stateChanges = stateChanges
         super.init(frame: .zero)
         UIView.initializeBodyHosting(of: self)
     }
@@ -89,7 +84,7 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     // MARK: State management
 
     private func notifyOfStateChange() {
-        stateBinding.send(state)        
+        _stateChanges = state
     }
 }
 

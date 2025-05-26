@@ -24,7 +24,7 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
 
     // MARK: Properties
 
-    @Binding.OneWay
+    @Published
     public private(set) var snapshot: Snapshot
     private weak var collectionView: UICollectionView?
     private var dataSource: DataSource?

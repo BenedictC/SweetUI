@@ -65,9 +65,7 @@ public extension BoundarySupplement {
         extendsBoundary: Bool?,
         pinToVisibleBounds: Bool?,
         zIndex: Int?,
-
-        bindingOptions: BindingOptions = .default,
-        contentBuilder: @escaping (_ binding: OneWayBinding<Value>) -> UIView
+        contentBuilder: @escaping (_ binding: AnyPublisher<Value, Never>) -> UIView
     ) {
         typealias CellType = ValuePublishingCell<Value>
         let elementKind = UniqueIdentifier("\(Self.self) elementKind").value
@@ -90,7 +88,7 @@ public extension BoundarySupplement {
             },
             supplementProvider: { _, collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-                cell.initialize(bindingOptions: bindingOptions, bodyProvider: { contentBuilder($1) })
+                cell.initialize(bodyProvider: { contentBuilder($1) })
                 cell.configure(withValue: value)
                 return cell
             }
@@ -110,8 +108,6 @@ public extension BoundarySupplement {
         extendsBoundary: Bool?,
         pinToVisibleBounds: Bool?,
         zIndex: Int?,
-
-        bindingOptions: BindingOptions = .default,
         contentBuilder: @escaping (_ existing: Content?, _ value: Value) -> Content
     ) {
         typealias CellType = ContentCell<Content>

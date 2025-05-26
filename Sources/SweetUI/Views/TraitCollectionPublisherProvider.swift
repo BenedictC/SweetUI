@@ -15,14 +15,14 @@ public protocol TraitCollectionChangesProvider: AnyObject {
 
 class TraitCollectionChangesController {
 
-    private let subject: CurrentValueSubject<TraitCollectionChanges, Never>
-    var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { subject.eraseToAnyPublisher() }
+    @Published private var _traitCollectionChanges: TraitCollectionChanges
+    var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { $_traitCollectionChanges.eraseToAnyPublisher() }
 
     init(initialTraitCollection: UITraitCollection) {
-        self.subject = CurrentValueSubject((nil, initialTraitCollection))
+        self._traitCollectionChanges = (nil, initialTraitCollection)
     }
 
     func send(previous: UITraitCollection?, current: UITraitCollection) {
-        subject.send((previous, current))
+        _traitCollectionChanges = (previous, current)
     }
 }

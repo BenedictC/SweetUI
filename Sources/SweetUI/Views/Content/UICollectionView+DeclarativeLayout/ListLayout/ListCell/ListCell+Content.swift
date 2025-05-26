@@ -32,8 +32,7 @@ public extension ListCell {
 public extension ListCell {
 
     static func withContent(
-        bindingOptions: BindingOptions = .default,
-        contentBuilder: @escaping (UICollectionViewCell, OneWayBinding<ItemIdentifier>) -> UIView
+        contentBuilder: @escaping (UICollectionViewCell, AnyPublisher<ItemIdentifier, Never>) -> UIView
     ) -> ListCell<ItemIdentifier> {
         typealias CellType = ValuePublishingCell<ItemIdentifier>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
@@ -43,7 +42,7 @@ public extension ListCell {
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-                cell.initialize(bindingOptions: bindingOptions, bodyProvider: contentBuilder)
+                cell.initialize(bodyProvider: contentBuilder)
                 cell.configure(withValue: value)
                 return cell
             }

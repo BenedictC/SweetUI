@@ -67,7 +67,6 @@ public struct LayoutFooter {
 public extension LayoutFooter {
 
     init<Content: UIView>(
-        bindingOptions: BindingOptions = .default,
         contentBuilder: @escaping () -> Content
     ) {
         typealias CellType = ContentCell<Content>

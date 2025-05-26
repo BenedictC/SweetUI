@@ -116,11 +116,14 @@ public final class Carousel: UIView {
                 }
             )
         }
+
+        adjustScrollViewContentInset()
     }
 
     public override func layoutSubviews() {
         super.layoutSubviews()
         setContentOffsetToShowItem(at: selectedItemIndex, animated: false)
+        adjustScrollViewContentInset()
     }
 
 
@@ -195,6 +198,10 @@ private extension Carousel {
                 selectedItemIndexSubject.send(itemIndex)
             }
         }
+    }
+
+    func adjustScrollViewContentInset() {
+        // TODO: adjust inset so that the last page doesn't have trailing whitespace
     }
 }
 

@@ -39,8 +39,7 @@ public extension CompositeCell {
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
-        bindingOptions: BindingOptions = .default,
-        body bodyProvider: @escaping (UICollectionViewCell, OneWayBinding<ItemIdentifier>) -> UIView
+        body bodyProvider: @escaping (UICollectionViewCell, AnyPublisher<ItemIdentifier, Never>) -> UIView
     ) -> CompositeCell {
         typealias CellType = ValuePublishingCell<ItemIdentifier>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
@@ -50,7 +49,7 @@ public extension CompositeCell {
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-                cell.initialize(bindingOptions: bindingOptions, bodyProvider: bodyProvider)
+                cell.initialize(bodyProvider: bodyProvider)
                 cell.configure(withValue: value)
                 return cell
             },

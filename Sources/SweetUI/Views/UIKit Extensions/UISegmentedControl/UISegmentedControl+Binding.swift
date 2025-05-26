@@ -1,6 +1,6 @@
 import Foundation
-import UIKit
 import Combine
+import UIKit
 
 
 public extension UISegmentedControl {

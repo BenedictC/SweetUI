@@ -1,7 +1,7 @@
 import UIKit
-import Combine
 
-public typealias FirstResponderState<T: Hashable> = Binding<T>
+
+public typealias FirstResponderState<T: Hashable> = AnyPublisher<T, Never>
 
 
 public extension UIView {

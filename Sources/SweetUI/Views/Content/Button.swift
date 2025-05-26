@@ -16,14 +16,14 @@ public final class Button<Body: UIView>: Control {
 
     // MARK: Instance life cycle
 
-    public init(body bodyFactory: (OneWayBinding<UIControl.State>) -> Body) {
-        let binding = Binding(wrappedValue: UIControl.State.normal)
+    public init(body bodyFactory: (AnyPublisher<UIControl.State, Never>) -> Body) {
+        var stateChanges = Published(wrappedValue: UIControl.State.normal)
         let cancellables = CancellableStorage()
         CancellableStorage.push(cancellables)
-        self.body = bodyFactory(binding)
+        self.body = bodyFactory(stateChanges.projectedValue.eraseToAnyPublisher())
         CancellableStorage.pop(expected: cancellables)
         self.hitTestHandler = Self.makeDefaultHitTestProvider()
-        super.init(stateBinding: binding)
+        super.init(stateChanges: stateChanges)
         self.cancellableStorage.adoptCancellables(from: cancellables)
         self.accessibilityTraits = [.button]
     }

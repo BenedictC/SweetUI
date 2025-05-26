@@ -1,8 +1,5 @@
 # TODO
 
-- BoundarySupplement
-    - LayoutHeader/LayoutFooter inits
-    - SectionHeader/SectionFooter inits
 - SectionSupplement
 - GroupSupplement
 - GroupItemSupplement
@@ -11,11 +8,10 @@
 
 
 
-
 - Remove `preconditionFailure`s in collectionView layout where possible.
 
 - Bindings and inits for:
-    - UIPageControl + UIPageControlProgress
+    - UIPageControlProgress
     - UISegmentedControl
     - UISlider.value // Copy and paste of textField.text binding?
     - UIStepper.value // Copy and paste of textField.text binding?
@@ -38,9 +34,6 @@
 - Rationalize ViewController init. 
 - Rationalize View init
 - Rationalize CollectionView factory
-
-- Content Views:
-    - Link? // wraps another view and when tapped opens `self.destination`
     
 - Debug helpers?
     - Bug: calls to cancellableStorage during awake cause an erroneous runtime warning

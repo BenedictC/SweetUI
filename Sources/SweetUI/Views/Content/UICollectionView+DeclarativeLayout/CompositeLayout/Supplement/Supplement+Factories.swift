@@ -83,7 +83,7 @@ public extension Supplement {
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
-        body bodyProvider: @escaping (OneWayBinding<Value>) -> UIView)
+        body bodyProvider: @escaping (AnyPublisher<Value, Never>) -> UIView)
     {
         let viewClass = ValuePublishingCell<Value>.self
         let elementKind = UniqueIdentifier("SupplementaryView").value
@@ -104,7 +104,7 @@ public extension Supplement {
             supplementProvider: { eKind, collectionView, indexPath, itemIdentifier in
                 guard elementKind == eKind else { return nil }
                 let view = collectionView.dequeueReusableSupplementaryView(ofKind: elementKind, withReuseIdentifier: elementKind, for: indexPath) as! ValuePublishingCell<Value>
-                view.initialize(bindingOptions: .default, bodyProvider: {_, publisher in bodyProvider(publisher) })
+                view.initialize(bodyProvider: {_, publisher in bodyProvider(publisher) })
                 view.configure(withValue: itemIdentifier)
                 return view
             }
