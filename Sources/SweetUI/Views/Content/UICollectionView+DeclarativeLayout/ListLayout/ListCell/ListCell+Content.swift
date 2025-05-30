@@ -32,7 +32,7 @@ public extension ListCell {
 public extension ListCell {
 
     static func withContent(
-        contentBuilder: @escaping (UICollectionViewCell, AnyPublisher<ItemIdentifier, Never>) -> UIView
+        contentBuilder: @escaping (UICollectionViewCell, any CurrentValuePublisher<ItemIdentifier, Never>) -> UIView
     ) -> ListCell<ItemIdentifier> {
         typealias CellType = ValuePublishingCell<ItemIdentifier>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value

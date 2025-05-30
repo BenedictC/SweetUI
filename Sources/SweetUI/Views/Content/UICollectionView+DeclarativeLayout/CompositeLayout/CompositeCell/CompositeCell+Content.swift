@@ -39,7 +39,7 @@ public extension CompositeCell {
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
-        body bodyProvider: @escaping (UICollectionViewCell, AnyPublisher<ItemIdentifier, Never>) -> UIView
+        body bodyProvider: @escaping (UICollectionViewCell, any CurrentValuePublisher<ItemIdentifier, Never>) -> UIView
     ) -> CompositeCell {
         typealias CellType = ValuePublishingCell<ItemIdentifier>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value

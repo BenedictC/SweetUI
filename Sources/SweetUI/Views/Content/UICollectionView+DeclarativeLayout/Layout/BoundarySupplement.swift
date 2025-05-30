@@ -65,7 +65,7 @@ public extension BoundarySupplement {
         extendsBoundary: Bool?,
         pinToVisibleBounds: Bool?,
         zIndex: Int?,
-        contentBuilder: @escaping (_ binding: AnyPublisher<Value, Never>) -> UIView
+        contentBuilder: @escaping (_ binding: any CurrentValuePublisher<Value, Never>) -> UIView
     ) {
         typealias CellType = ValuePublishingCell<Value>
         let elementKind = UniqueIdentifier("\(Self.self) elementKind").value

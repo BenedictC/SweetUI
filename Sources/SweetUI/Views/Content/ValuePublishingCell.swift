@@ -5,14 +5,14 @@ internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableV
 
     // MARK: Properties
 
-    typealias BodyProvider = ((UICollectionViewCell, AnyPublisher<Value, Never>) -> UIView)
+    typealias BodyProvider = ((UICollectionViewCell, any CurrentValuePublisher<Value, Never>) -> UIView)
 
 
     // MARK: Properties
 
     let cancellableStorage = CancellableStorage()
     private var bodyProvider: BodyProvider?
-    @Published private var value: Value!
+    private var valueSubject: CurrentValueSubject<Value, Never>!
 
 
     // MARK: - ReusableViewConfigurable
@@ -22,21 +22,21 @@ internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableV
     }
 
     func configure(withValue freshValue: Value) {
-        let isInitialized = value != nil
+        let isInitialized = valueSubject != nil
         if isInitialized {
-            self.value = freshValue
+            self.valueSubject.send(freshValue)
             return
         }
 
         // Create binding and body
         CancellableStorage.push(cancellableStorage)
         defer { CancellableStorage.pop(expected: cancellableStorage) }
-        
-        self.value = freshValue
+
+        self.valueSubject = CurrentValueSubject(freshValue)
         guard let bodyProvider else {
             preconditionFailure("Misconfigured cell")
         }
-        let body = bodyProvider(self, $value.map { $0! }.eraseToAnyPublisher())
+        let body = bodyProvider(self, valueSubject)
 
         self.contentView.addSubview(body)
         body.translatesAutoresizingMaskIntoConstraints = false

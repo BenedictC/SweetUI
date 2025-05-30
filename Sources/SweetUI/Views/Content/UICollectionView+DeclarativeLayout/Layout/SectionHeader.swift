@@ -67,7 +67,7 @@ public struct SectionHeader<SectionIdentifier> {
 public extension SectionHeader {
 
     init(
-        contentBuilder: @escaping (UICollectionViewCell, AnyPublisher<SectionIdentifier, Never>) -> UIView
+        contentBuilder: @escaping (UICollectionViewCell, any CurrentValuePublisher<SectionIdentifier, Never>) -> UIView
     ) {
         typealias CellType = ValuePublishingCell<SectionIdentifier>
         let elementKind = self.elementKind

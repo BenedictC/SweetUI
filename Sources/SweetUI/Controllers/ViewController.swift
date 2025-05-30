@@ -51,7 +51,7 @@ open class _ViewController: UIViewController, TraitCollectionChangesProvider {
     private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     public var traitCollectionChanges: AnyPublisher<TraitCollectionChanges, Never> { traitCollectionChangesController.traitCollectionChanges }
     @Published public private(set) var editMode: EditMode = .inactive
-    fileprivate lazy var defaultCancellableStorage = CancellableStorage()
+    internal lazy var defaultCancellableStorage = CancellableStorage()
 
     private let retainCycleAdvice =
     """

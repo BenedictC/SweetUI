@@ -83,7 +83,7 @@ public extension Supplement {
         size: NSCollectionLayoutSize? = nil,
         containerAnchor: NSCollectionLayoutAnchor,
         itemAnchor: NSCollectionLayoutAnchor? = nil,
-        body bodyProvider: @escaping (AnyPublisher<Value, Never>) -> UIView)
+        body bodyProvider: @escaping (any CurrentValuePublisher<Value, Never>) -> UIView)
     {
         let viewClass = ValuePublishingCell<Value>.self
         let elementKind = UniqueIdentifier("SupplementaryView").value
