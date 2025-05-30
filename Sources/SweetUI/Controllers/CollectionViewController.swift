@@ -58,6 +58,10 @@ public extension CollectionViewControllerRequirements where Self: _CollectionVie
     }
 
     var cancellableStorage: CancellableStorage { defaultCancellableStorage }
+
+    func awake() {
+        
+    }
 }
 
 
