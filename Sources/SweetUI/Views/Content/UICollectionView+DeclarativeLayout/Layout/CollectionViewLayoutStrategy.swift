@@ -6,7 +6,7 @@ import Combine
 // MARK: - CollectionViewLayoutStrategy
 
 @available(iOS 14, *)
-public protocol CollectionViewLayoutStrategy {
+public protocol CollectionViewLayoutStrategy<SectionIdentifier, ItemIdentifier> {
 
     associatedtype SectionIdentifier: Hashable
     associatedtype ItemIdentifier: Hashable

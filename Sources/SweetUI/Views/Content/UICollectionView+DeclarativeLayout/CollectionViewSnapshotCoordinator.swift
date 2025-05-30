@@ -10,7 +10,6 @@ public enum CollectionViewSnapshotCoordinatorUpdateMode {
 
 
 @available(iOS 14, *)
-@MainActor
 public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
 
     // MARK: Types
@@ -63,9 +62,48 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
     }
 
 
-    // MARK: Snapshot updating
+    // MARK: Factory
 
-    public func updateSnapshot(
+    public func newSnapshot() -> Snapshot {
+        Snapshot()
+    }
+
+
+    // MARK: Queue
+
+    private func enqueue(action: @escaping UpdateAction) {
+        pendingActions.append(action)
+        dequeueNextAction()
+    }
+
+    private func dequeueNextAction() {
+        guard currentAction == nil,
+        let dataSource else {
+            return
+        }
+        guard !pendingActions.isEmpty else {
+            return
+        }
+        let action = pendingActions.removeFirst()
+        currentAction = action
+        Task { @MainActor in
+            await withCheckedContinuation { continuation in
+                action(dataSource, continuation)
+            }
+            currentAction = nil
+            dequeueNextAction()
+        }
+    }
+}
+
+
+// MARK: - Snapshot updating
+
+@available(iOS 14, *)
+@MainActor
+public extension CollectionViewSnapshotCoordinator {
+
+    func updateSnapshot(
         withMode updateMode: UpdateMode = .animated,
         changes: @escaping (Snapshot) -> Snapshot?,
         completion: ((Bool, Snapshot) -> Void)? = nil
@@ -106,7 +144,7 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
         }
     }
 
-    public func updateSnapshot(
+    func updateSnapshot(
         _ snapshot: Snapshot,
         mode: UpdateMode = .animated,
         completion: ((Snapshot) -> Void)? = nil
@@ -121,7 +159,7 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
 
     // MARK: SectionSnapshot updating
 
-    public func updateSectionSnapshot(
+    func updateSectionSnapshot(
         animatingDifferences animated: Bool = true,
         changes: @escaping (Snapshot) -> (SectionIdentifier, SectionSnapshot)?,
         completion: ((Bool, Snapshot) -> Void)? = nil
@@ -148,46 +186,13 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
             dataSource.apply(sectionSnapshot, to: sectionIdentifier, animatingDifferences: animated, completion: dataSourceCompletion)
         }
     }
-
-
-    // MARK: Factory
-
-    public func newSnapshot() -> Snapshot {
-        Snapshot()
-    }
-
-
-    // MARK: Queue
-
-    private func enqueue(action: @escaping UpdateAction) {
-        pendingActions.append(action)
-        dequeueNextAction()
-    }
-
-    private func dequeueNextAction() {
-        guard currentAction == nil,
-        let dataSource else {
-            return
-        }
-        guard !pendingActions.isEmpty else {
-            return
-        }
-        let action = pendingActions.removeFirst()
-        currentAction = action
-        Task {
-            await withCheckedContinuation { continuation in
-                action(dataSource, continuation)
-            }
-            currentAction = nil
-            dequeueNextAction()
-        }
-    }
 }
 
 
 // MARK: - Async variants
 
 @available(iOS 14, *)
+@MainActor
 public extension CollectionViewSnapshotCoordinator {
 
     @discardableResult
