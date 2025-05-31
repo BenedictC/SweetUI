@@ -18,7 +18,7 @@ public protocol CollectionViewControllerRequirements: _ViewControllerRequirement
     associatedtype SectionIdentifier: Hashable
     associatedtype ItemIdentifier: Hashable
     associatedtype LayoutStrategy: CollectionViewLayoutStrategy<SectionIdentifier, ItemIdentifier>
-
+    typealias SnapshotCoordinator = CollectionViewSnapshotCoordinator<SectionIdentifier, ItemIdentifier>
 
     var rootView: View { get }
 
@@ -48,11 +48,11 @@ public extension CollectionViewControllerRequirements where Self: _CollectionVie
         return collectionView
     }
 
-    var snapshotCoordinator: CollectionViewSnapshotCoordinator<SectionIdentifier, ItemIdentifier> {
-        if let coordinator = defaultSnapshotCoordinator as? CollectionViewSnapshotCoordinator<SectionIdentifier, ItemIdentifier> {
+    var snapshotCoordinator: SnapshotCoordinator {
+        if let coordinator = defaultSnapshotCoordinator as? SnapshotCoordinator {
             return coordinator
         }
-        let coordinator = CollectionViewSnapshotCoordinator<SectionIdentifier, ItemIdentifier>()
+        let coordinator = SnapshotCoordinator()
         self.defaultSnapshotCoordinator = coordinator
         return coordinator
     }
@@ -60,7 +60,7 @@ public extension CollectionViewControllerRequirements where Self: _CollectionVie
     var cancellableStorage: CancellableStorage { defaultCancellableStorage }
 
     func awake() {
-        
+
     }
 }
 
