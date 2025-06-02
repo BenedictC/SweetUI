@@ -1,7 +1,7 @@
 import UIKit
 
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListCell {
 
     static func withListCell(

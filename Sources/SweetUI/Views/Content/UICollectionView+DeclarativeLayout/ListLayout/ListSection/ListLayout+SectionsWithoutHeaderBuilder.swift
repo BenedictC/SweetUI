@@ -3,7 +3,7 @@ import UIKit
 
 // MARK: - Layout
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListLayout {
 
     typealias ListSectionWithoutHeader = ListSection<SectionIdentifier, ItemIdentifier, Void>
@@ -16,6 +16,7 @@ public extension ListLayout {
         sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil,
         header: LayoutHeader? = nil,
         footer: LayoutFooter? = nil,
+        background: LayoutBackground? = nil,
         @ArrayBuilder<ListSectionWithoutHeader>
         sectionsWithoutHeader sections: () -> [ListSectionWithoutHeader]
     ) {
@@ -23,6 +24,7 @@ public extension ListLayout {
             configuration: configuration,
             header: header,
             footer: footer,
+            background: background,
             sections: sections().map { $0.eraseToAnyListSection() }
         )
         let behaviors = CollectionViewLayoutBehaviors(
@@ -41,6 +43,7 @@ public extension ListLayout {
         sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil,
         header: LayoutHeader? = nil,
         footer: LayoutFooter? = nil,
+        background: LayoutBackground? = nil,
         @ArrayBuilder<ListCell<ItemIdentifier>>
         cells: () -> [ListCell<ItemIdentifier>]
     ) {
@@ -49,6 +52,7 @@ public extension ListLayout {
             configuration: configuration,
             header: header,
             footer: footer,
+            background: background,
             sections: [section]
         )
         let behaviors = CollectionViewLayoutBehaviors(
@@ -63,7 +67,7 @@ public extension ListLayout {
 
 // MARK: - ListSection
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListSection where HeaderType == Void {
 
     init(
@@ -93,7 +97,7 @@ public extension ListSection where HeaderType == Void {
     }
 }
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListSection where HeaderType == Void {
 
     init(

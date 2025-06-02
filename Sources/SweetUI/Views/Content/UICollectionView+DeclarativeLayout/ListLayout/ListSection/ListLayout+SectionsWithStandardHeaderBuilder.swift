@@ -3,7 +3,7 @@ import UIKit
 
 // MARK: - Layout
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListLayout {
 
     typealias ListSectionWithStandardHeader = ListSection<SectionIdentifier, ItemIdentifier, SectionIdentifier>
@@ -16,6 +16,7 @@ public extension ListLayout {
         sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil,
         header: LayoutHeader? = nil,
         footer: LayoutFooter? = nil,
+        background: LayoutBackground? = nil,
         @ArrayBuilder<ListSectionWithStandardHeader>
         sectionsWithStandardHeader sections: () -> [ListSectionWithStandardHeader]
     ) {
@@ -24,6 +25,7 @@ public extension ListLayout {
             configuration: configuration,
             header: header,
             footer: footer,
+            background: background,
             sections: anySections
         )
         let behaviors = CollectionViewLayoutBehaviors(
@@ -39,7 +41,7 @@ public extension ListLayout {
 
 // MARK: - ListSection
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListSection where HeaderType == SectionIdentifier {
 
     init(
@@ -72,7 +74,7 @@ public extension ListSection where HeaderType == SectionIdentifier {
 }
 
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListSection where HeaderType == SectionIdentifier {
 
     init(

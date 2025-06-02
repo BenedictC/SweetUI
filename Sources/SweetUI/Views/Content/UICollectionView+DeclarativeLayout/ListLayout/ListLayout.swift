@@ -4,7 +4,7 @@ import UIKit
 
 // MARK: - ListLayout
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>: CollectionViewLayoutStrategy {
 
     let appearance: UICollectionLayoutListConfiguration.Appearance
@@ -25,6 +25,9 @@ public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>:
     }
 
     public func registerReusableViews(in collectionView: UICollectionView, layout: UICollectionViewLayout) {
+        if let background = self.components.background {
+            collectionView.backgroundView = background.view
+        }
         components.header?.registerReusableViews(in: collectionView)
         components.footer?.registerReusableViews(in: collectionView)
         for section in components.sections {
@@ -34,37 +37,48 @@ public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>:
     }
 
     public func makeLayout(dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionViewLayout {
-        var listConfiguration = UICollectionLayoutListConfiguration(appearance: appearance)
+        let initialListConfiguration = UICollectionLayoutListConfiguration(appearance: appearance)
+        let compositionalConfiguration = UICollectionViewCompositionalLayoutConfiguration()
+        // # Apply the user supplied configurations
+        var finalListConfiguration: UICollectionLayoutListConfiguration
+        if let configurationBuilder = components.configuration {
+            let (_, listConfig) = configurationBuilder.apply(
+                toCompositionalLayoutConfiguration: compositionalConfiguration,
+                listConfiguration: initialListConfiguration
+            )
+            finalListConfiguration = listConfig
+        } else {
+            finalListConfiguration = initialListConfiguration
+        }
+
+        // # Add configuration options that are specified else where
+        // ## Section header/footer
         let firstHeader = components.sections[0].header // Sections must all have the same Header type
         switch firstHeader {
         case .collapsable:
-            listConfiguration.headerMode = .firstItemInSection
+            finalListConfiguration.headerMode = .firstItemInSection
         case .standard:
-            listConfiguration.headerMode = .supplementary
+            finalListConfiguration.headerMode = .supplementary
         case .none:
             break
         }
         let hasFooter = components.sections.contains { $0.footer != nil }
         if hasFooter {
-            listConfiguration.footerMode = .supplementary
+            finalListConfiguration.footerMode = .supplementary
         }
-
-        let layoutConfiguration = UICollectionViewCompositionalLayoutConfiguration()
+        // ## Layout header/footer
         if let header = components.header {
             let headerItem = header.makeLayoutBoundarySupplementaryItem()
-            layoutConfiguration.boundarySupplementaryItems += [headerItem]
+            compositionalConfiguration.boundarySupplementaryItems += [headerItem]
         }
         if let footer = components.footer {
             let footerItem = footer.makeLayoutBoundarySupplementaryItem()
-            layoutConfiguration.boundarySupplementaryItems += [footerItem]
+            compositionalConfiguration.boundarySupplementaryItems += [footerItem]
         }
-        var configurationParameters: LayoutConfiguration.Parameters = listConfiguration
-        components.configuration?.builder(&configurationParameters)
-        // This is weird. If the builder changed the object entirely then the changes would be ignored
-        listConfiguration = (configurationParameters as? UICollectionLayoutListConfiguration) ?? listConfiguration
-        let layout = UICollectionViewCompositionalLayout.list(using: listConfiguration)
-        layout.configuration = layoutConfiguration
 
+        // # Configure the layout (finally!)
+        let layout = UICollectionViewCompositionalLayout.list(using: finalListConfiguration)
+        layout.configuration = compositionalConfiguration
         return layout
     }
 
@@ -94,21 +108,21 @@ public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>:
 
     public func makeSupplementaryView(ofKind elementKind: String, for collectionView: UICollectionView, at indexPath: IndexPath, dataSource: UICollectionViewDiffableDataSource<SectionIdentifier, ItemIdentifier>) -> UICollectionReusableView {
         // # Layout supplementary views
-        if  let header = components.header,
-            elementKind == header.elementKind {
-            let headerView = header.makeSupplementaryView(ofKind: elementKind, for: collectionView, indexPath: indexPath, value: ())
-            guard let headerView else {
-                preconditionFailure("Failed to create header")
-            }
-            return headerView
+        if let header = components.header,
+           elementKind == header.elementKind {
+           let headerView = header.makeSupplementaryView(ofKind: elementKind, for: collectionView, indexPath: indexPath, value: ())
+           guard let headerView else {
+               preconditionFailure("Failed to create header")
+           }
+           return headerView
         }
-        if  let footer = components.footer,
-            elementKind == footer.elementKind {
-            let footerView = footer.makeSupplementaryView(ofKind: elementKind, for: collectionView, indexPath: indexPath, value: ())
-            guard let footerView else {
-                preconditionFailure("Failed to create footer")
-            }
-            return footerView
+        if let footer = components.footer,
+           elementKind == footer.elementKind {
+           let footerView = footer.makeSupplementaryView(ofKind: elementKind, for: collectionView, indexPath: indexPath, value: ())
+           guard let footerView else {
+               preconditionFailure("Failed to create footer")
+           }
+           return footerView
         }
 
         // # Section supplementary views
@@ -132,48 +146,89 @@ public struct ListLayout<SectionIdentifier: Hashable, ItemIdentifier: Hashable>:
 
 // MARK: - ListLayoutComponents
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public struct ListLayoutComponents<SectionIdentifier: Hashable, ItemIdentifier: Hashable> {
 
     let configuration: LayoutConfiguration?
     let header: LayoutHeader?
     let footer: LayoutFooter?
-    let sections: [AnyListSection<SectionIdentifier, ItemIdentifier>]    
+    let background: LayoutBackground?
+    let sections: [AnyListSection<SectionIdentifier, ItemIdentifier>]
 }
 
 
 // MARK: - LayoutConfiguration
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public struct LayoutConfiguration {
 
-    // Only UICollectionLayoutListConfiguration needs to conform.
-    // This protocol is used to restrict which properties can be modified so that the layout can't be broken.
-    public protocol Parameters {
-        var showsSeparators: Bool { get set }
-        @available(iOS 14.5, *)
-        var separatorConfiguration: UIListSeparatorConfiguration { get set }
-        @available(iOS 14.5, *)
-        var itemSeparatorHandler: UICollectionLayoutListConfiguration.ItemSeparatorHandler?  { get set }
-        var backgroundColor: UIColor? { get set }
-        var leadingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
-        var trailingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider? { get set }
-        @available(iOS 15, *)
-        var headerTopPadding: CGFloat? { get set }
+    public struct Configuration {
+
+        // UICollectionLayoutListConfiguration
+        public var showsSeparators: Bool
+        public var separatorConfiguration: UIListSeparatorConfiguration
+        public var itemSeparatorHandler: UICollectionLayoutListConfiguration.ItemSeparatorHandler?
+        public var backgroundColor: UIColor?
+        public var leadingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider?
+        public var trailingSwipeActionsConfigurationProvider: UICollectionLayoutListConfiguration.SwipeActionsConfigurationProvider?
+        public var headerTopPadding: CGFloat?
+
+        // UICollectionViewCompositionalLayoutConfiguration
+        public var scrollDirection: UICollectionView.ScrollDirection
+        public var interSectionSpacing: CGFloat
+        public var contentInsetsReference: UIContentInsetsReference
+        public var boundarySupplementaryItems: [NSCollectionLayoutBoundarySupplementaryItem]
     }
 
 
-    let builder: (inout Parameters) -> Void
+    private let builder: (inout Configuration) -> Void
 
-
-    public init(builder: @escaping (inout Parameters) -> Void) {
+    public init(builder: @escaping (inout Configuration) -> Void) {
         self.builder = builder
     }
+
+    func apply(
+        toCompositionalLayoutConfiguration compositional: UICollectionViewCompositionalLayoutConfiguration,
+        listConfiguration list: UICollectionLayoutListConfiguration
+    ) -> (compositional: UICollectionViewCompositionalLayoutConfiguration, list: UICollectionLayoutListConfiguration) {
+        // Collate the default configuration
+        var configuration = Configuration(
+            // UICollectionLayoutListConfiguration
+            showsSeparators: list.showsSeparators,
+            separatorConfiguration: list.separatorConfiguration,
+            itemSeparatorHandler: list.itemSeparatorHandler,
+            backgroundColor: list.backgroundColor,
+            leadingSwipeActionsConfigurationProvider: list.leadingSwipeActionsConfigurationProvider,
+            trailingSwipeActionsConfigurationProvider: list.trailingSwipeActionsConfigurationProvider,
+            headerTopPadding: list.headerTopPadding,
+
+            // UICollectionViewCompositionalLayoutConfiguration
+            scrollDirection: compositional.scrollDirection,
+            interSectionSpacing: compositional.interSectionSpacing,
+            contentInsetsReference: compositional.contentInsetsReference,
+            boundarySupplementaryItems: compositional.boundarySupplementaryItems
+        )
+        // Apply the updates to the building
+        builder(&configuration)
+
+        // Write the updates back to the results
+        var newList = UICollectionLayoutListConfiguration(appearance: list.appearance)
+        newList.showsSeparators = configuration.showsSeparators
+        newList.separatorConfiguration = configuration.separatorConfiguration
+        newList.itemSeparatorHandler = configuration.itemSeparatorHandler
+        newList.backgroundColor = configuration.backgroundColor
+        newList.leadingSwipeActionsConfigurationProvider = configuration.leadingSwipeActionsConfigurationProvider
+        newList.trailingSwipeActionsConfigurationProvider = configuration.trailingSwipeActionsConfigurationProvider
+        newList.headerTopPadding = configuration.headerTopPadding
+        // UICollectionViewCompositionalLayoutConfiguration
+        compositional.scrollDirection = configuration.scrollDirection
+        compositional.interSectionSpacing = configuration.interSectionSpacing
+        compositional.contentInsetsReference = configuration.contentInsetsReference
+        compositional.boundarySupplementaryItems = configuration.boundarySupplementaryItems
+
+        return (compositional, newList)
+    }
 }
-
-
-@available(iOS 14, *)
-extension UICollectionLayoutListConfiguration: LayoutConfiguration.Parameters { }
 
 
 // MARK: - AnyListSection

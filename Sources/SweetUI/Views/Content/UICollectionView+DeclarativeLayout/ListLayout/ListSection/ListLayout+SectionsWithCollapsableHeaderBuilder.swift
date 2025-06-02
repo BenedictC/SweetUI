@@ -3,7 +3,7 @@ import UIKit
 
 // MARK: - Layout
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListLayout {
 
     typealias ListSectionWithCollapsableHeader = ListSection<SectionIdentifier, ItemIdentifier, ItemIdentifier>
@@ -16,6 +16,7 @@ public extension ListLayout {
         sectionSnapshotHandlers: DiffableDataSource.SectionSnapshotHandlers<ItemIdentifier>? = nil,
         header: LayoutHeader? = nil,
         footer: LayoutFooter? = nil,
+        background: LayoutBackground? = nil,
         @ArrayBuilder<ListSectionWithCollapsableHeader>
         sectionsWithCollapsableHeader sections: () -> [ListSectionWithCollapsableHeader]
     ) {
@@ -23,6 +24,7 @@ public extension ListLayout {
             configuration: configuration,
             header: header,
             footer: footer,
+            background: background,
             sections: sections().map { $0.eraseToAnyListSection() }
         )
         let behaviors = CollectionViewLayoutBehaviors(
@@ -38,7 +40,7 @@ public extension ListLayout {
 
 // MARK: - ListSection
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListSection where HeaderType == ItemIdentifier {
 
     init(
@@ -71,7 +73,7 @@ public extension ListSection where HeaderType == ItemIdentifier {
 }
 
 
-@available(iOS 14, *)
+@available(iOS 15, *)
 public extension ListSection where HeaderType == ItemIdentifier {
 
     init(
