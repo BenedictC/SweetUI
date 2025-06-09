@@ -25,6 +25,7 @@ public final class CollectionViewSnapshotCoordinator<SectionIdentifier: Hashable
 
     @Published
     public private(set) var snapshot: Snapshot
+    public private(set) var pendingSnapshot: Snapshot?
     private weak var collectionView: UICollectionView?
     private var dataSource: DataSource?
 
@@ -111,6 +112,7 @@ public extension CollectionViewSnapshotCoordinator {
         enqueue { dataSource, continuation in
             // Create completion handle
             let dataSourceCompletion = { () -> Void in
+                self.pendingSnapshot = nil
                 let updatedSnapshot = dataSource.snapshot()
                 self.snapshot = updatedSnapshot
                 // Send the new value to the complete before updating the subject so that both values will be available to completion()
@@ -127,6 +129,7 @@ public extension CollectionViewSnapshotCoordinator {
             }
 
             // Apply changes
+            self.pendingSnapshot = fresh
             switch updateMode {
             case .animated:
                 dataSource.apply(fresh, animatingDifferences: true, completion: dataSourceCompletion)
