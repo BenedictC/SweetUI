@@ -65,3 +65,12 @@ public extension UIControl {
         return self
     }
 }
+
+
+
+public extension UIControl {
+
+    func disabled(_ value: Bool) -> Self {
+        self.enabled(!value)
+    }
+}

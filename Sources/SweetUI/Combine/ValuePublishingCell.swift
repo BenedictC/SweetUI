@@ -1,6 +1,8 @@
+import Combine
+
 
 // MARK: - ValuePublishingCell
-
+@available(*, deprecated)
 internal final class ValuePublishingCell<Value>: UICollectionViewCell, ReusableViewConfigurable, CancellableStorageProvider {
 
     // MARK: Properties

@@ -1,11 +1,3 @@
-//
-//  CollectionViewDiffableDataSource.swift
-//  SweetUI
-//
-//  Created by Benedict Cohen on 19/03/2025.
-//
-
-
 public typealias CollectionViewDiffableDataSourceIndexElement = (title: String, indexPath: IndexPath)
 
 

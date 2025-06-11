@@ -1,18 +1,16 @@
 import UIKit
+import Combine
 
-
-// MARK: - Replace contents of cell.content
 
 public extension CompositeCell {
 
-    static func withContent<Content: UIView>(
+    static func withContent(
         size: NSCollectionLayoutSize? = nil,
         edgeSpacing: NSCollectionLayoutEdgeSpacing? = nil,
         contentInsets: NSDirectionalEdgeInsets? = nil,
-        dropsDuplicateValues: Bool = true,
-        content contentBuilder: @escaping (_ cell: UICollectionViewCell, _ existing: Content?, _ value: ItemIdentifier) -> Content
+        body bodyProvider: @escaping (UICollectionViewCell, any CurrentValuePublisher<ItemIdentifier, Never>) -> UIView
     ) -> CompositeCell {
-        typealias CellType = ContentCell<Content>
+        typealias CellType = ValuePublishingCell<ItemIdentifier>
         let reuseIdentifier = UniqueIdentifier("\(CellType.self)").value
         return CompositeCell(
             cellRegistrar: { collectionView in
@@ -20,9 +18,8 @@ public extension CompositeCell {
             },
             cellProvider: { collectionView, indexPath, value in
                 let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! CellType
-                cell.replaceContent { cell, content in
-                    contentBuilder(cell, content, value)
-                }
+                cell.initialize(bodyProvider: bodyProvider)
+                cell.configure(withValue: value)
                 return cell
             },
             layoutGroupItemProvider: Self.makeLayoutGroupItemProvider(size: size, edgeSpacing: edgeSpacing, contentInsets: contentInsets)

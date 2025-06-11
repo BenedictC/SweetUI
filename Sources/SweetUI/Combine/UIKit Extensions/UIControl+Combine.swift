@@ -36,3 +36,10 @@ private class ActionTarget: NSObject {
         handler(event)
     }
 }
+
+public extension SomeView where Self: UIControl {
+
+    func disabled(_ publisher: some Publisher<Bool, Never>) -> Self {
+        return enabled(publisher.inverted)
+    }
+}

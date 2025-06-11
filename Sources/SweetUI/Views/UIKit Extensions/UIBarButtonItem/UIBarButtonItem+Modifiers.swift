@@ -25,17 +25,6 @@ public extension UIBarButtonItem {
         width = value
         return self
     }
-    
-    func width(_ publisher: some Publisher<CGFloat, Never>) -> Self {
-        // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
-        // So we have to do it the long way:
-        publisher.sink { [weak self] value in
-            self?.width = value
-        }
-        .store(in: .current)
-        return self
-    }
 }
 
 
@@ -48,17 +37,6 @@ public extension UIBarButtonItem {
         image = menu?.image
         return self
     }
-    
-    func menu(_ publisher: some Publisher<UIMenu?, Never>) -> Self {
-        // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
-        // So we have to do it the long way:
-        publisher.sink { [weak self] value in
-            _ = self?.menu(value)
-        }
-        .store(in: .current)
-        return self
-    }
 }
 
 
@@ -67,17 +45,6 @@ public extension UIBarButtonItem {
     
     func selected(_ value: Bool) -> Self {
         isSelected = value
-        return self
-    }
-    
-    func selected(_ publisher: some Publisher<Bool, Never>) -> Self {
-        // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
-        // So we have to do it the long way:
-        publisher.sink { [weak self] value in
-            self?.isSelected = value
-        }
-        .store(in: .current)        
         return self
     }
 }
@@ -89,16 +56,5 @@ public extension UIBarButtonItem {
     func hidden(_ value: Bool) -> Self {
         isHidden = value
         return self
-    }
-    
-    func hidden(_ publisher: some Publisher<Bool, Never>) -> Self {
-        // HACK ALERT! This causes a runtime crash due to a compiler bug related to the keyPath:
-        // assign(to: \.isHidden, from: publisher, cancellableStorageProvider: cancellableStorageProvider)
-        // So we have to do it the long way:
-        publisher.sink { [weak self] value in
-            self?.isHidden = value
-        }
-        .store(in: .current)        
-        return self
-    }
+    }    
 }

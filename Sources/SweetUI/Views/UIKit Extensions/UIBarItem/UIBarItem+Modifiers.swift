@@ -1,5 +1,4 @@
 import UIKit
-import Combine
 
 
 // MARK: SomeObject
@@ -34,6 +33,27 @@ public extension UIBarItem {
 
     func largeContentSizeImageInsets(_ value: UIEdgeInsets) -> Self {
         largeContentSizeImageInsets = value
+        return self
+    }
+}
+
+
+// MARK: Properties
+
+public extension UIBarItem {
+
+    func enabled(_ value: Bool) -> Self {
+        isEnabled = value
+        return self
+    }
+
+    func enabled(_ value: String?) -> Self {
+        title = value
+        return self
+    }
+
+    func image(_ value: UIImage?) -> Self {
+        image = value
         return self
     }
 }
