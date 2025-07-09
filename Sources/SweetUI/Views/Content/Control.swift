@@ -21,19 +21,19 @@ open class _Control: UIControl, TraitCollectionChangesProvider {
     private lazy var traitCollectionChangesController = TraitCollectionChangesController(initialTraitCollection: traitCollection)
     fileprivate lazy var defaultCancellableStorage = CancellableStorage()
 
-    override public var isEnabled: Bool {
+    override open var isEnabled: Bool {
         get { super.isEnabled }
         set { super.isEnabled = newValue; notifyOfStateChange() }
     }
-    override public var isSelected: Bool {
+    override open var isSelected: Bool {
         get { super.isSelected }
         set { super.isSelected = newValue; notifyOfStateChange() }
     }
-    override public var isHighlighted: Bool {
+    override open var isHighlighted: Bool {
         get { super.isHighlighted }
         set { super.isHighlighted = newValue; notifyOfStateChange() }
     }
-    override public var isHidden: Bool {
+    override open var isHidden: Bool {
         get { super.isHidden }
         set { super.isHidden = newValue; notifyOfStateChange() }
     }
