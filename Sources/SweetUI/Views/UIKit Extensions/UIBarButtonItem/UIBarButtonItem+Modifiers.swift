@@ -19,9 +19,24 @@ import UIKit
 
 
 public extension UIBarButtonItem {
-    
+
     func width(_ value: CGFloat) -> Self {
         width = value
+        return self
+    }
+
+    func style(_ value: UIBarButtonItem.Style) -> Self {
+        style = value
+        return self
+    }
+
+    func tintColor(_ value: UIColor?) -> Self {
+        tintColor = value
+        return self
+    }
+
+    func possibleTitles(_ value: Set<String>?) -> Self {
+        possibleTitles = value
         return self
     }
 }
